@@ -70,6 +70,24 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       beta_schedule=args.beta_schedule,
                       n_timesteps=args.T,
                       lr=args.lr)
+    elif args.algo == 'dac':
+        from agents.ac_diffusion import Diffusion_AC as Agent
+        agent = Agent(state_dim=state_dim,                  
+                      action_dim=action_dim,
+                      max_action=max_action,
+                      device=device,
+                      discount=args.discount,
+                      tau=args.tau,
+                      max_q_backup=args.max_q_backup,
+                      beta_schedule=args.beta_schedule,
+                      n_timesteps=args.T,
+                      eta=args.eta,
+                      lr=args.lr,
+                      lr_decay=args.lr_decay,
+                      lr_maxt=args.num_epochs,
+                      grad_norm=args.gn)
+    else: 
+        raise NotImplementedError
 
     early_stop = False
     stop_check = utils.EarlyStopping(tolerance=1, min_delta=0.)
