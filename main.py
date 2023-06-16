@@ -7,17 +7,18 @@ import numpy as np
 import os
 import torch
 import json
-
+import time
 import d4rl
 from utils import utils
 from utils.data_sampler import Data_Sampler
 from dreamfuser.logger import logger as logger_zhiao
 from dreamfuser.configs import load_config
 from utils.logger import logger, setup_logger
+from dataclasses import dataclass, field
 from torch.utils.tensorboard import SummaryWriter
 
 hyperparameters = {
-    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 0.5,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 9.0,  'top_k': 1},
+    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 9.0,  'top_k': 1},
     'hopper-medium-v2':              {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 9.0,  'top_k': 2},
     'walker2d-medium-v2':            {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 1.0,  'top_k': 1},
     'halfcheetah-medium-replay-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 2.0,  'top_k': 0},
@@ -38,6 +39,33 @@ hyperparameters = {
     'kitchen-partial-v0':            {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 2},
     'kitchen-mixed-v0':              {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 0},
 }
+
+@dataclass
+class Config:
+    # experiment
+    exp: str = 'exp_1'
+    device: int = 0
+    env_name: str = 'halfcheetah-medium-v2'
+    dir: str = 'results'
+    seed: int = 0
+    num_steps_per_epoch: int = 100
+    format: list = field(default_factory=lambda: ['stdout', 'wandb', 'csv'])
+    # optimization
+    batch_size: int = 256
+    lr_decay: bool = False
+    early_stop: bool = False
+    save_best_model: bool = False
+    # rl parameters
+    discount: float = 0.99
+    tau: float = 0.005
+    # diffusion
+    T: int = 5
+    beta_schedule: str = 'vp'
+    # algo
+    algo: str = 'dac'
+    ms: str = 'offline'
+    coef: float = 0.2
+    eta: float = 1.0
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
     # Load buffer
@@ -87,7 +115,8 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       lr=args.lr,
                       lr_decay=args.lr_decay,
                       lr_maxt=args.num_epochs,
-                      grad_norm=args.gn)
+                      grad_norm=args.gn,
+                      MSBE_coef=args.coef)
     else: 
         raise NotImplementedError
 
@@ -207,41 +236,44 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    ### Experimental Setups ###
-    parser.add_argument("--exp", default='exp_1', type=str)                    # Experiment ID
-    parser.add_argument('--device', default=0, type=int)                       # device, {"cpu", "cuda", "cuda:0", "cuda:1"}, etc
-    parser.add_argument("--env_name", default="walker2d-medium-expert-v2", type=str)  # OpenAI gym environment name
-    parser.add_argument("--dir", default="results", type=str)                    # Logging directory
-    parser.add_argument("--seed", default=0, type=int)                         # Sets Gym, PyTorch and Numpy seeds
-    parser.add_argument("--num_steps_per_epoch", default=1000, type=int)
+    # parser = argparse.ArgumentParser()
+    # ### Experimental Setups ###
+    # parser.add_argument("--exp", default='exp_1', type=str)                    # Experiment ID
+    # parser.add_argument('--device', default=0, type=int)                       # device, {"cpu", "cuda", "cuda:0", "cuda:1"}, etc
+    # parser.add_argument("--env_name", default="walker2d-medium-expert-v2", type=str)  # OpenAI gym environment name
+    # parser.add_argument("--dir", default="results", type=str)                    # Logging directory
+    # parser.add_argument("--seed", default=0, type=int)                         # Sets Gym, PyTorch and Numpy seeds
+    # parser.add_argument("--num_steps_per_epoch", default=1000, type=int)
 
-    ### Optimization Setups ###
-    parser.add_argument("--batch_size", default=256, type=int)
-    parser.add_argument("--lr_decay", action='store_true')
-    parser.add_argument('--early_stop', action='store_true')
-    parser.add_argument('--save_best_model', action='store_true')
+    # ### Optimization Setups ###
+    # parser.add_argument("--batch_size", default=256, type=int)
+    # parser.add_argument("--lr_decay", action='store_true')
+    # parser.add_argument('--early_stop', action='store_true')
+    # parser.add_argument('--save_best_model', action='store_true')
 
-    ### RL Parameters ###
-    parser.add_argument("--discount", default=0.99, type=float)
-    parser.add_argument("--tau", default=0.005, type=float)
+    # ### RL Parameters ###
+    # parser.add_argument("--discount", default=0.99, type=float)
+    # parser.add_argument("--tau", default=0.005, type=float)
 
-    ### Diffusion Setting ###
-    parser.add_argument("--T", default=5, type=int)
-    parser.add_argument("--beta_schedule", default='vp', type=str)
-    ### Algo Choice ###
-    parser.add_argument("--algo", default="ql", type=str)  # ['bc', 'ql']
-    parser.add_argument("--ms", default='offline', type=str, help="['online', 'offline']")
-    parser.add_argument("--format", default=["stdout", "csv", "wandb"], type=list, help="format to log")
-    # parser.add_argument("--top_k", default=1, type=int)
+    # ### Diffusion Setting ###
+    # parser.add_argument("--T", default=5, type=int)
+    # parser.add_argument("--beta_schedule", default='vp', type=str)
+    # ### Algo Choice ###
+    # parser.add_argument("--algo", default="ql", type=str)  # ['bc', 'ql']
+    # parser.add_argument("--ms", default='offline', type=str, help="['online', 'offline']")
+    # parser.add_argument("--format", default=["stdout", "csv", "wandb"], type=list, help="format to log")
+    # parser.add_argument("--coef", default=0.2, type=float)
+    # # parser.add_argument("--top_k", default=1, type=int)
 
-    # parser.add_argument("--lr", default=3e-4, type=float)
+    # # parser.add_argument("--lr", default=3e-4, type=float)
     # parser.add_argument("--eta", default=1.0, type=float)
-    # parser.add_argument("--max_q_backup", action='store_true')
-    # parser.add_argument("--reward_tune", default='no', type=str)
-    # parser.add_argument("--gn", default=-1.0, type=float)
+    # # parser.add_argument("--max_q_backup", action='store_true')
+    # # parser.add_argument("--reward_tune", default='no', type=str)
+    # # parser.add_argument("--gn", default=-1.0, type=float)
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
+    
+    args = load_config(Config)
     
     logger_zhiao.configure(
             "logs",
@@ -249,6 +281,7 @@ if __name__ == "__main__":
             config=args,
             project="dream-ac",
             name=f"{args.env_name}-{args.algo}-{args.ms}",
+            id = f"{args.env_name}-{args.algo}-{args.ms}-{time.time()}",
         )  # type: ignore
     
     args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
@@ -259,7 +292,7 @@ if __name__ == "__main__":
     args.eval_episodes = 10 if 'v2' in args.env_name else 100
 
     args.lr = hyperparameters[args.env_name]['lr']
-    args.eta = hyperparameters[args.env_name]['eta']
+    args.eta = hyperparameters[args.env_name]['eta'] if args.eta == 1.0 else args.eta
     args.max_q_backup = hyperparameters[args.env_name]['max_q_backup']
     args.reward_tune = hyperparameters[args.env_name]['reward_tune']
     args.gn = hyperparameters[args.env_name]['gn']
@@ -280,6 +313,7 @@ if __name__ == "__main__":
     # if os.path.exists(os.path.join(results_dir, 'variant.json')):
     #     raise AssertionError("Experiment under this setting has been done!")
     variant = vars(args)
+
     variant.update(version=f"Diffusion-Policies-RL")
 
     env = gym.make(args.env_name)
@@ -295,7 +329,7 @@ if __name__ == "__main__":
     variant.update(state_dim=state_dim)
     variant.update(action_dim=action_dim)
     variant.update(max_action=max_action)
-    setup_logger(os.path.basename(results_dir), variant=variant, log_dir=results_dir)
+    # setup_logger(os.path.basename(results_dir), variant=variant, log_dir=results_dir)
     utils.print_banner(f"Env: {args.env_name}, state_dim: {state_dim}, action_dim: {action_dim}")
 
     train_agent(env,
