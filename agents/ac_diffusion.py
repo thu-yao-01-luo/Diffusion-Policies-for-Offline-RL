@@ -90,6 +90,7 @@ class Diffusion_AC(object):
                  lr_decay=False,
                  lr_maxt=1000,
                  grad_norm=1.0,
+                 MSBE_coef=0.2,
                  ):
 
         self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
@@ -100,6 +101,7 @@ class Diffusion_AC(object):
 
         self.lr_decay = lr_decay
         self.grad_norm = grad_norm
+        self.MSBE_coef = MSBE_coef
 
         self.step = 0
         self.step_start_ema = step_start_ema
@@ -139,43 +141,44 @@ class Diffusion_AC(object):
             state, action, next_state, reward, not_done = replay_buffer.sample(batch_size)
             total_t = torch.tensor(self.actor.n_timesteps, dtype=torch.long, device=self.device)
 
-            """ noisy action """
+            """ 
+            noisy action 
+            tricky part: t = 0 does not mean that the action is noise free! 
+            it is the first noised action actually! so we need to shift the time by 1.
+            so Q(s, a^t, t+1) actually means $Q(s, a^t, t)$ and Q(s, a, 0) is the noise free action Q function.
+            Q(s, a^0, 1) and Q(s, a, 0) are different! or a = a^{-1}, below we use a^{-1} to denote the noise free action.
+            and use $Q(s, a^t, t+1)$ pattern
+            """
             t = torch.randint(0, self.actor.n_timesteps, (batch_size,), device=self.device).long()
             noise = torch.randn_like(action)
             noisy_action = self.actor.q_sample(action, t, noise)
 
             """ Q Training """
-            current_q1, current_q2 = self.critic(state, noisy_action, t)
-            
-            mask = (t == 0)
-            target_q = torch.zeros(batch_size, 1, device=self.device) # b, 1
-            mask_state, mask_action, mask_next_state, mask_reward, mask_not_done = state[mask], noisy_action[mask], next_state[mask], reward[mask], not_done[mask]
-            non_mask_state, non_mask_action, non_mask_next_state = state[~mask], noisy_action[~mask], next_state[~mask]
+            # consistency loss
+            current_q1, current_q2 = self.critic(state, noisy_action, t+1) # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
+            denoised_noisy_action = self.ema_model.p_sample(noisy_action, t, state) # a^{t-1}, a = a^{-1}
+            target_q1, target_q2 = self.critic_target(state, denoised_noisy_action, t) # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
+            target_q = torch.min(target_q1, target_q2) # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
+            consistency_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
+            # MSBE loss
             if self.max_q_backup:
-                Warning("max_q_backup is not implemented")
-                next_state_rpt = torch.repeat_interleave(mask_next_state, repeats=10, dim=0)
+                next_state_rpt = torch.repeat_interleave(next_state, repeats=10, dim=0)
                 # next_action_rpt = self.ema_model(next_state_rpt)
-                next_action_rpt = torch.randn(next_state_rpt.shape[0], self.action_dim, device=self.device)
-                target_q1, target_q2 = self.critic_target(next_state_rpt, next_action_rpt, total_t.expand(mask_next_state.shape[0]))
+                next_action_rpt = torch.randn(next_state_rpt.shape[0], self.action_dim, device=self.device) # random noise
+                target_q1, target_q2 = self.critic_target(next_state_rpt, next_action_rpt, total_t.expand(next_state_rpt.shape[0])) 
                 target_q1 = target_q1.view(batch_size, 10).max(dim=1, keepdim=True)[0]
                 target_q2 = target_q2.view(batch_size, 10).max(dim=1, keepdim=True)[0]
-                target_q_min = torch.min(target_q1, target_q2) # m, 1
+                target_q = torch.min(target_q1, target_q2)
             else:
                 # next_action = self.ema_model(next_state)
-                next_action = torch.randn_like(mask_action)
-                target_q1, target_q2 = self.critic_target(mask_next_state, next_action, total_t.expand(mask_action.shape[0]))
-                target_q_min = torch.min(target_q1, target_q2) # m, 1
+                next_action = torch.randn_like(action) # random noise
+                target_q1, target_q2 = self.critic_target(next_state, next_action, total_t.expand(next_state.shape[0]))
+                target_q = torch.min(target_q1, target_q2)
+            target_q = (reward + not_done * self.discount * target_q).detach()
+            current_q1, current_q2 = self.critic(state, action, torch.zeros_like(t))
+            MSBE_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
 
-            target_q_mask = (mask_reward + mask_not_done * self.discount * target_q_min).detach()
- 
-            denoised_noisy_action = self.ema_model.p_sample(non_mask_action, t[~mask], non_mask_state)
-            target_q1, target_q2 = self.critic_target(non_mask_next_state, denoised_noisy_action, t[~mask] - 1)
-            target_q_non_mask = torch.min(target_q1, target_q2) # b-m, 1
-
-            target_q[mask] = target_q_mask
-            target_q[~mask] = target_q_non_mask
-
-            critic_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
+            critic_loss = consistency_loss + self.MSBE_coef * MSBE_loss
 
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
@@ -186,7 +189,6 @@ class Diffusion_AC(object):
             """ Policy Training """
             bc_loss = self.actor.p_losses(action, state, t)
             new_action = self.actor.p_sample(noisy_action, t, state) 
-            new_action[t==0] = torch.randn_like(new_action[t==0]) # transition to next timestep 
 
             q1_new_action, q2_new_action = self.critic(state, new_action, t)
             if np.random.uniform() > 0.5:
