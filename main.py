@@ -11,6 +11,8 @@ import json
 import d4rl
 from utils import utils
 from utils.data_sampler import Data_Sampler
+from dreamfuser.logger import logger as logger_zhiao
+from dreamfuser.configs import load_config
 from utils.logger import logger, setup_logger
 from torch.utils.tensorboard import SummaryWriter
 
@@ -119,6 +121,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
         # Evaluation
         eval_res, eval_res_std, eval_norm_res, eval_norm_res_std = eval_policy(agent, args.env_name, args.seed,
                                                                                eval_episodes=args.eval_episodes)
+        logger_zhiao.logkvs_mean_std({'eval_reward': eval_res, 'eval_nreward': eval_norm_res, 'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std}, prefix='eval')
         evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
                             np.mean(loss_metric['bc_loss']), np.mean(loss_metric['ql_loss']),
                             np.mean(loss_metric['actor_loss']), np.mean(loss_metric['critic_loss']),
@@ -217,6 +220,7 @@ if __name__ == "__main__":
     ### Algo Choice ###
     parser.add_argument("--algo", default="ql", type=str)  # ['bc', 'ql']
     parser.add_argument("--ms", default='offline', type=str, help="['online', 'offline']")
+    parser.add_argument("--format", default=["stdout", "csv", "wandb"], type=list, help="format to log")
     # parser.add_argument("--top_k", default=1, type=int)
 
     # parser.add_argument("--lr", default=3e-4, type=float)
@@ -226,6 +230,15 @@ if __name__ == "__main__":
     # parser.add_argument("--gn", default=-1.0, type=float)
 
     args = parser.parse_args()
+    
+    logger_zhiao.configure(
+            "logs",
+            format_strs=args.format,
+            config=args,
+            project="dream-ac",
+            name=f"{args.env_name}-{args.algo}-{args.ms}",
+        )  # type: ignore
+    
     args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
     args.output_dir = f'{args.dir}'
 

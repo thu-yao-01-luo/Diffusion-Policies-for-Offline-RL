@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from utils.logger import logger
+from dreamfuser.logger import logger as logger_zhiao
 
 from agents.diffusion import Diffusion
 from agents.model import MLP
@@ -228,6 +229,11 @@ class Diffusion_AC(object):
             metric['ql_loss'].append(q_loss.item())
             metric['critic_loss'].append(critic_loss.item())
 
+            logger_zhiao.logkv_mean_std('Actor Loss', actor_loss.item())
+            logger_zhiao.logkv_mean_std('BC Loss', bc_loss.item())
+            logger_zhiao.logkv_mean_std('QL Loss', q_loss.item())
+            logger_zhiao.logkv_mean_std('Critic Loss', critic_loss.item())
+
             if self.lr_decay: 
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
@@ -244,7 +250,7 @@ class Diffusion_AC(object):
         with torch.no_grad():
             action = self.actor.sample(state_rpt)
             q_value = self.critic_target.q_min(state_rpt, action, torch.zeros(action.shape[0], device=self.device).long()).flatten()
-            idx = torch.multinomial(F.softmax(q_value), 1)
+            idx = torch.multinomial(F.softmax(q_value, dim=-1), 1)
         return action[idx].cpu().data.numpy().flatten()
 
     def save_model(self, dir, id=None):
@@ -262,4 +268,3 @@ class Diffusion_AC(object):
         else:
             self.actor.load_state_dict(torch.load(f'{dir}/actor.pth'))
             self.critic.load_state_dict(torch.load(f'{dir}/critic.pth'))
-
