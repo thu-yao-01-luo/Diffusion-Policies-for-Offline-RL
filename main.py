@@ -17,7 +17,7 @@ from utils.logger import logger, setup_logger
 from torch.utils.tensorboard import SummaryWriter
 
 hyperparameters = {
-    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 9.0,  'top_k': 1},
+    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 0.5,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 9.0,  'top_k': 1},
     'hopper-medium-v2':              {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 9.0,  'top_k': 2},
     'walker2d-medium-v2':            {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 1.0,  'top_k': 1},
     'halfcheetah-medium-replay-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 2.0,  'top_k': 0},
@@ -121,7 +121,8 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
         # Evaluation
         eval_res, eval_res_std, eval_norm_res, eval_norm_res_std = eval_policy(agent, args.env_name, args.seed,
                                                                                eval_episodes=args.eval_episodes)
-        logger_zhiao.logkvs_mean_std({'eval_reward': eval_res, 'eval_nreward': eval_norm_res, 'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std}, prefix='eval')
+        logger_zhiao.logkvs_mean_std({'eval_reward': eval_res, 'eval_nreward': eval_norm_res, 'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
+        logger_zhiao.dumpkvs()
         evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
                             np.mean(loss_metric['bc_loss']), np.mean(loss_metric['ql_loss']),
                             np.mean(loss_metric['actor_loss']), np.mean(loss_metric['critic_loss']),
@@ -191,6 +192,17 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
     std_norm_score = np.std(normalized_scores)
 
     utils.print_banner(f"Evaluation over {eval_episodes} episodes: {avg_reward:.2f} {avg_norm_score:.2f}")
+
+    state, done = eval_env.reset(), False
+    ims = []
+    while not done:
+        action = policy.sample_action(np.array(state))
+        state, reward, done, _ = eval_env.step(action)
+        traj_return += reward
+        ims.append(eval_env.render(mode='rgb_array'))
+    logger_zhiao.animate(ims, f'{args.env_name}_{args.algo}_{args.T}.mp4')
+    scores.append(traj_return)
+
     return avg_reward, std_reward, avg_norm_score, std_norm_score
 
 
