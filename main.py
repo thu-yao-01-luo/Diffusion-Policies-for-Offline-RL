@@ -46,17 +46,18 @@ class Config:
     exp: str = 'exp_1'
     device: int = 0
     env_name: str = 'halfcheetah-medium-v2'
-    dir: str = 'results'
+    dir: str = 'results'    
     seed: int = 0
     num_steps_per_epoch: int = 100
     format: list = field(default_factory=lambda: ['stdout', 'wandb', 'csv'])
     # optimization
     batch_size: int = 256
-    lr_decay: bool = False
+    lr_decay: bool = True
     early_stop: bool = False
     save_best_model: bool = False
     # rl parameters
     discount: float = 0.99
+    discount2: float = 0.999
     tau: float = 0.005
     # diffusion
     T: int = 5
@@ -66,6 +67,7 @@ class Config:
     ms: str = 'offline'
     coef: float = 0.2
     eta: float = 1.0
+    
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
     # Load buffer
@@ -116,7 +118,9 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       lr_decay=args.lr_decay,
                       lr_maxt=args.num_epochs,
                       grad_norm=args.gn,
-                      MSBE_coef=args.coef)
+                      MSBE_coef=args.coef,
+                      discount2=args.discount2,
+                      )
     else: 
         raise NotImplementedError
 
@@ -274,14 +278,13 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     
     args = load_config(Config)
-    
     logger_zhiao.configure(
             "logs",
             format_strs=args.format,
             config=args,
-            project="dream-ac",
-            name=f"{args.env_name}-{args.algo}-{args.ms}",
-            id = f"{args.env_name}-{args.algo}-{args.ms}-{time.time()}",
+            project="dream-ac-fix",
+            name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}",
+            id = f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}",
         )  # type: ignore
     
     args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"

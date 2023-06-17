@@ -1,7 +1,6 @@
 # Copyright 2022 Twitter, Inc and Zhendong Wang.
 # SPDX-License-Identifier: Apache-2.0
 import copy
-import torchviz
 import numpy as np
 import torch
 import torch.nn as nn
@@ -92,6 +91,7 @@ class Diffusion_AC(object):
                  lr_maxt=1000,
                  grad_norm=1.0,
                  MSBE_coef=0.05,
+                 discount2=0.99
                  ):
 
         self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
@@ -122,6 +122,7 @@ class Diffusion_AC(object):
         self.max_action = max_action
         self.action_dim = action_dim
         self.discount = discount
+        self.discount2 = discount
         self.tau = tau
         self.eta = eta  # q_learning weight
         self.device = device
@@ -159,7 +160,7 @@ class Diffusion_AC(object):
             current_q1, current_q2 = self.critic(state, noisy_action, t+1) # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
             denoised_noisy_action = self.ema_model.p_sample(noisy_action, t, state) # a^{t-1}, a = a^{-1}
             target_q1, target_q2 = self.critic_target(state, denoised_noisy_action, t) # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
-            target_q = torch.min(target_q1, target_q2) # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
+            target_q = self.discount2 * torch.min(target_q1, target_q2) # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
             consistency_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
             # MSBE loss
             if self.max_q_backup:
