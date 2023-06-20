@@ -6,7 +6,6 @@ import math
 import torch
 import numpy as np
 
-
 class Data_Sampler(object):
 	def __init__(self, data, device, reward_tune='no'):
 		
