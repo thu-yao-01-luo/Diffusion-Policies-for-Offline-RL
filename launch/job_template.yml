@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: xcw-job # replace with "${USER_NAME}-{JOB_NAME}"
+  name: lkr-job # replace with "${USER_NAME}-{JOB_NAME}"
   namespace: ucsd-haosulab
 spec:
   ttlSecondsAfterFinished: 86400 # Wait one day to delete completed jobs
@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
         - name: gpu-container
-          image: gitlab-registry.nrp-nautilus.io/celiaxiao/dreamfuser:latest
+          image: gitlab-registry.nrp-nautilus.io/openhonor/diffusion-policies-for-offline-rl:latest
           # imagePullPolicy: Always
           command:
             - "bash"
@@ -30,9 +30,9 @@ spec:
             - name: dshm
               mountPath: /dev/shm
             - name: hza-slow-pvc
-              mountPath: /cephfs/xcw
+              mountPath: /cephfs/lkr
       volumes:
-        - name: dshm  # shared memory, required for the multi-worker dataloader
+        - name: dshm # shared memory, required for the multi-worker dataloader
           emptyDir:
             medium: Memory
         - name: hza-slow-pvc

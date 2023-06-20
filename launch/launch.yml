@@ -1,12 +1,12 @@
 _MACROS:
-  DATA_DIR: /cephfs/xcw/data
-  ASSET_DIR: /cephfs/xcw/dreamfuser/assets
-  VISION_TASK_PATH: /cephfs/xcw/dreamfuser/assets/TASK
-  MODEL_DIR: /cephfs/xcw/dreamfuser/models
+  DATA_DIR: /cephfs/lkr/data
+  ASSET_DIR: /cephfs/lkr/dreamfuser/assets
+  VISION_TASK_PATH: /cephfs/lkr/dreamfuser/assets/TASK
+  MODEL_DIR: /cephfs/lkr/
   RENDER_DEVICES: 0
-  
+
 _CMDS:
   - wandb login ${oc.env:WANDB_API_KEY}
   - cp /cephfs/xcw/dreamfuser/nvidia_icd.json /etc/vulkan/icd.d/nvidia_icd.json # renderer
-  - git pull origin caiwei_branch
-  - git checkout caiwei_branch
+  - git pull origin
+  - git checkout master

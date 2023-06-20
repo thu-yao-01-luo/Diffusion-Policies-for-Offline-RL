@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: xcw-http # replace with ${USER_NAME}-http
+  name: lkr-http # replace with ${USER_NAME}-http
   labels:
     k8s-app: http-example
 spec:
@@ -20,7 +20,7 @@ spec:
           command: ["sh", "-c"]
           args: ["python -m http.server 8000"]
           ports:
-          - containerPort: 8000
+            - containerPort: 8000
           resources:
             requests:
               cpu: 100m

@@ -52,7 +52,7 @@ def main():
     val: str = TEMPLATE['spec']['template']['spec']['containers'][0]['args'][0]
     val = val.replace('$MACROS', macros).replace('$CMD', cmds).replace('$WORKSPACE', workspace)
 
-    TEMPLATE['metadata']['name'] = 'xcw-job-'+args.job_name
+    TEMPLATE['metadata']['name'] = 'lkr-job-'+args.job_name
     TEMPLATE['spec']['template']['spec']['containers'][0]['args'][0] = val
 
     print(OmegaConf.to_yaml(TEMPLATE))

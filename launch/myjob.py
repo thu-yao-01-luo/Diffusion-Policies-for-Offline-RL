@@ -16,7 +16,7 @@ def main():
         ["kubectl", "get", "job"]).decode('utf-8').strip()
     jobs = []
     for i in output.split('\n'):
-        if 'xcw-job' not in i:
+        if 'lkr-job' not in i:
             continue
         if args.filter is not None:
             if args.filter not in i:

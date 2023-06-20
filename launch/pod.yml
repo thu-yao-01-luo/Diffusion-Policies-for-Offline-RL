@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: xcw-pod # replace with "${USER_NAME}-{POD_NAME}"
+  name: lkr-pod # replace with "${USER_NAME}-{POD_NAME}"
   namespace: ucsd-haosulab
 spec:
   containers:
@@ -22,7 +22,7 @@ spec:
         - name: dshm
           mountPath: /dev/shm
         - name: hza-slow-pvc
-          mountPath: /cephfs/xcw
+          mountPath: /cephfs/lkr
   volumes:
     - name: dshm # shared memory, required for the multi-worker dataloader
       emptyDir:
