@@ -64,8 +64,8 @@ def main():
         datetime.datetime.now().strftime(f"{args.job_name}%Y%m%d%H%M%S%f"),
     )
     print(f'Save to {save_path}')
-    # with open(save_path, 'w') as f:
-    #     f.write(OmegaConf.to_yaml(TEMPLATE))
+    with open(save_path, 'w') as f:
+        f.write(OmegaConf.to_yaml(TEMPLATE))
 
     if args.run:
         os.system(f'kubectl create -f {save_path}')
