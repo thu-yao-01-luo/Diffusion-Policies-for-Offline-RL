@@ -56,7 +56,7 @@ def main():
 
     print(OmegaConf.to_yaml(TEMPLATE))
 
-    temp_path = os.path.join(tempfile.gettempdir(), 'dreamfuser')
+    temp_path = os.path.join(tempfile.gettempdir(), 'dac')
     os.makedirs(temp_path, exist_ok=True)
 
     save_path = os.path.join(
