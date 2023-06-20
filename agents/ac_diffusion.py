@@ -123,7 +123,7 @@ class Diffusion_AC(object):
         self.max_action = max_action
         self.action_dim = action_dim
         self.discount = discount
-        self.discount2 = discount
+        self.discount2 = discount2
         self.tau = tau
         self.eta = eta  # q_learning weight
         self.device = device

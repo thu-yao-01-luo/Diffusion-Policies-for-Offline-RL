@@ -60,7 +60,7 @@ class Config:
     save_best_model: bool = False
     # rl parameters
     discount: float = 0.99
-    discount2: float = 0.999
+    discount2: float = 1.0
     tau: float = 0.005
     # diffusion
     T: int = 5
