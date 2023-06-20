@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: xcw-dreamfuser # replace with "${USER_NAME}-{POD_NAME}"
+  namespace: ucsd-haosulab
+spec:
+  containers:
+    - name: gpu-container
+      image: gitlab-registry.nrp-nautilus.io/celiaxiao/dreamfuser:latest # docker image
+      # imagePullPolicy: Always
+      args: ["sleep", "infinity"]
+      resources:
+        requests:
+          cpu: "1"
+          memory: "4Gi"
+          nvidia.com/gpu: "1"
+        limits:
+          cpu: "2"
+          memory: "8Gi"
+          nvidia.com/gpu: "1"
+      volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
+        - name: xcw-slow-pvc
+          mountPath: /cephfs/xcw
+  volumes:
+    - name: dshm # shared memory, required for the multi-worker dataloader
+      emptyDir:
+        medium: Memory
+    - name: xcw-slow-pvc
+      persistentVolumeClaim:
+        claimName: xcw-slow-pvc
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: nautilus.io/group
+                operator: In
+                values:
+                  - haosu
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                  - NVIDIA-GeForce-GTX-1080-Ti
+                  - NVIDIA-GeForce-RTX-2080-Ti
