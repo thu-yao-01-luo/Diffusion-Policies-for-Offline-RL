@@ -1,3 +1,0 @@
-discount2: 0.999
-lr_decay: False
-early_stop: False
