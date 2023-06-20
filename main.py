@@ -11,8 +11,10 @@ import time
 import d4rl
 from utils import utils
 from utils.data_sampler import Data_Sampler
-from dreamfuser.logger import logger as logger_zhiao
-from dreamfuser.configs import load_config
+from utils.utils_zhiao import load_config
+import utils.logger_zhiao as logger_zhiao
+# from dreamfuser.logger import logger as logger_zhiao
+# from dreamfuser.configs import load_config
 from utils.logger import logger, setup_logger
 from dataclasses import dataclass, field
 from torch.utils.tensorboard import SummaryWriter
@@ -157,6 +159,8 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
         # Evaluation
         eval_res, eval_res_std, eval_norm_res, eval_norm_res_std = eval_policy(agent, args.env_name, args.seed,
                                                                                eval_episodes=args.eval_episodes)
+        logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
+                            'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
         logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
                             'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
         logger_zhiao.dumpkvs()

@@ -7,7 +7,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from utils.logger import logger
-from dreamfuser.logger import logger as logger_zhiao
+# from dreamfuser.logger import logger as logger_zhiao
+import utils.logger_zhiao as logger_zhiao
 
 from agents.diffusion import Diffusion
 from agents.model import MLP
