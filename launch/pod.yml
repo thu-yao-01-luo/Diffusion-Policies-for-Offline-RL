@@ -6,7 +6,7 @@ metadata:
 spec:
   containers:
     - name: gpu-container
-      image: gitlab-registry.nrp-nautilus.io/celiaxiao/dreamfuser:latest
+      image: gitlab-registry.nrp-nautilus.io/openhonor/diffusion-policies-for-offline-rl:latest
       # imagePullPolicy: Always
       args: ["sleep", "infinity"]
       resources:

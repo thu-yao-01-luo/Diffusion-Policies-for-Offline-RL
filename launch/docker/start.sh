@@ -1,4 +1,4 @@
-GIT_SSH_COMMAND='ssh -i /root/.ssh/id_rsa_dreamfuser -o IdentitiesOnly=yes' git pull
+GIT_SSH_COMMAND='ssh -i /root/.ssh/id_rsa -o IdentitiesOnly=yes' git pull
 export DISPLAY=:1
 X :1 -config /root/xorg.conf &
 echo 'waiting for X to start..'

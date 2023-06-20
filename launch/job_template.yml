@@ -15,7 +15,7 @@ spec:
             - "bash"
             - "-c"
           args:
-            - "$MACROS; cd $WORKSPACE; GIT_SSH_COMMAND='ssh -i /root/.ssh/id_rsa_dreamfuser -o IdentitiesOnly=yes' git pull; $CMD" # replace with actual command
+            - "$MACROS; cd $WORKSPACE; GIT_SSH_COMMAND='ssh -i /root/.ssh/id_rsa -o IdentitiesOnly=yes' git pull; $CMD" # replace with actual command
             # For multiple commands, concatenate them with &&
           resources:
             requests:

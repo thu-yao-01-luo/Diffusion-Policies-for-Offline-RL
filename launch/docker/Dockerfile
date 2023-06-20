@@ -145,6 +145,6 @@ RUN pip install git+https://github.com/Farama-Foundation/d4rl@master#egg=d4rl &&
 #     rm -rf /opt/vulkan
 RUN pip install d3rlpy
 # RUN GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa_dreamfuser -o IdentitiesOnly=yes" git clone -b caiwei_branch https://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@github.com/hzaskywalker/Dreamfuser.git ~/Dreamfuser
-RUN GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa_dac -o IdentitiesOnly=yes" git clone -b master git@github.com:thu-yao-01-luo/Diffusion-Policies-for-Offline-RL.git ~/Diffusion-Policies-for-Offline-RL
+RUN GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa_dac -o IdentitiesOnly=yes" git clone git@github.com:thu-yao-01-luo/Diffusion-Policies-for-Offline-RL.git ~/Diffusion-Policies-for-Offline-RL
 WORKDIR /root/Diffusion-Policies-for-Offline-RL
 # RUN python setup.py develop

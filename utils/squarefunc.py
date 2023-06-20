@@ -88,6 +88,28 @@ class SquareFunctionToyEnv(gym.Env):
 
     def render(self, mode='rgb_array'):
         if mode == 'rgb_array':
+
+            # Plot valuation function
+            x = np.linspace(-5, 5, 100)
+            # valuation = 5.0 - 0.2 * (x ** 2)
+            valuation = custom_func(x)
+
+            plt.plot(x, valuation, color='b')
+            plt.scatter(self.state, custom_func(self.state), color='r')
+            plt.xlabel('state')
+            plt.ylabel('value')
+            plt.title('Relation between state and valuation function')
+            plt.grid(True)
+
+            # Convert the plot to a numpy array
+            # plt.tight_layout()
+            plt.savefig('figure.png')
+            plt.close()
+
+            image = plt.imread('figure.png')
+
+            return image
+        elif mode == 'human':
             fig, axs = plt.subplots(2, 2, figsize=(10, 8))
             fig.tight_layout()
 
@@ -162,6 +184,7 @@ def test():
     while not done:
         action = env.action_space.sample()
         next_state, reward, done, _ = env.step(action)
+        print("State: {}, Reward: {}, Done: {}".format(next_state, reward, done))
         im = plt.imshow(np.array(env.render(mode='rgb_array')), animated=True)
         ims.append([im])
         animate = animation.ArtistAnimation(
