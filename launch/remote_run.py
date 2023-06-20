@@ -13,8 +13,6 @@ TEMPLATE = OmegaConf.load(os.path.join(FILEPATH, 'job_template.yml'))
 assert isinstance(TEMPLATE, DictConfig)
 
 
-
-
 @dataclass
 class Config:
     _MACROS: Dict[str, str] = field(default_factory=dict)
@@ -34,10 +32,11 @@ def main():
 
     if not args.not_git:
         os.system("git commit -am 'update'")
-        os.system("git push origin caiwei_branch")
+        os.system("git push origin")
 
-    dict_cfg:DictConfig = OmegaConf.structured(Config)
-    dict_cfg.merge_with(OmegaConf.load(os.path.join(FILEPATH, args.launch_config)))
+    dict_cfg: DictConfig = OmegaConf.structured(Config)
+    dict_cfg.merge_with(OmegaConf.load(
+        os.path.join(FILEPATH, args.launch_config)))
 
     OmegaConf.resolve(dict_cfg)
     cfg = cast(Config, dict_cfg)
@@ -45,22 +44,21 @@ def main():
     macros = '; '.join([f'export {k}={v}' for k, v in cfg._MACROS.items()])
     cmds = '; '.join(cfg._CMDS + [cmd])
 
-
-    workspace = os.path.join('/root', os.path.relpath(os.getcwd(), os.path.join(FILEPATH, '../../../')))
-
+    workspace = os.path.join(
+        '/root', os.path.relpath(os.getcwd(), os.path.join(FILEPATH, '../../../')))
 
     val: str = TEMPLATE['spec']['template']['spec']['containers'][0]['args'][0]
-    val = val.replace('$MACROS', macros).replace('$CMD', cmds).replace('$WORKSPACE', workspace)
+    val = val.replace('$MACROS', macros).replace(
+        '$CMD', cmds).replace('$WORKSPACE', workspace)
 
     TEMPLATE['metadata']['name'] = 'lkr-job-'+args.job_name
     TEMPLATE['spec']['template']['spec']['containers'][0]['args'][0] = val
 
     print(OmegaConf.to_yaml(TEMPLATE))
 
-
     temp_path = os.path.join(tempfile.gettempdir(), 'dreamfuser')
     os.makedirs(temp_path, exist_ok=True)
-    
+
     save_path = os.path.join(
         temp_path,
         datetime.datetime.now().strftime(f"{args.job_name}%Y%m%d%H%M%S%f"),
@@ -71,6 +69,7 @@ def main():
 
     if args.run:
         os.system(f'kubectl create -f {save_path}')
-    
+
+
 if __name__ == '__main__':
     main()
