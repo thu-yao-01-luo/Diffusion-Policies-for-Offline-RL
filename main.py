@@ -17,7 +17,7 @@ import utils.logger_zhiao as logger_zhiao
 # from dreamfuser.configs import load_config
 from utils.logger import logger, setup_logger
 from dataclasses import dataclass, field
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 
 hyperparameters = {
     'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 9.0,  'top_k': 1},
