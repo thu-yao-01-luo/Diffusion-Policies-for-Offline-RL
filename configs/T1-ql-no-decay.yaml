@@ -1,0 +1,6 @@
+T: 1
+discount2: 1.0
+lr_decay: False
+early_stop: False
+algo: "ql"
+seed: 1
