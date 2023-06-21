@@ -25,6 +25,8 @@ config_dir = "configs/"
 discount2 = [0.9, 0.99, 1.0]  # 0.999 is the best
 coef = [0.5, 0.75, 1.25, 1.5]  # 1.0 is the best
 T = [2, 3, 4]  # 1 is the best
+compute_consistency = [True, False]  # True is the best
+algo = ['bc', 'ql', ]
 
 # best_config = {
 #     "discount2": 0.999,
@@ -50,7 +52,7 @@ with open(filename, "w") as file:
 command = f"python launch/remote_run.py --job_name dac-best main.py --config {filename} --run"
 os.system("git pull origin master")
 os.system("git add .")
-os.system(f"git commit -m {command}")
+os.system(f"git commit -m '{command}''")
 os.system("git push origin master'")
 os.system(command)
 
@@ -72,7 +74,7 @@ for dis in discount2:
     command = f"python launch/remote_run.py --job_name dac-discount2{dis} main.py --config {filename} --run"
     os.system("git pull origin master")
     os.system("git add .")
-    os.system(f"git commit -m {command}")
+    os.system(f"git commit -m '{command}''")
     os.system("git push origin master'")
     os.system(command)
 
@@ -94,7 +96,7 @@ for c in coef:
     command = f"python launch/remote_run.py --job_name dac-coef{c} main.py --config {filename} --run"
     os.system("git pull origin master")
     os.system("git add .")
-    os.system(f"git commit -m {command}")
+    os.system(f"git commit -m '{command}''")
     os.system("git push origin master'")
     os.system(command)
 
@@ -116,7 +118,7 @@ for t in T:
     command = f"python launch/remote_run.py --job_name dac-t{t} main.py --config {filename} --run"
     os.system("git pull origin master")
     os.system("git add .")
-    os.system(f"git commit -m {command}")
+    os.system(f"git commit -m '{command}''")
     os.system("git push origin master'")
     os.system(command)
 
@@ -138,6 +140,27 @@ with open(filename, "w") as file:
 command = f"python launch/remote_run.py --job_name dac-compute_consistency main.py --config {filename} --run"
 os.system("git pull origin master")
 os.system("git add .")
-os.system(f"git commit -m {command}")
+os.system(f"git commit -m '{command}''")
 os.system("git push origin master'")
 os.system(command)
+
+for al in algo:
+    filename = f"halfcheetah-algo{al}.yaml"
+    config = {
+        "discount2": 0.999,
+        "coef": 1.0,
+        "lr_decay": False,
+        "early_stop": False,
+        "seed": 0,
+        "T": 1,
+        "algo": al,
+    }
+    filename = os.path.join(config_dir, filename)   
+    with open(filename, "w") as file:
+        yaml.dump(config, file)
+    command = f"python launch/remote_run.py --job_name dac-algo{al} main.py --config {filename} --run"
+    os.system("git pull origin master")
+    os.system("git add .")
+    os.system(f"git commit -m '{command}''")
+    os.system("git push origin master'")
+    
