@@ -1,8 +1,9 @@
 T: 1
-algo: bc
+algo: dac
 coef: 1.0
-device: 1
+device: 4
 discount2: 0.999
 early_stop: false
+env_name: antmaze-umaze-v0
 lr_decay: false
 seed: 0
