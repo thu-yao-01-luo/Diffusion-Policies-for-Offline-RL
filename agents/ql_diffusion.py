@@ -69,7 +69,8 @@ class Diffusion_QL(object):
                  grad_norm=1.0,
                  ):
 
-        self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
+        self.model = MLP(state_dim=state_dim,
+                         action_dim=action_dim, device=device)
 
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
                                beta_schedule=beta_schedule, n_timesteps=n_timesteps,).to(device)
@@ -86,11 +87,14 @@ class Diffusion_QL(object):
 
         self.critic = Critic(state_dim, action_dim).to(device)
         self.critic_target = copy.deepcopy(self.critic)
-        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=3e-4)
+        self.critic_optimizer = torch.optim.Adam(
+            self.critic.parameters(), lr=3e-4)
 
         if lr_decay:
-            self.actor_lr_scheduler = CosineAnnealingLR(self.actor_optimizer, T_max=lr_maxt, eta_min=0.)
-            self.critic_lr_scheduler = CosineAnnealingLR(self.critic_optimizer, T_max=lr_maxt, eta_min=0.)
+            self.actor_lr_scheduler = CosineAnnealingLR(
+                self.actor_optimizer, T_max=lr_maxt, eta_min=0.)
+            self.critic_lr_scheduler = CosineAnnealingLR(
+                self.critic_optimizer, T_max=lr_maxt, eta_min=0.)
 
         self.state_dim = state_dim
         self.max_action = max_action
@@ -108,34 +112,43 @@ class Diffusion_QL(object):
 
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
 
-        metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [], 'critic_loss': []}
+        metric = {'bc_loss': [], 'ql_loss': [],
+                  'actor_loss': [], 'critic_loss': []}
         for _ in range(iterations):
             # Sample replay buffer / batch
-            state, action, next_state, reward, not_done = replay_buffer.sample(batch_size)
+            state, action, next_state, reward, not_done = replay_buffer.sample(
+                batch_size)
 
             """ Q Training """
             current_q1, current_q2 = self.critic(state, action)
 
             if self.max_q_backup:
-                next_state_rpt = torch.repeat_interleave(next_state, repeats=10, dim=0)
+                next_state_rpt = torch.repeat_interleave(
+                    next_state, repeats=10, dim=0)
                 next_action_rpt = self.ema_model(next_state_rpt)
-                target_q1, target_q2 = self.critic_target(next_state_rpt, next_action_rpt)
-                target_q1 = target_q1.view(batch_size, 10).max(dim=1, keepdim=True)[0]
-                target_q2 = target_q2.view(batch_size, 10).max(dim=1, keepdim=True)[0]
+                target_q1, target_q2 = self.critic_target(
+                    next_state_rpt, next_action_rpt)
+                target_q1 = target_q1.view(
+                    batch_size, 10).max(dim=1, keepdim=True)[0]
+                target_q2 = target_q2.view(
+                    batch_size, 10).max(dim=1, keepdim=True)[0]
                 target_q = torch.min(target_q1, target_q2)
             else:
                 next_action = self.ema_model(next_state)
-                target_q1, target_q2 = self.critic_target(next_state, next_action)
+                target_q1, target_q2 = self.critic_target(
+                    next_state, next_action)
                 target_q = torch.min(target_q1, target_q2)
 
             target_q = (reward + not_done * self.discount * target_q).detach()
 
-            critic_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
+            critic_loss = F.mse_loss(
+                current_q1, target_q) + F.mse_loss(current_q2, target_q)
 
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
-                critic_grad_norms = nn.utils.clip_grad_norm_(self.critic.parameters(), max_norm=self.grad_norm, norm_type=2)
+                critic_grad_norms = nn.utils.clip_grad_norm_(
+                    self.critic.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.critic_optimizer.step()
 
             """ Policy Training """
@@ -151,29 +164,34 @@ class Diffusion_QL(object):
 
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
-            if self.grad_norm > 0: 
-                actor_grad_norms = nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=self.grad_norm, norm_type=2)
+            if self.grad_norm > 0:
+                actor_grad_norms = nn.utils.clip_grad_norm_(
+                    self.actor.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.actor_optimizer.step()
-
 
             """ Step Target network """
             if self.step % self.update_ema_every == 0:
                 self.step_ema()
 
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-                target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+                target_param.data.copy_(
+                    self.tau * param.data + (1 - self.tau) * target_param.data)
 
             self.step += 1
 
             """ Log """
             if log_writer is not None:
                 if self.grad_norm > 0:
-                    log_writer.add_scalar('Actor Grad Norm', actor_grad_norms.max().item(), self.step)
-                    log_writer.add_scalar('Critic Grad Norm', critic_grad_norms.max().item(), self.step)
+                    log_writer.add_scalar(
+                        'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
+                    log_writer.add_scalar(
+                        'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
                 log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
                 log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
-                log_writer.add_scalar('Critic Loss', critic_loss.item(), self.step)
-                log_writer.add_scalar('Target_Q Mean', target_q.mean().item(), self.step)
+                log_writer.add_scalar(
+                    'Critic Loss', critic_loss.item(), self.step)
+                log_writer.add_scalar(
+                    'Target_Q Mean', target_q.mean().item(), self.step)
 
             metric['actor_loss'].append(actor_loss.item())
             metric['bc_loss'].append(bc_loss.item())
@@ -184,13 +202,16 @@ class Diffusion_QL(object):
             logger_zhiao.logkv_mean_std('BC Loss', bc_loss.item())
             logger_zhiao.logkv_mean_std('QL Loss', q_loss.item())
             logger_zhiao.logkv_mean_std('Critic Loss', critic_loss.item())
-            logger_zhiao.logkv_mean_std('Target_Q Mean', target_q.mean().item())
+            logger_zhiao.logkv_mean_std(
+                'Target_Q Mean', target_q.mean().item())
             logger_zhiao.logkv_mean_std('current_q1', current_q1.mean().item())
             logger_zhiao.logkv_mean_std('current_q2', current_q2.mean().item())
-            logger_zhiao.logkv_mean_std('q1_new_action', q1_new_action.mean().item())
-            logger_zhiao.logkv_mean_std('q2_new_action', q2_new_action.mean().item())
+            logger_zhiao.logkv_mean_std(
+                'q1_new_action', q1_new_action.mean().item())
+            logger_zhiao.logkv_mean_std(
+                'q2_new_action', q2_new_action.mean().item())
 
-        if self.lr_decay: 
+        if self.lr_decay:
             self.actor_lr_scheduler.step()
             self.critic_lr_scheduler.step()
 
@@ -220,5 +241,3 @@ class Diffusion_QL(object):
         else:
             self.actor.load_state_dict(torch.load(f'{dir}/actor.pth'))
             self.critic.load_state_dict(torch.load(f'{dir}/critic.pth'))
-
-
