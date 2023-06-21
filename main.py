@@ -17,10 +17,10 @@ import utils.logger_zhiao as logger_zhiao
 # from dreamfuser.configs import load_config
 from utils.logger import logger, setup_logger
 from dataclasses import dataclass, field
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 
 hyperparameters = {
-    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 9.0,  'top_k': 1},
+    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 9.0,  'top_k': 1},
     'hopper-medium-v2':              {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 9.0,  'top_k': 2},
     'walker2d-medium-v2':            {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 1.0,  'top_k': 1},
     'halfcheetah-medium-replay-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 2000, 'gn': 2.0,  'top_k': 0},
@@ -37,10 +37,11 @@ hyperparameters = {
     'antmaze-large-diverse-v0':      {'lr': 3e-4, 'eta': 3.5,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 7.0,  'top_k': 1},
     'pen-human-v1':                  {'lr': 3e-5, 'eta': 0.15,  'max_q_backup': False,  'reward_tune': 'normalize',   'eval_freq': 50, 'num_epochs': 1000, 'gn': 7.0,  'top_k': 2},
     'pen-cloned-v1':                 {'lr': 3e-5, 'eta': 0.1,   'max_q_backup': False,  'reward_tune': 'normalize',   'eval_freq': 50, 'num_epochs': 1000, 'gn': 8.0,  'top_k': 2},
-    'kitchen-complete-v0':           {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 250 , 'gn': 9.0,  'top_k': 2},
+    'kitchen-complete-v0':           {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 250, 'gn': 9.0,  'top_k': 2},
     'kitchen-partial-v0':            {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 2},
     'kitchen-mixed-v0':              {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 0},
 }
+
 
 @dataclass
 class Config:
@@ -48,7 +49,7 @@ class Config:
     exp: str = 'exp_1'
     device: int = 0
     env_name: str = 'halfcheetah-medium-v2'
-    dir: str = 'results'    
+    dir: str = 'results'
     seed: int = 0
     num_steps_per_epoch: int = 100
     format: list = field(default_factory=lambda: ['stdout', 'wandb', 'csv'])
@@ -59,7 +60,7 @@ class Config:
     save_best_model: bool = False
     # rl parameters
     discount: float = 0.99
-    discount2: float = 0.999
+    discount2: float = 1.0
     tau: float = 0.005
     # diffusion
     T: int = 5
@@ -107,7 +108,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       lr=args.lr)
     elif args.algo == 'dac':
         from agents.ac_diffusion import Diffusion_AC as Agent
-        agent = Agent(state_dim=state_dim,                  
+        agent = Agent(state_dim=state_dim,
                       action_dim=action_dim,
                       max_action=max_action,
                       device=device,
@@ -124,7 +125,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       MSBE_coef=args.coef,
                       discount2=args.discount2,
                       )
-    else: 
+    else:
         raise NotImplementedError
 
     early_stop = False
@@ -146,22 +147,29 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
         curr_epoch = int(training_iters // int(args.num_steps_per_epoch))
 
         # Logging
-        utils.print_banner(f"Train step: {training_iters}", separator="*", num_star=90)
+        utils.print_banner(
+            f"Train step: {training_iters}", separator="*", num_star=90)
         logger.record_tabular('Trained Epochs', curr_epoch)
         logger.record_tabular('BC Loss', np.mean(loss_metric['bc_loss']))
         logger.record_tabular('QL Loss', np.mean(loss_metric['ql_loss']))
         logger.record_tabular('Actor Loss', np.mean(loss_metric['actor_loss']))
-        logger.record_tabular('Critic Loss', np.mean(loss_metric['critic_loss']))
+        logger.record_tabular(
+            'Critic Loss', np.mean(loss_metric['critic_loss']))
         logger.dump_tabular()
 
         # Evaluation
         eval_res, eval_res_std, eval_norm_res, eval_norm_res_std = eval_policy(agent, args.env_name, args.seed,
                                                                                eval_episodes=args.eval_episodes)
-        logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res, 'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
+        logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
+                            'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
+        logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
+                            'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
         logger_zhiao.dumpkvs()
         evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
-                            np.mean(loss_metric['bc_loss']), np.mean(loss_metric['ql_loss']),
-                            np.mean(loss_metric['actor_loss']), np.mean(loss_metric['critic_loss']),
+                            np.mean(loss_metric['bc_loss']), np.mean(
+                                loss_metric['ql_loss']),
+                            np.mean(loss_metric['actor_loss']), np.mean(
+                                loss_metric['critic_loss']),
                             curr_epoch])
         np.save(os.path.join(output_dir, "eval"), evaluations)
         logger.record_tabular('Average Episodic Reward', eval_res)
@@ -227,7 +235,8 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
     avg_norm_score = eval_env.get_normalized_score(avg_reward)
     std_norm_score = np.std(normalized_scores)
 
-    utils.print_banner(f"Evaluation over {eval_episodes} episodes: {avg_reward:.2f} {avg_norm_score:.2f}")
+    utils.print_banner(
+        f"Evaluation over {eval_episodes} episodes: {avg_reward:.2f} {avg_norm_score:.2f}")
 
     state, done = eval_env.reset(), False
     ims = []
@@ -279,17 +288,17 @@ if __name__ == "__main__":
     # # parser.add_argument("--gn", default=-1.0, type=float)
 
     # args = parser.parse_args()
-    
+
     args = load_config(Config)
     logger_zhiao.configure(
-            "logs",
-            format_strs=args.format,
-            config=args,
-            project="dream-ac-fix",
-            name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}",
-            id = f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}",
-        )  # type: ignore
-    
+        "logs",
+        format_strs=args.format,
+        config=args,
+        project="dream-ac-fix",
+        name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-{time.time()}",
+        id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-{time.time()}",
+    )  # type: ignore
+
     args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
     args.output_dir = f'{args.dir}'
 
@@ -306,10 +315,12 @@ if __name__ == "__main__":
 
     # Setup Logging
     file_name = f"{args.env_name}|{args.exp}|diffusion-{args.algo}|T-{args.T}"
-    if args.lr_decay: file_name += '|lr_decay'
+    if args.lr_decay:
+        file_name += '|lr_decay'
     file_name += f'|ms-{args.ms}'
 
-    if args.ms == 'offline': file_name += f'|k-{args.top_k}'
+    if args.ms == 'offline':
+        file_name += f'|k-{args.top_k}'
     file_name += f'|{args.seed}'
 
     results_dir = os.path.join(args.output_dir, file_name)
@@ -329,14 +340,15 @@ if __name__ == "__main__":
     np.random.seed(args.seed)
 
     state_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0] 
+    action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
     variant.update(state_dim=state_dim)
     variant.update(action_dim=action_dim)
     variant.update(max_action=max_action)
     # setup_logger(os.path.basename(results_dir), variant=variant, log_dir=results_dir)
-    utils.print_banner(f"Env: {args.env_name}, state_dim: {state_dim}, action_dim: {action_dim}")
+    utils.print_banner(
+        f"Env: {args.env_name}, state_dim: {state_dim}, action_dim: {action_dim}")
 
     train_agent(env,
                 state_dim,

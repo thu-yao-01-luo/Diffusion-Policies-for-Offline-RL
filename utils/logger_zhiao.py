@@ -74,7 +74,8 @@ class HumanOutputFormat(KVWriter, SeqWriter):
                 else:
                     valstr = str(val)
                 if key + ":std" in kvs:
-                    valstr = "%0.5g" % val + " +/- " + "%-8.5g" % (kvs[key + ":std"])
+                    valstr = "%0.5g" % val + " +/- " + \
+                        "%-8.5g" % (kvs[key + ":std"])
 
                 key2str.append((self._truncate(key), self._truncate(valstr)))
 
@@ -123,7 +124,8 @@ class HumanOutputFormat(KVWriter, SeqWriter):
     def write_image(self, k, v):
         import cv2
 
-        cv2.imwrite(dir_path(k + ".png"), v[..., ::-1])  # convert to opencv2 format
+        # convert to opencv2 format
+        cv2.imwrite(dir_path(k + ".png"), v[..., ::-1])
 
     def write_video(self, k, v):
         # return super().write_video(k, v)
@@ -215,7 +217,8 @@ class TensorBoardOutputFormat(KVWriter):
             if group not in self.all_writers:
                 from tensorboardX import SummaryWriter
 
-                self.all_writers[group] = SummaryWriter(os.path.join(self.dir, group))
+                self.all_writers[group] = SummaryWriter(
+                    os.path.join(self.dir, group))
             return self.all_writers[group], name
 
     def writekvs(self, kvs):
@@ -426,7 +429,8 @@ def torch_save(obj, f, best=None):
 
 @ifconfigured
 def animate(images, f, *args, wandb_name=None, **kwargs):
-    from .utils import animate
+    # from .utils import animate
+    from .utils_ani import animate
 
     ani = animate(list(images), dir_path(f), *args, **kwargs)
     if get_current().use_wandb:
@@ -439,7 +443,8 @@ def animate(images, f, *args, wandb_name=None, **kwargs):
 <source src="FILENAME" type="video/TYPE">
 </video>"""
         write_html(
-            html.replace("FILENAME", f).replace("TYPE", f.split(".")[-1]), f"{f}.html"
+            html.replace("FILENAME", f).replace(
+                "TYPE", f.split(".")[-1]), f"{f}.html"
         )
     return ani
 
@@ -560,7 +565,8 @@ def dump_kwargs(func):
     """
 
     def func_wrapper(*args, **kwargs):
-        import inspect, textwrap
+        import inspect
+        import textwrap
 
         sign = inspect.signature(func)
         for k, p in sign.parameters.items():
@@ -650,13 +656,15 @@ class Logger(object):
             ncnt = cnt + val.shape[0]
 
             self.name2val[key] = oldval * cnt / ncnt + val.sum() / ncnt
-            self.name2sqr[key] = (self.name2sqr[key] * cnt + (val * val).sum()) / ncnt
+            self.name2sqr[key] = (self.name2sqr[key] *
+                                  cnt + (val * val).sum()) / ncnt
             self.name2cnt[key] = ncnt
         # raise NotImplementedError("logkv_mean_std not implemented")
 
         else:
             self.name2val[key] = oldval * cnt / (cnt + 1) + val / (cnt + 1)
-            self.name2sqr[key] = (self.name2sqr[key] * cnt + (val * val)) / (cnt + 1)
+            self.name2sqr[key] = (self.name2sqr[key] *
+                                  cnt + (val * val)) / (cnt + 1)
             self.name2cnt[key] = cnt + 1
         # raise NotImplementedError("logkv_mean_std not implemented")
 
@@ -740,7 +748,8 @@ def configure(
                 tempfile.gettempdir(),
                 datetime.datetime.now().strftime("logger-%Y-%m-%d-%H-%M-%S-%f"),
             )
-            print(f"using {dir} for recording.. set LOGGER_DIR to change the path")
+            print(
+                f"using {dir} for recording.. set LOGGER_DIR to change the path")
             date = False
 
     if date:
