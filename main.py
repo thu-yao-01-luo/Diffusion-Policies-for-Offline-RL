@@ -8,6 +8,7 @@ import os
 import torch
 import json
 import time
+from tqdm import tqdm
 import d4rl
 from utils import utils
 from utils.data_sampler import Data_Sampler
@@ -138,13 +139,16 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
     max_timesteps = args.num_epochs * args.num_steps_per_epoch
     metric = 100.
     utils.print_banner(f"Training Start", separator="*", num_star=90)
-    while (training_iters < max_timesteps) and (not early_stop):
+    # while (training_iters < max_timesteps) and (not early_stop):
+    for training_iters in tqdm(range(0, args.num_epochs, args.eval_freq)):
+        begin = time.time()
         iterations = int(args.eval_freq * args.num_steps_per_epoch)
         loss_metric = agent.train(data_sampler,
                                   iterations=iterations,
                                   batch_size=args.batch_size,
                                   log_writer=writer)
-        training_iters += iterations
+        print(f"Training time: {time.time() - begin:.2f}s")
+        # training_iters += iterations
         curr_epoch = int(training_iters // int(args.num_steps_per_epoch))
 
         # Logging
@@ -178,14 +182,17 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
         logger.dump_tabular()
 
         bc_loss = np.mean(loss_metric['bc_loss'])
-        if args.early_stop:
-            early_stop = stop_check(metric, bc_loss)
+
 
         metric = bc_loss
 
         if args.save_best_model:
             agent.save_model(output_dir, curr_epoch)
-
+        if args.early_stop:
+            early_stop = stop_check(metric, bc_loss)
+            if early_stop:
+                logger.log("Early stopping at epoch: {}".format(curr_epoch))
+                break
     # Model Selection: online or offline
     scores = np.array(evaluations)
     if args.ms == 'online':
@@ -294,7 +301,7 @@ if __name__ == "__main__":
     logger_zhiao.configure(
         "logs",
         format_strs=args.format,
-        config=args,
+        config=args,    
         project="dream-ac-fix",
         name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-cc{args.compute_consistency}-{time.time()}",
         id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-cc{args.compute_consistency}-{time.time()}",
