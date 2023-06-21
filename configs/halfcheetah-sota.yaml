@@ -1,0 +1,5 @@
+discount2: 0.99
+coef: 1.0
+lr_decay: False
+early_stop: False
+seed: 1
