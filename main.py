@@ -140,11 +140,13 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
     utils.print_banner(f"Training Start", separator="*", num_star=90)
     while (training_iters < max_timesteps) and (not early_stop):
         iterations = int(args.eval_freq * args.num_steps_per_epoch)
+        begin_time = time.time()
         loss_metric = agent.train(data_sampler,
                                   iterations=iterations,
                                   batch_size=args.batch_size,
                                   log_writer=writer)
         training_iters += iterations
+        print(time.time() - begin_time)
         curr_epoch = int(training_iters // int(args.num_steps_per_epoch))
 
         # Logging
