@@ -69,6 +69,7 @@ class Config:
     ms: str = 'offline'
     coef: float = 0.2
     eta: float = 1.0
+    compute_consistency: bool = True
     
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):

@@ -158,11 +158,27 @@ class Diffusion_AC(object):
 
             """ Q Training """
             # consistency loss
-            current_q1, current_q2 = self.critic(state, noisy_action, t+1) # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
-            denoised_noisy_action = self.ema_model.p_sample(noisy_action, t, state) # a^{t-1}, a = a^{-1}
-            target_q1, target_q2 = self.critic_target(state, denoised_noisy_action, t) # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
-            target_q = self.discount2 * torch.min(target_q1, target_q2) # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
-            consistency_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
+            if self.compute_consistency:
+                # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
+                current_q1, current_q2 = self.critic(state, noisy_action, t+1)
+                denoised_noisy_action = self.ema_model.p_sample(
+                    noisy_action, t, state)  # a^{t-1}, a = a^{-1}
+                # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
+                target_q1, target_q2 = self.critic_target(
+                    state, denoised_noisy_action, t)
+                # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
+                target_q = self.discount2 * torch.min(target_q1, target_q2)
+                consistency_loss = F.mse_loss(
+                    current_q1, target_q) + F.mse_loss(current_q2, target_q)
+            else:
+                # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
+                current_q1, current_q2 = self.critic(state, noisy_action, t+1)
+                target_q1, target_q2 = self.critic_target(
+                    state, action, t)  # Q'_1(s, a, t), Q'_2(s, a, t)
+                # \hat Q = min(Q'_1(s', a, t), Q'_2(s', a, t))
+                target_q = torch.min(target_q1, target_q2)
+                consistency_loss = F.mse_loss(
+                    current_q1, target_q) + F.mse_loss(current_q2, target_q)
             # MSBE loss
             if self.max_q_backup:
                 next_state_rpt = torch.repeat_interleave(next_state, repeats=10, dim=0)
