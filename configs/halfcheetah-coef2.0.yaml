@@ -1,0 +1,6 @@
+T: 1
+coef: 2.0
+discount2: 0.999
+early_stop: false
+lr_decay: false
+seed: 0
