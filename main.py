@@ -55,7 +55,7 @@ class Config:
     format: list = field(default_factory=lambda: ['stdout', 'wandb', 'csv'])
     # optimization
     batch_size: int = 256
-    lr_decay: bool = True
+    lr_decay: bool = False
     early_stop: bool = False
     save_best_model: bool = False
     # rl parameters
@@ -71,7 +71,7 @@ class Config:
     coef: float = 0.2
     eta: float = 1.0
     compute_consistency: bool = True
-    
+
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
     # Load buffer
@@ -124,6 +124,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       grad_norm=args.gn,
                       MSBE_coef=args.coef,
                       discount2=args.discount2,
+                      compute_consistency=args.compute_consistency,
                       )
     else:
         raise NotImplementedError
