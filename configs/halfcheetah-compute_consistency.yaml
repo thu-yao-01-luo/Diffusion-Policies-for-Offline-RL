@@ -1,6 +1,7 @@
 T: 1
 coef: 1.0
 compute_consistency: false
+device: 7
 discount2: 0.999
 early_stop: false
 lr_decay: false
