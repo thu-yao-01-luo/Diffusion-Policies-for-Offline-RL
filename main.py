@@ -140,7 +140,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
     metric = 100.
     utils.print_banner(f"Training Start", separator="*", num_star=90)
     # while (training_iters < max_timesteps) and (not early_stop):
-    for training_iters in tqdm(range(max_timesteps)):
+    for training_iters in tqdm(range(0, args.num_epochs, args.eval_freq)):
         begin = time.time()
         iterations = int(args.eval_freq * args.num_steps_per_epoch)
         loss_metric = agent.train(data_sampler,
@@ -148,7 +148,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                                   batch_size=args.batch_size,
                                   log_writer=writer)
         print(f"Training time: {time.time() - begin:.2f}s")
-        training_iters += iterations
+        # training_iters += iterations
         curr_epoch = int(training_iters // int(args.num_steps_per_epoch))
 
         # Logging
@@ -301,7 +301,7 @@ if __name__ == "__main__":
     logger_zhiao.configure(
         "logs",
         format_strs=args.format,
-        config=args,in
+        config=args,    
         project="dream-ac-fix",
         name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-cc{args.compute_consistency}-{time.time()}",
         id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-cc{args.compute_consistency}-{time.time()}",
