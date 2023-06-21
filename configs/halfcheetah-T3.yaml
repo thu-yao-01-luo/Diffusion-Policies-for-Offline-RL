@@ -1,0 +1,7 @@
+T: 3
+coef: 1.0
+device: 6
+discount2: 0.999
+early_stop: false
+lr_decay: false
+seed: 0

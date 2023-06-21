@@ -35,8 +35,8 @@ ARG SSH_PRIVATE_KEY
 RUN mkdir ~/.ssh/
 # RUN echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa_dreamfuser
 # RUN chmod 600 ~/.ssh/id_rsa_dreamfuser
-RUN echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa_dac
-RUN chmod 600 ~/.ssh/id_rsa_dac
+RUN echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+RUN chmod 600 ~/.ssh/id_rsa
 RUN ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 # RUN echo "Host github.com\n\tStrictHostKeyChecking no\n\tHostName github.com\n\tIdentityFile ~/.ssh/id_rsa_dreamfuser" >> ~/.ssh/config
 # RUN ssh-keyscan /github.com/ >> ~/.ssh/known_hosts
@@ -145,6 +145,6 @@ RUN pip install git+https://github.com/Farama-Foundation/d4rl@master#egg=d4rl &&
 #     rm -rf /opt/vulkan
 RUN pip install d3rlpy
 # RUN GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa_dreamfuser -o IdentitiesOnly=yes" git clone -b caiwei_branch https://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@github.com/hzaskywalker/Dreamfuser.git ~/Dreamfuser
-RUN GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa_dac -o IdentitiesOnly=yes" git clone git@github.com:thu-yao-01-luo/Diffusion-Policies-for-Offline-RL.git ~/Diffusion-Policies-for-Offline-RL
+RUN GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa -o IdentitiesOnly=yes" git clone git@github.com:thu-yao-01-luo/Diffusion-Policies-for-Offline-RL.git ~/Diffusion-Policies-for-Offline-RL
 WORKDIR /root/Diffusion-Policies-for-Offline-RL
 # RUN python setup.py develop

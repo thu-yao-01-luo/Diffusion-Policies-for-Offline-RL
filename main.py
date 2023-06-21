@@ -303,8 +303,8 @@ if __name__ == "__main__":
         format_strs=args.format,
         config=args,in
         project="dream-ac-fix",
-        name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-{time.time()}",
-        id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-{time.time()}",
+        name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-cc{args.compute_consistency}-{time.time()}",
+        id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-Eta{args.eta}-{args.algo}-{args.ms}-{args.env_name}-{args.lr_decay}-cc{args.compute_consistency}-{time.time()}",
     )  # type: ignore
 
     args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"

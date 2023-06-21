@@ -1,0 +1,8 @@
+T: 1
+algo: "ql"
+coef: 1.0
+device: 4
+discount2: 0.999
+early_stop: false
+lr_decay: false
+seed: 0
