@@ -151,7 +151,7 @@ class Diffusion_AC(object):
             begin_time = time.time()
             state, action, next_state, reward, not_done = replay_buffer.sample(
                 batch_size)
-            print('sample time: ', time.time() - begin_time)
+            # print('sample time: ', time.time() - begin_time)
             total_t = torch.tensor(
                 self.actor.n_timesteps, dtype=torch.long, device=self.device)
 
@@ -168,7 +168,7 @@ class Diffusion_AC(object):
                               (batch_size,), device=self.device).long()
             noise = torch.randn_like(action)
             noisy_action = self.actor.q_sample(action, t, noise)
-            print('add noise sample time: ', time.time() - begin_time)
+            # print('add noise sample time: ', time.time() - begin_time)
             """ Q Training """
             begin_time = time.time()
             # consistency loss
@@ -193,9 +193,9 @@ class Diffusion_AC(object):
                 target_q = torch.min(target_q1, target_q2)
                 consistency_loss = F.mse_loss(
                     current_q1, target_q) + F.mse_loss(current_q2, target_q)
-            print('consistency loss time: ', time.time() - begin_time)
+            # print('consistency loss time: ', time.time() - begin_time)
             # MSBE loss
-            begin_time  = time.time()
+            begin_time = time.time()
             if self.max_q_backup:
                 next_state_rpt = torch.repeat_interleave(
                     next_state, repeats=10, dim=0)
@@ -220,7 +220,7 @@ class Diffusion_AC(object):
                 state, action, torch.zeros_like(t))
             MSBE_loss = F.mse_loss(current_q1, target_q) + \
                 F.mse_loss(current_q2, target_q)
-            print('MSBE loss time: ', time.time() - begin_time)
+            # print('MSBE loss time: ', time.time() - begin_time)
 
             critic_loss = consistency_loss + self.MSBE_coef * MSBE_loss
             begin_time = time.time()
@@ -230,7 +230,7 @@ class Diffusion_AC(object):
                 critic_grad_norms = nn.utils.clip_grad_norm_(
                     self.critic.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.critic_optimizer.step()
-            print('critic update time: ', time.time() - begin_time)
+            # print('critic update time: ', time.time() - begin_time)
 
             """ Policy Training """
             begin_time = time.time()
@@ -243,7 +243,7 @@ class Diffusion_AC(object):
             else:
                 q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
             actor_loss = bc_loss + self.eta * q_loss
-            print('actor loss time: ', time.time() - begin_time)
+            # print('actor loss time: ', time.time() - begin_time)
             begin_time = time.time()
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
@@ -251,17 +251,17 @@ class Diffusion_AC(object):
                 actor_grad_norms = nn.utils.clip_grad_norm_(
                     self.actor.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.actor_optimizer.step()
-            print('actor update time: ', time.time() - begin_time)
+            # print('actor update time: ', time.time() - begin_time)
             begin_time = time.time()
             """ Step Target network """
             if self.step % self.update_ema_every == 0:
                 self.step_ema()
-            print('ema update time: ', time.time() - begin_time)
+            # print('ema update time: ', time.time() - begin_time)
             begin_time = time.time()
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                 target_param.data.copy_(
                     self.tau * param.data + (1 - self.tau) * target_param.data)
-            print('target update time: ', time.time() - begin_time)
+            # print('target update time: ', time.time() - begin_time)
             self.step += 1
             begin_time = time.time()
             """ Log """
@@ -303,12 +303,12 @@ class Diffusion_AC(object):
                 'q1_new_action', q1_new_action.mean().item())
             logger_zhiao.logkv_mean_std(
                 'q2_new_action', q2_new_action.mean().item())
-            print('log time: ', time.time() - begin_time)
+            # print('log time: ', time.time() - begin_time)
             begin_time = time.time()
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
-            print('lr decay time: ', time.time() - begin_time)
+            # print('lr decay time: ', time.time() - begin_time)
             # print(f'Actor Loss: {actor_loss.item():.4f}, BC Loss: {bc_loss.item():.4f}, QL Loss: {q_loss.item():.4f}, Critic Loss: {critic_loss.item():.4f}')
 
         return metric
