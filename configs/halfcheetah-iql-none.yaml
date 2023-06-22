@@ -1,0 +1,8 @@
+T: 1
+algo: dac
+coef: 1.0
+discount2: 1.0
+early_stop: false
+env_name: halfcheetah-medium-v2
+lr_decay: false
+seed: 0
