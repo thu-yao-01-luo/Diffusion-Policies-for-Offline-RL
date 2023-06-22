@@ -42,7 +42,6 @@ hyperparameters = {
     'kitchen-mixed-v0':              {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 0},
 }
 
-
 @dataclass
 class Config:
     # experiment
@@ -146,7 +145,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                                   batch_size=args.batch_size,
                                   log_writer=writer)
         training_iters += iterations
-        print(time.time() - begin_time)
+        print(f"{args.num_steps_per_epoch} time cost:{time.time() - begin_time}")
         # training_iters += iterations
         curr_epoch = int(training_iters // int(args.num_steps_per_epoch))
 
