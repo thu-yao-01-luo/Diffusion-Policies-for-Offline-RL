@@ -19,7 +19,7 @@ spec:
             # For multiple commands, concatenate them with &&
           resources:
             requests:
-              cpu: "1"
+              cpu: "2"
               memory: "12Gi"
               nvidia.com/gpu: "1"
             limits:
