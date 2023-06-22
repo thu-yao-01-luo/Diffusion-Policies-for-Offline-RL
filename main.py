@@ -147,6 +147,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                                   log_writer=writer)
         training_iters += iterations
         print(time.time() - begin_time)
+        # training_iters += iterations
         curr_epoch = int(training_iters // int(args.num_steps_per_epoch))
 
         # Logging

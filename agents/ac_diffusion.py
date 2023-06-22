@@ -1,6 +1,7 @@
 # Copyright 2022 Twitter, Inc and Zhendong Wang.
 # SPDX-License-Identifier: Apache-2.0
 import copy
+from tqdm import tqdm
 import numpy as np
 import torch
 import torch.nn as nn
@@ -147,8 +148,10 @@ class Diffusion_AC(object):
                   'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': []}
         for _ in range(iterations):
             # Sample replay buffer / batch
+            begin_time = time.time()
             state, action, next_state, reward, not_done = replay_buffer.sample(
                 batch_size)
+            print('sample time: ', time.time() - begin_time)
             total_t = torch.tensor(
                 self.actor.n_timesteps, dtype=torch.long, device=self.device)
 
@@ -160,16 +163,20 @@ class Diffusion_AC(object):
             Q(s, a^0, 1) and Q(s, a, 0) are different! or a = a^{-1}, below we use a^{-1} to denote the noise free action.
             and use $Q(s, a^t, t+1)$ pattern
             """
+            begin_time = time.time()
             t = torch.randint(0, self.actor.n_timesteps,
                               (batch_size,), device=self.device).long()
             noise = torch.randn_like(action)
             noisy_action = self.actor.q_sample(action, t, noise)
-
+            print('add noise sample time: ', time.time() - begin_time)
             """ Q Training """
+            begin_time = time.time()
             # consistency loss
             if self.compute_consistency:
                 # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
-                current_q1, current_q2 = self.critic(state, noisy_action, t+1)
+                for test_time in tqdm(range(1000)):
+                    current_q1, current_q2 = self.critic(state, noisy_action, t+1)
+                exit()
                 denoised_noisy_action = self.ema_model.p_sample(
                     noisy_action, t, state)  # a^{t-1}, a = a^{-1}
                 # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
@@ -188,7 +195,9 @@ class Diffusion_AC(object):
                 target_q = torch.min(target_q1, target_q2)
                 consistency_loss = F.mse_loss(
                     current_q1, target_q) + F.mse_loss(current_q2, target_q)
+            print('consistency loss time: ', time.time() - begin_time)
             # MSBE loss
+            begin_time  = time.time()
             if self.max_q_backup:
                 next_state_rpt = torch.repeat_interleave(
                     next_state, repeats=10, dim=0)
@@ -213,17 +222,20 @@ class Diffusion_AC(object):
                 state, action, torch.zeros_like(t))
             MSBE_loss = F.mse_loss(current_q1, target_q) + \
                 F.mse_loss(current_q2, target_q)
+            print('MSBE loss time: ', time.time() - begin_time)
 
             critic_loss = consistency_loss + self.MSBE_coef * MSBE_loss
-
+            begin_time = time.time()
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
                 critic_grad_norms = nn.utils.clip_grad_norm_(
                     self.critic.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.critic_optimizer.step()
+            print('critic update time: ', time.time() - begin_time)
 
             """ Policy Training """
+            begin_time = time.time()
             bc_loss = self.actor.p_losses(action, state, t)
             new_action = self.actor.p_sample(noisy_action, t, state)
 
@@ -233,24 +245,27 @@ class Diffusion_AC(object):
             else:
                 q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
             actor_loss = bc_loss + self.eta * q_loss
-
+            print('actor loss time: ', time.time() - begin_time)
+            begin_time = time.time()
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.grad_norm > 0:
                 actor_grad_norms = nn.utils.clip_grad_norm_(
                     self.actor.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.actor_optimizer.step()
-
+            print('actor update time: ', time.time() - begin_time)
+            begin_time = time.time()
             """ Step Target network """
             if self.step % self.update_ema_every == 0:
                 self.step_ema()
-
+            print('ema update time: ', time.time() - begin_time)
+            begin_time = time.time()
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                 target_param.data.copy_(
                     self.tau * param.data + (1 - self.tau) * target_param.data)
-
+            print('target update time: ', time.time() - begin_time)
             self.step += 1
-
+            begin_time = time.time()
             """ Log """
             if log_writer is not None:
                 if self.grad_norm > 0:
@@ -290,11 +305,12 @@ class Diffusion_AC(object):
                 'q1_new_action', q1_new_action.mean().item())
             logger_zhiao.logkv_mean_std(
                 'q2_new_action', q2_new_action.mean().item())
-
+            print('log time: ', time.time() - begin_time)
+            begin_time = time.time()
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
-
+            print('lr decay time: ', time.time() - begin_time)
             # print(f'Actor Loss: {actor_loss.item():.4f}, BC Loss: {bc_loss.item():.4f}, QL Loss: {q_loss.item():.4f}, Critic Loss: {critic_loss.item():.4f}')
 
         return metric
