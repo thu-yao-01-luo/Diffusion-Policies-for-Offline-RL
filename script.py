@@ -300,6 +300,7 @@ def jun22_experiment1():
 def jun22_iql():
     file_paths = []
     iql = ["expectile", "quantile", "exponential"]
+    config_dir = "configs/"
     for iql_style in iql:
         filename = f"halfcheetah-iql{iql_style}.yaml"
         config = {
