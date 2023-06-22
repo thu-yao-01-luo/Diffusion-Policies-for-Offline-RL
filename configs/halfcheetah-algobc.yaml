@@ -1,5 +1,5 @@
 T: 1
-algo: "bc"
+algo: bc
 coef: 1.0
 device: 1
 discount2: 0.999

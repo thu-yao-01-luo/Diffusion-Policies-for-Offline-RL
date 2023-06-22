@@ -277,8 +277,8 @@ if __name__ == "__main__":
 
     iql = ["expectile", "quantile", "exponential"]
 
-    for env in env_name:
-        filename = f"{env}-first-try.yaml"
+    for iql_style in iql:
+        filename = f"halfcheetah-iql{iql_style}.yaml"
         config = {
             "discount2": 1.0,
             "coef": 1.0,
@@ -287,8 +287,8 @@ if __name__ == "__main__":
             "seed": 0,
             "T": 1,
             "algo": "dac",
-            "env_name": env,
-            "device": random.randint(0, 7)
+            "env_name": "halfcheetah-medium-v2",
+            "iql_style": iql_style,
         }
         filename = os.path.join(config_dir, filename)
         file_paths.append(filename)

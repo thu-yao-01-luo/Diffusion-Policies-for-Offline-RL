@@ -1,7 +1,7 @@
 T: 1
 algo: dac
 coef: 1.0
-device: 4
+device: 3
 discount2: 0.999
 early_stop: false
 env_name: antmaze-umaze-v0
