@@ -273,3 +273,24 @@ if __name__ == "__main__":
         file_paths.append(filename)
         with open(filename, "w") as file:
             yaml.dump(config, file)
+
+
+    iql = ["expectile", "quantile", "exponential"]
+
+    for env in env_name:
+        filename = f"{env}-first-try.yaml"
+        config = {
+            "discount2": 1.0,
+            "coef": 1.0,
+            "lr_decay": False,
+            "early_stop": False,
+            "seed": 0,
+            "T": 1,
+            "algo": "dac",
+            "env_name": env,
+            "device": random.randint(0, 7)
+        }
+        filename = os.path.join(config_dir, filename)
+        file_paths.append(filename)
+        with open(filename, "w") as file:
+            yaml.dump(config, file)
