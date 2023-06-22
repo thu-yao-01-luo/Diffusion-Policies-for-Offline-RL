@@ -1,0 +1,9 @@
+T: 1
+algo: ql
+coef: 1.0
+device: 0
+discount2: 1.0
+early_stop: false
+env_name: walker2d-medium-v2
+lr_decay: false
+seed: 0
