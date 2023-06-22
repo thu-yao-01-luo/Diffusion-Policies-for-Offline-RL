@@ -72,6 +72,18 @@ class NoisyCritic(nn.Module):
         q1, q2 = self.forward(state, noisy_action, t)
         return torch.min(q1, q2)
 
+# iql_style
+def expectile_loss(q, target_q, expectile=0.7):
+    diff = q - target_q
+    return torch.mean(torch.where(diff > 0, expectile * diff ** 2, (1 - expectile) * diff ** 2))
+
+def quantile_loss(q, target_q, tau=0.6):
+    diff = q - target_q
+    return torch.mean(torch.where(diff > 0, tau * diff, (tau - 1) * diff))
+
+def exponential_loss(q, target_q, eta=1.0):
+    diff = q - target_q
+    return torch.mean(torch.exp(eta * diff) - eta * diff)
 
 class Diffusion_AC(object):
     def __init__(self,
@@ -94,7 +106,11 @@ class Diffusion_AC(object):
                  grad_norm=1.0,
                  MSBE_coef=0.05,
                  discount2=0.99,
-                 compute_consistency=True
+                 compute_consistency=True,
+                 iql_style="discount",
+                 expectile=0.7,
+                 quantile=0.6,
+                 temperature=1.0,
                  ):
 
         self.model = MLP(state_dim=state_dim,
@@ -135,12 +151,16 @@ class Diffusion_AC(object):
         self.device = device
         self.max_q_backup = max_q_backup
         self.compute_consistency = compute_consistency
+        self.iql_style = iql_style
+        self.expectile = expectile
+        self.quantile = quantile
+        self.temperature = temperature
 
     def step_ema(self):
         if self.step < self.step_start_ema:
             return
         self.ema.update_model_average(self.ema_model, self.actor)
-
+    
     # ---------------------------- #
 
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
@@ -148,7 +168,7 @@ class Diffusion_AC(object):
                   'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': []}
         for _ in range(iterations):
             # Sample replay buffer / batch
-            begin_time = time.time()
+            # begin_time = time.time()
             state, action, next_state, reward, not_done = replay_buffer.sample(
                 batch_size)
             # print('sample time: ', time.time() - begin_time)
@@ -163,14 +183,14 @@ class Diffusion_AC(object):
             Q(s, a^0, 1) and Q(s, a, 0) are different! or a = a^{-1}, below we use a^{-1} to denote the noise free action.
             and use $Q(s, a^t, t+1)$ pattern
             """
-            begin_time = time.time()
+            # begin_time = time.time()
             t = torch.randint(0, self.actor.n_timesteps,
                               (batch_size,), device=self.device).long()
             noise = torch.randn_like(action)
             noisy_action = self.actor.q_sample(action, t, noise)
             # print('add noise sample time: ', time.time() - begin_time)
             """ Q Training """
-            begin_time = time.time()
+            # begin_time = time.time()
             # consistency loss
             if self.compute_consistency:
                 # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
@@ -182,8 +202,17 @@ class Diffusion_AC(object):
                     state, denoised_noisy_action, t)
                 # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
                 target_q = self.discount2 * torch.min(target_q1, target_q2)
-                consistency_loss = F.mse_loss(
-                    current_q1, target_q) + F.mse_loss(current_q2, target_q)
+                if self.iql_style == "discount":
+                    consistency_loss = F.mse_loss(
+                        current_q1, target_q) + F.mse_loss(current_q2, target_q)
+                elif self.iql_style == "expectile":
+                    consistency_loss = expectile_loss(current_q1, target_q, self.expectile) + expectile_loss(current_q2, target_q, self.expectile)
+                elif self.iql_style == "quantile":
+                    consistency_loss = quantile_loss(current_q1, target_q, self.quantile) + quantile_loss(current_q2, target_q, self.quantile)
+                elif self.iql_style == "exponential":
+                    consistency_loss = exponential_loss(current_q1, target_q, self.temperature) + exponential_loss(current_q2, target_q, self.temperature)
+                else:
+                    raise NotImplementedError
             else:
                 # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
                 current_q1, current_q2 = self.critic(state, noisy_action, t+1)
@@ -195,7 +224,7 @@ class Diffusion_AC(object):
                     current_q1, target_q) + F.mse_loss(current_q2, target_q)
             # print('consistency loss time: ', time.time() - begin_time)
             # MSBE loss
-            begin_time = time.time()
+            # begin_time = time.time()
             if self.max_q_backup:
                 next_state_rpt = torch.repeat_interleave(
                     next_state, repeats=10, dim=0)
@@ -223,7 +252,7 @@ class Diffusion_AC(object):
             # print('MSBE loss time: ', time.time() - begin_time)
 
             critic_loss = consistency_loss + self.MSBE_coef * MSBE_loss
-            begin_time = time.time()
+            # begin_time = time.time()
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
@@ -233,7 +262,7 @@ class Diffusion_AC(object):
             # print('critic update time: ', time.time() - begin_time)
 
             """ Policy Training """
-            begin_time = time.time()
+            # begin_time = time.time()
             bc_loss = self.actor.p_losses(action, state, t)
             new_action = self.actor.p_sample(noisy_action, t, state)
 
@@ -244,7 +273,7 @@ class Diffusion_AC(object):
                 q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
             actor_loss = bc_loss + self.eta * q_loss
             # print('actor loss time: ', time.time() - begin_time)
-            begin_time = time.time()
+            # begin_time = time.time()
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.grad_norm > 0:
@@ -252,18 +281,18 @@ class Diffusion_AC(object):
                     self.actor.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.actor_optimizer.step()
             # print('actor update time: ', time.time() - begin_time)
-            begin_time = time.time()
+            # begin_time = time.time()
             """ Step Target network """
             if self.step % self.update_ema_every == 0:
                 self.step_ema()
             # print('ema update time: ', time.time() - begin_time)
-            begin_time = time.time()
+            # begin_time = time.time()
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                 target_param.data.copy_(
                     self.tau * param.data + (1 - self.tau) * target_param.data)
             # print('target update time: ', time.time() - begin_time)
             self.step += 1
-            begin_time = time.time()
+            # begin_time = time.time()
             """ Log """
             if log_writer is not None:
                 if self.grad_norm > 0:
@@ -304,7 +333,7 @@ class Diffusion_AC(object):
             logger_zhiao.logkv_mean_std(
                 'q2_new_action', q2_new_action.mean().item())
             # print('log time: ', time.time() - begin_time)
-            begin_time = time.time()
+            # begin_time = time.time()
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
