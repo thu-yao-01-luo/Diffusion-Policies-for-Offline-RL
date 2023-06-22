@@ -194,8 +194,9 @@ algo = ['bc', 'ql', ]
 #     os.system(command)
 
 
-def run_python_file(file_path):
-    command = f"python main.py --config {filename}"
+def run_python_file(filename):
+    # command = f"python main.py --config {filename}"
+    command = f"python launch/remote_run.py --job_name dac-iql-{filename} main.py --config {filename} --run"
     os.system("git pull origin master")
     os.system("git add .")
     os.system(f"git commit -m '{command}''")
@@ -203,7 +204,8 @@ def run_python_file(file_path):
     os.system(command)
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
+def jun22_experiment1():
     file_paths = []
     for t in T:
         filename = f"halfcheetah-T{t}.yaml"
@@ -274,7 +276,6 @@ if __name__ == "__main__":
         with open(filename, "w") as file:
             yaml.dump(config, file)
 
-
     iql = ["expectile", "quantile", "exponential"]
 
     for iql_style in iql:
@@ -294,3 +295,29 @@ if __name__ == "__main__":
         file_paths.append(filename)
         with open(filename, "w") as file:
             yaml.dump(config, file)
+
+
+def jun22_iql():
+    file_paths = []
+    iql = ["expectile", "quantile", "exponential"]
+    for iql_style in iql:
+        filename = f"halfcheetah-iql{iql_style}.yaml"
+        config = {
+            "discount2": 1.0,
+            "coef": 1.0,
+            "lr_decay": False,
+            "early_stop": False,
+            "seed": 0,
+            "T": 1,
+            "algo": "dac",
+            "env_name": "halfcheetah-medium-v2",
+            "iql_style": iql_style,
+        }
+        filename = os.path.join(config_dir, filename)
+        file_paths.append(filename)
+    for filename in file_paths:
+        run_python_file(filename)
+
+
+if __name__ == "__main__":
+    jun22_iql()
