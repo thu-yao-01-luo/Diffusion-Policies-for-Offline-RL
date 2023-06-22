@@ -174,9 +174,7 @@ class Diffusion_AC(object):
             # consistency loss
             if self.compute_consistency:
                 # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
-                for test_time in tqdm(range(1000)):
-                    current_q1, current_q2 = self.critic(state, noisy_action, t+1)
-                exit()
+                current_q1, current_q2 = self.critic(state, noisy_action, t+1)
                 denoised_noisy_action = self.ema_model.p_sample(
                     noisy_action, t, state)  # a^{t-1}, a = a^{-1}
                 # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
