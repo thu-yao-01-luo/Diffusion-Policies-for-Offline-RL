@@ -2,7 +2,7 @@ _MACROS:
   DATA_DIR: /cephfs/lkr/data
   ASSET_DIR: /cephfs/lkr/dreamfuser/assets
   VISION_TASK_PATH: /cephfs/lkr/dreamfuser/assets/TASK
-  MODEL_DIR: /cephfs/lkr/
+  MODEL_DIR: /cephfs/lkr/dac
   RENDER_DEVICES: 0
 
 _CMDS:
