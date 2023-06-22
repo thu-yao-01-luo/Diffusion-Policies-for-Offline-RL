@@ -70,7 +70,10 @@ class Config:
     coef: float = 0.2
     eta: float = 1.0
     compute_consistency: bool = True
-
+    iql_style: str ="discount"
+    expectile: float = 0.7
+    quantile: float = 0.6
+    temperature: float = 1.0
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
     # Load buffer
@@ -124,7 +127,11 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       MSBE_coef=args.coef,
                       discount2=args.discount2,
                       compute_consistency=args.compute_consistency,
-                      )
+                      iql_style=args.iql_style,
+                      expectile=args.expectile,
+                      quantile=args.quantile,
+                      temperature=args.temperature
+                    )
     else:
         raise NotImplementedError
 
