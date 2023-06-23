@@ -385,3 +385,4 @@ def jun23_discount_all_env():
 
 if __name__ == "__main__":
     # jun22_all_env()
+    jun23_discount_all_env
