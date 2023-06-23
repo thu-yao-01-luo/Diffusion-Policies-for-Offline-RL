@@ -194,8 +194,8 @@ algo = ['bc', 'ql', ]
 #     os.system(command)
 
 
-def run_python_file(filename):
-    command = f"python launch/remote_run.py --job_name dac-iql-{filename} main.py --config {filename} --run"
+def run_python_file(job, filename):
+    command = f"python launch/remote_run.py --job_name {job} main.py --config {filename} --run"
     os.system("git add .")
     os.system(f"git commit -m '{command}''")
     os.system("git pull origin master")
@@ -326,6 +326,7 @@ def jun22_iql():
 
 def jun22_all_env():  # check the effect in different envs, with different seeds
     file_paths = []
+    job_list = []
     env = ["hopper-medium-v2", "walker2d-medium-v2", "antmaze-umaze-v0"]
     algo = ["bc", "ql", "dac"]
     seeds = [11, 12, 13]
@@ -345,11 +346,12 @@ def jun22_all_env():  # check the effect in different envs, with different seeds
                     "env_name": env_name,
                     "iql_style": "expectile",
                 }
+                job_list.append(f"{env_name}-{al}-{seed}")
                 filename = os.path.join(config_dir, file_name)
                 file_paths.append(filename)
                 # make_config_file(filename, config)
-    for filename in file_paths:
-        run_python_file(filename)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 
 if __name__ == "__main__":
