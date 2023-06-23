@@ -331,7 +331,7 @@ def jun22_all_env(): # check the effect in different envs, with different seeds
     for env_name in env:
         for al in algo:
             for seed in seeds:
-                file_name = f"{env_name}-test-effect.yaml"
+                file_name = f"test-{env_name}-{al}-{seed}.yaml"
                 config = {
                     "discount2": 0.999,
                     "coef": 1.0,

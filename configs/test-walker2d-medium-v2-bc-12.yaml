@@ -1,0 +1,9 @@
+T: 1
+algo: bc
+coef: 1.0
+discount2: 0.999
+early_stop: false
+env_name: walker2d-medium-v2
+iql_style: expectile
+lr_decay: false
+seed: 12
