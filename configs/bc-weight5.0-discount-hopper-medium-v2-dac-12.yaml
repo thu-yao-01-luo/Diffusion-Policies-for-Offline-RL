@@ -1,0 +1,10 @@
+T: 1
+algo: dac
+bc_weight: 5.0
+coef: 1.0
+discount2: 0.999
+early_stop: false
+env_name: hopper-medium-v2
+iql_style: discount
+lr_decay: false
+seed: 12

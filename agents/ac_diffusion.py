@@ -111,6 +111,7 @@ class Diffusion_AC(object):
                  expectile=0.7,
                  quantile=0.6,
                  temperature=1.0,
+                 bc_weight=1.0,
                  ):
 
         self.model = MLP(state_dim=state_dim,
@@ -155,6 +156,7 @@ class Diffusion_AC(object):
         self.expectile = expectile
         self.quantile = quantile
         self.temperature = temperature
+        self.bc_weight = bc_weight
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -271,7 +273,7 @@ class Diffusion_AC(object):
                 q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
             else:
                 q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
-            actor_loss = bc_loss + self.eta * q_loss
+            actor_loss = self.bc_weight * bc_loss + self.eta * q_loss
             # print('actor loss time: ', time.time() - begin_time)
             # begin_time = time.time()
             self.actor_optimizer.zero_grad()

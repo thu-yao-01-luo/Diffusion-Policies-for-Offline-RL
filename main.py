@@ -75,7 +75,7 @@ class Config:
     expectile: float = 0.7
     quantile: float = 0.6
     temperature: float = 1.0
-
+    bc_weight: float = 1.0
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
     # Load buffer
@@ -132,7 +132,8 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       iql_style=args.iql_style,
                       expectile=args.expectile,
                       quantile=args.quantile,
-                      temperature=args.temperature
+                      temperature=args.temperature,
+                      bc_weight = args.bc_weight,
                       )
     else:
         raise NotImplementedError

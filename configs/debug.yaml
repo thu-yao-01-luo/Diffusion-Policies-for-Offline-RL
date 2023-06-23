@@ -1,0 +1,12 @@
+T: 1
+algo: dac
+bc_weight: 3.0
+coef: 1.0
+discount2: 0.999
+early_stop: false
+env_name: halfcheetah-medium-v2
+iql_style: discount
+lr_decay: false
+seed: 11
+num_steps_per_epoch: 1
+format: ['stdout']

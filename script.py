@@ -382,7 +382,37 @@ def jun23_discount_all_env():
     # for ind, job in enumerate(job_list):
     #     run_python_file(job, file_paths[ind])
 
+def jun23_bc_discount():
+    file_paths = []
+    job_list = []
+    env = ["hopper-medium-v2", "walker2d-medium-v2", "halfcheetah-medium-v2"]
+    algo = ["dac"]
+    bc_weights = [3.0, 5.0]
+    seeds = [11, 12, 13]
+    config_dir = "configs/"
+    for env_name in env:
+        for al in algo:
+            for seed in seeds:
+                for bc_weight in bc_weights:
+                    file_name = f"bc-weight{bc_weight}-discount-{env_name}-{al}-{seed}.yaml"
+                    config = {
+                        "discount2": 0.999,
+                        "coef": 1.0,
+                        "lr_decay": False,
+                        "early_stop": False,
+                        "seed": seed,
+                        "T": 1,
+                        "algo": al,
+                        "env_name": env_name,
+                        "iql_style": "discount",
+                        "bc_weight": bc_weight,
+                    }
+                    job_list.append(f"bcw{bc_weight}-discount-{env_name}-{al}-{seed}")
+                    filename = os.path.join(config_dir, file_name)
+                    file_paths.append(filename)
+                    make_config_file(filename, config)
 
 if __name__ == "__main__":
     # jun22_all_env()
-    jun23_discount_all_env()
+    # jun23_discount_all_env()
+    jun23_bc_discount()
