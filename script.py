@@ -202,6 +202,7 @@ def run_python_file(filename):
     os.system("git push origin master'")
     os.system(command)
 
+
 def make_config_file(filename, config):
     with open(os.path.join(filename), "w") as file:
         yaml.dump(config, file)
@@ -322,7 +323,8 @@ def jun22_iql():
     for filename in file_paths:
         run_python_file(filename)
 
-def jun22_all_env(): # check the effect in different envs, with different seeds
+
+def jun22_all_env():  # check the effect in different envs, with different seeds
     file_paths = []
     env = ["hopper-medium-v2", "walker2d-medium-v2", "antmaze-umaze-v0"]
     algo = ["bc", "ql", "dac"]
@@ -345,9 +347,10 @@ def jun22_all_env(): # check the effect in different envs, with different seeds
                 }
                 filename = os.path.join(config_dir, file_name)
                 file_paths.append(filename)
-                make_config_file(filename, config)
+                # make_config_file(filename, config)
     for filename in file_paths:
         run_python_file(filename)
+
 
 if __name__ == "__main__":
     jun22_all_env()
