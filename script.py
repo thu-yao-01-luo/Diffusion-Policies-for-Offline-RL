@@ -353,6 +353,7 @@ def jun22_all_env():  # check the effect in different envs, with different seeds
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun23_discount_all_env():
     file_paths = []
     job_list = []
@@ -378,9 +379,9 @@ def jun23_discount_all_env():
                 job_list.append(f"discount-{env_name}-{al}-{seed}")
                 filename = os.path.join(config_dir, file_name)
                 file_paths.append(filename)
-                make_config_file(filename, config)
-    # for ind, job in enumerate(job_list):
-    #     run_python_file(job, file_paths[ind])
+                # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 
 if __name__ == "__main__":
