@@ -1,7 +1,7 @@
 T: 1
 algo: bc
 coef: 1.0
-device: 1
+device: 3
 discount2: 0.999
 early_stop: false
 lr_decay: false
