@@ -5,10 +5,10 @@ import argparse
 import gym
 import numpy as np
 import d4rl
+import matplotlib.pyplot as plt
 import torch
 
-
-if __name__ == "__main__":
+def bug_mix_reward_q():
     file_path = "/home/kairong/Diffusion-Policies-for-Offline-RL/actor_7200.pth"
     env = gym.make('hopper-medium-v2')
     state_dim = env.observation_space.shape[0]
@@ -61,3 +61,76 @@ if __name__ == "__main__":
     rewards = np.array(rewards)
     np.save("actions.npy", my_actions)
     np.save("rewards.npy", rewards)
+    
+def infer():
+    env = gym.make('hopper-medium-v2')
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+    max_action = float(env.action_space.high[0])
+    kwargs = dict(
+        state_dim=state_dim,
+        action_dim=action_dim,
+        max_action=max_action,
+        device='cuda',
+        discount=0.999,
+        tau=0.005,
+        max_q_backup=False,
+        beta_schedule='vp',
+        n_timesteps=1,
+        eta=1.0,
+        lr=3e-4,
+        lr_decay=False,
+        lr_maxt=8000,
+        grad_norm=9.0,
+        MSBE_coef=1.0,
+        discount2=0.999,
+        compute_consistency=True,
+        iql_style="discount",
+        expectile=0.7,
+        quantile=0.6,
+        temperature=1.0
+    )
+    from agents.ac_diffusion import Diffusion_AC as Agent
+    agent = Agent(
+                **kwargs
+                )
+    env = gym.make('hopper-medium-v2')
+    dataset = env.get_dataset()
+    # dataset = d4rl.get_dataset(env_id)
+
+    print(dataset.keys())
+    qpos = dataset["infos/qpos"]
+    qvel = dataset["infos/qvel"]
+    states = dataset["observations"]
+    actions = dataset["actions"]
+    rewards = dataset["rewards"]
+    dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints"
+    agent.load_model(dir, id=7200)
+    my_actions = []
+    rewards = []
+    q_values = []
+    env.reset()
+    for i in range(2000):
+        env.set_state(qpos[i], qvel[i])
+        state = states[i]
+        agent_action = agent.sample_action(state)
+        _, reward, _, _ = env.step(agent_action)
+        t = torch.tensor(0, dtype=torch.float32).unsqueeze(0).cuda()
+        torch_state = torch.FloatTensor(state.reshape(1, -1)).to(agent.device)
+        torch_action = torch.FloatTensor(agent_action.reshape(1, -1)).to(agent.device)
+        q_value = agent.critic.q1(torch_state, torch_action, t).cpu().detach().numpy()
+        my_actions.append(agent_action)
+        # rewards.append(q_value.item())
+        rewards.append(reward)
+        q_values.append(q_value.item())
+    my_actions = np.array(my_actions)
+    rewards = np.array(rewards)
+    q_values = np.array(q_values)
+    np.save("actions.npy", my_actions)
+    np.save("rewards.npy", rewards)
+    np.save("q_values.npy", q_values)
+
+if __name__ == "__main__":
+    infer()
+
+    
