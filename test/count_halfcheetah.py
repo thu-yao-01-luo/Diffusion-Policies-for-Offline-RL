@@ -5,7 +5,8 @@ import d4rl
 
 # Create the HalfCheetah environment
 # env_name = 'halfcheetah-medium-v2'
-env_name = 'halfcheetah-medium-expert-v2'
+# env_name = 'halfcheetah-medium-expert-v2'
+env_name = 'hopper-medium-v2'
 # env = gym.make('halfcheetah-medium-v2')
 env=gym.make(env_name)
 

@@ -20,9 +20,9 @@ from dataclasses import dataclass, field
 # from torch.utils.tensorboard import SummaryWriter
 
 hyperparameters = {
-    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 9.0,  'top_k': 1},
-    'hopper-medium-v2':              {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 8000, 'gn': 9.0,  'top_k': 2},
-    'walker2d-medium-v2':            {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 8000, 'gn': 1.0,  'top_k': 1},
+    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 8000, 'gn': 9.0,  'top_k': 1},
+    'hopper-medium-v2':              {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 16000, 'gn': 9.0,  'top_k': 2},
+    'walker2d-medium-v2':            {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 16000, 'gn': 1.0,  'top_k': 1},
     'halfcheetah-medium-replay-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 2.0,  'top_k': 0},
     'hopper-medium-replay-v2':       {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 4.0,  'top_k': 2},
     'walker2d-medium-replay-v2':     {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 4.0,  'top_k': 1},
@@ -146,6 +146,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
     max_timesteps = args.num_epochs * args.num_steps_per_epoch
     metric = 100.
     utils.print_banner(f"Training Start", separator="*", num_star=90)
+    best_nreward = -np.inf
     while (training_iters < max_timesteps) and (not early_stop):
         iterations = int(args.eval_freq * args.num_steps_per_epoch)
         begin_time = time.time()
@@ -194,7 +195,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
 
         metric = bc_loss
 
-        if args.save_best_model:
+        if args.save_best_model and eval_norm_res > best_nreward:
             agent.save_model(output_dir, curr_epoch)
 
     # Model Selection: online or offline
@@ -311,7 +312,7 @@ if __name__ == "__main__":
     )  # type: ignore
 
     args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
-    args.output_dir = f'{args.dir}'
+    args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
 
     args.num_epochs = hyperparameters[args.env_name]['num_epochs']
     args.eval_freq = hyperparameters[args.env_name]['eval_freq']

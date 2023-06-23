@@ -195,13 +195,16 @@ algo = ['bc', 'ql', ]
 
 
 def run_python_file(filename):
-    # command = f"python main.py --config {filename}"
     command = f"python launch/remote_run.py --job_name dac-iql-{filename} main.py --config {filename} --run"
-    os.system("git pull origin master")
     os.system("git add .")
     os.system(f"git commit -m '{command}''")
+    os.system("git pull origin master")
     os.system("git push origin master'")
     os.system(command)
+
+def make_config_file(filename, config):
+    with open(os.path.join(filename), "w") as file:
+        yaml.dump(config, file)
 
 
 # if __name__ == "__main__":
@@ -319,6 +322,32 @@ def jun22_iql():
     for filename in file_paths:
         run_python_file(filename)
 
+def jun22_all_env(): # check the effect in different envs, with different seeds
+    file_paths = []
+    env = ["hopper-medium-v2", "walker2d-medium-v2", "antmaze-umaze-v0"]
+    algo = ["bc", "ql", "dac"]
+    seeds = [11, 12, 13]
+    config_dir = "configs/"
+    for env_name in env:
+        for al in algo:
+            for seed in seeds:
+                file_name = f"{env_name}-test-effect.yaml"
+                config = {
+                    "discount2": 0.999,
+                    "coef": 1.0,
+                    "lr_decay": False,
+                    "early_stop": False,
+                    "seed": seed,
+                    "T": 1,
+                    "algo": al,
+                    "env_name": env_name,
+                    "iql_style": "expectile",
+                }
+                filename = os.path.join(config_dir, file_name)
+                file_paths.append(filename)
+                make_config_file(filename, config)
+    for filename in file_paths:
+        run_python_file(filename)
 
 if __name__ == "__main__":
-    jun22_iql()
+    jun22_all_env()

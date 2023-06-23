@@ -7,7 +7,7 @@ import gym
 import d4rl
 
 
-def visualize_tsne(actions, rewards):
+def visualize_tsne(actions, rewards, prefix='halfcheetah'):
     # Perform t-SNE dimensionality reduction
     tsne = TSNE(n_components=2, random_state=42)
     actions_tsne = tsne.fit_transform(actions)
@@ -22,11 +22,13 @@ def visualize_tsne(actions, rewards):
     plt.ylabel('t-SNE Dimension 2')
     plt.title('t-SNE Visualization of Actions with Rewards')
     # plt.show()
-    plt.savefig('tsne.png')
+    plt.savefig(prefix + '-tsne.png')
 
 
 # Create the HalfCheetah environment
-env = gym.make('halfcheetah-medium-v2')
+# env = gym.make('halfcheetah-medium-v2')
+env_name = 'hopper-medium-v2'
+env = gym.make(env_name)
 
 # Set the random seed for reproducibility
 np.random.seed(42)
@@ -37,4 +39,4 @@ episode_rewards = dataset['rewards'][:2000]
 actions = dataset['actions'][:2000]
 print('Number of episodes:', len(episode_rewards))
 print('Average episode reward:', np.mean(episode_rewards))
-visualize_tsne(actions, episode_rewards)
+visualize_tsne(actions, episode_rewards, prefix=env_name)
