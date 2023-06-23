@@ -383,6 +383,7 @@ def jun23_discount_all_env():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun23_bc_discount():
     file_paths = []
     job_list = []
@@ -408,10 +409,14 @@ def jun23_bc_discount():
                         "iql_style": "discount",
                         "bc_weight": bc_weight,
                     }
-                    job_list.append(f"bcw{bc_weight}-discount-{env_name}-{al}-{seed}")
+                    job_list.append(
+                        f"bcw{bc_weight}-discount-{env_name}-{al}-{seed}")
                     filename = os.path.join(config_dir, file_name)
                     file_paths.append(filename)
-                    make_config_file(filename, config)
+                    # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
+
 
 if __name__ == "__main__":
     # jun22_all_env()
