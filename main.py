@@ -83,6 +83,7 @@ class Config:
     bc_lower_bound: float = 1e-4
     bc_decay: float = 0.995
 
+
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
     # Load buffer
     dataset = d4rl.qlearning_dataset(env)
@@ -175,7 +176,8 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
             logger.record_tabular('Trained Epochs', curr_epoch)
             logger.record_tabular('BC Loss', np.mean(loss_metric['bc_loss']))
             logger.record_tabular('QL Loss', np.mean(loss_metric['ql_loss']))
-            logger.record_tabular('Actor Loss', np.mean(loss_metric['actor_loss']))
+            logger.record_tabular(
+                'Actor Loss', np.mean(loss_metric['actor_loss']))
             logger.record_tabular(
                 'Critic Loss', np.mean(loss_metric['critic_loss']))
             logger.dump_tabular()
@@ -187,14 +189,14 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                             'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
         logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
                             'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
-        
+
         evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
                             np.mean(loss_metric['bc_loss']), np.mean(
                                 loss_metric['ql_loss']),
                             np.mean(loss_metric['actor_loss']), np.mean(
                                 loss_metric['critic_loss']),
                             curr_epoch])
-        if not using_server:    
+        if not using_server:
             np.save(os.path.join(output_dir, "eval"), evaluations)
             logger.record_tabular('Average Episodic Reward', eval_res)
             logger.record_tabular('Average Episodic N-Reward', eval_norm_res)
@@ -203,7 +205,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
         bc_loss = np.mean(loss_metric['bc_loss'])
         for k, v in loss_metric.items():
             logger_zhiao.logkv(k, np.mean(v))
-            logger_zhiao.logkv(k + '_std', np.std(v))   
+            logger_zhiao.logkv(k + '_std', np.std(v))
             logger_zhiao.logkv(k + '_max', np.max(v))
             logger_zhiao.logkv(k + '_min', np.min(v))
         logger_zhiao.dumpkvs()
@@ -327,7 +329,7 @@ if __name__ == "__main__":
         project="dream-ac-fix",
         # name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-{args.algo}-{args.env_name}-lrd{args.lr_decay}-cc{args.compute_consistency}-iql{args.iql_style}-{time.time()}",
         # id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-{args.algo}-{args.env_name}-lrd{args.lr_decay}-cc{args.compute_consistency}-iql{args.iql_style}-{time.time()}",
-        name=args.name, 
+        name=args.name,
         id=args.id,
     )  # type: ignore
 
