@@ -177,7 +177,7 @@ class Diffusion_AC(object):
 
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
-                  'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': []}
+                  'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": []}
         for _ in range(iterations):
             # Sample replay buffer / batch
             # begin_time = time.time()
@@ -317,7 +317,7 @@ class Diffusion_AC(object):
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
             
-            if self.tune_bc_weight and self.step > 10 and np.std(metric['bc_loss'][-10:]) < self.std_threshold:
+            if self.tune_bc_weight and self.step > 15 and np.std(metric['bc_loss'][-15:]) < self.std_threshold:
                 self.bc_weight = max(self.bc_lower_bound, self.bc_weight * self.bc_decay)
 
         return metric

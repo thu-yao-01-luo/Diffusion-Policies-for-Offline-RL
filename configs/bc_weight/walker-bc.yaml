@@ -1,0 +1,9 @@
+T: 1
+algo: bc
+coef: 1.0
+discount2: 0.999
+env_name: walker2d-medium-v2
+id: walker-bc
+iql_style: discount
+named: walker-bc
+seed: 0
