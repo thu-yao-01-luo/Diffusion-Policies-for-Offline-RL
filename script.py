@@ -417,6 +417,7 @@ def jun23_bc_discount():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun24_bc_weight():
     file_paths = []
     job_list = []
@@ -470,7 +471,10 @@ def jun24_bc_weight():
             job_id)
         filename = os.path.join(config_dir, file_name)
         file_paths.append(filename)
-        make_config_file(filename, config)
+        # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
+
 
 if __name__ == "__main__":
     # jun22_all_env()
