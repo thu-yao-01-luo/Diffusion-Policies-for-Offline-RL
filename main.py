@@ -78,7 +78,7 @@ class Config:
     bc_weight: float = 1.0
     name: str = 'dac'
     id: str = 'dac'
-
+    log_every: int = 10
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
     # Load buffer
@@ -101,7 +101,9 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       lr=args.lr,
                       lr_decay=args.lr_decay,
                       lr_maxt=args.num_epochs,
-                      grad_norm=args.gn)
+                      grad_norm=args.gn,
+                      log_every=args.log_every
+                      )
     elif args.algo == 'bc':
         from agents.bc_diffusion import Diffusion_BC as Agent
         agent = Agent(state_dim=state_dim,
@@ -112,7 +114,9 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       tau=args.tau,
                       beta_schedule=args.beta_schedule,
                       n_timesteps=args.T,
-                      lr=args.lr)
+                      lr=args.lr,
+                      log_every=args.log_every
+                      )
     elif args.algo == 'dac':
         from agents.ac_diffusion import Diffusion_AC as Agent
         agent = Agent(state_dim=state_dim,
@@ -137,6 +141,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       quantile=args.quantile,
                       temperature=args.temperature,
                       bc_weight=args.bc_weight,
+                      log_every=args.log_every
                       )
     else:
         raise NotImplementedError
