@@ -417,6 +417,7 @@ def jun23_bc_discount():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun24_bc_weight():
     file_paths = []
     job_list = []
@@ -427,31 +428,31 @@ def jun24_bc_weight():
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
         for bc_tune in bc_tunes:
-                for bc_weight in bc_weights:
-                    job_id = f"{env_name[:6]}-tune{int(bc_tune)}-bcw{bc_weight}"
-                    file_name = job_id + ".yaml"
-                    config = {
-                        "discount2": 0.999,
-                        "coef": 1.0,
-                        "seed": 0,
-                        "T": 1,
-                        "algo": "dac",
-                        "env_name": env_name,
-                        "iql_style": "discount",
-                        "bc_weight": bc_weight,
-                        "tune_bc_weight": bc_tune,
-                        "named": job_id,
-                        "id": job_id,
-                        "tune_bc_weight": False,
-                        "std_threshold": 1e-4,
-                        "bc_lower_bound": 1e-3,
-                        "bc_decay": 0.995,
-                    }
-                    job_list.append(
-                        job_id)
-                    filename = os.path.join(config_dir, file_name)
-                    file_paths.append(filename)
-                    make_config_file(filename, config)
+            for bc_weight in bc_weights:
+                job_id = f"{env_name[:6]}-tune{int(bc_tune)}-bcw{bc_weight}"
+                file_name = job_id + ".yaml"
+                config = {
+                    "discount2": 0.999,
+                    "coef": 1.0,
+                    "seed": 0,
+                    "T": 1,
+                    "algo": "dac",
+                    "env_name": env_name,
+                    "iql_style": "discount",
+                    "bc_weight": bc_weight,
+                    "tune_bc_weight": bc_tune,
+                    "named": job_id,
+                    "id": job_id,
+                    "tune_bc_weight": False,
+                    "std_threshold": 1e-4,
+                    "bc_lower_bound": 1e-3,
+                    "bc_decay": 0.995,
+                }
+                job_list.append(
+                    job_id)
+                filename = os.path.join(config_dir, file_name)
+                file_paths.append(filename)
+                # make_config_file(filename, config)
     for env_name in env:
         job_id = f"{env_name[:6]}-bc"
         file_name = job_id + ".yaml"
@@ -470,7 +471,10 @@ def jun24_bc_weight():
             job_id)
         filename = os.path.join(config_dir, file_name)
         file_paths.append(filename)
-        make_config_file(filename, config)
+        # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
+
 
 if __name__ == "__main__":
     # jun22_all_env()
