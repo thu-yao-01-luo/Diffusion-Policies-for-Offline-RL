@@ -440,7 +440,7 @@ def jun24_bc_weight():
                         "iql_style": "discount",
                         "bc_weight": bc_weight,
                         "tune_bc_weight": bc_tune,
-                        "named": job_id,
+                        "name": job_id,
                         "id": job_id,
                         "tune_bc_weight": False,
                         "std_threshold": 1e-4,
@@ -463,7 +463,7 @@ def jun24_bc_weight():
             "algo": "bc",
             "env_name": env_name,
             "iql_style": "discount",
-            "named": job_id,
+            "name": job_id,
             "id": job_id,
         }
         job_list.append(
