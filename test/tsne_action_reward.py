@@ -79,11 +79,12 @@ def impl_tsne():
     visualize_tsne(actions, rewards, prefix='hopper-impl')
 
 def double_tsne():
-    filename = "/home/kairong/Diffusion-Policies-for-Offline-RL"
+    filename = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints/halfcheetah"
     impl_actions = np.load(os.path.join(filename, "actions.npy"))[:2000]
     impl_rewards = np.load(os.path.join(filename, "rewards.npy"))[:2000]
     impl_q_values = np.load(os.path.join(filename, "q_values.npy"))[:2000]
-    env_name = 'hopper-medium-v2'
+    # env_name = 'hopper-medium-v2'
+    env_name = 'halfcheetah-medium-v2'
     env = gym.make(env_name)
 
     # Set the random seed for reproducibility
@@ -99,5 +100,4 @@ def double_tsne():
 if __name__ == "__main__":
     # dataset_tsne()
     # impl_tsne()
-
     double_tsne()
