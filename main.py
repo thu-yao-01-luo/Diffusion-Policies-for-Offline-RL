@@ -78,9 +78,12 @@ class Config:
     bc_weight: float = 1.0
     name: str = 'dac'
     id: str = 'dac'
-    log_every: int = 10
+    tune_bc_weight: bool = False
+    std_threshold: float = 1e-4
+    bc_lower_bound: float = 1e-4
+    bc_decay: float = 0.995
 
-def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
+def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
     # Load buffer
     dataset = d4rl.qlearning_dataset(env)
     data_sampler = Data_Sampler(dataset, device, args.reward_tune)
@@ -102,7 +105,6 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       lr_decay=args.lr_decay,
                       lr_maxt=args.num_epochs,
                       grad_norm=args.gn,
-                      log_every=args.log_every
                       )
     elif args.algo == 'bc':
         from agents.bc_diffusion import Diffusion_BC as Agent
@@ -115,7 +117,6 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       beta_schedule=args.beta_schedule,
                       n_timesteps=args.T,
                       lr=args.lr,
-                      log_every=args.log_every
                       )
     elif args.algo == 'dac':
         from agents.ac_diffusion import Diffusion_AC as Agent
@@ -141,7 +142,10 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       quantile=args.quantile,
                       temperature=args.temperature,
                       bc_weight=args.bc_weight,
-                      log_every=args.log_every
+                      tune_bc_weight=args.tune_bc_weight,
+                      std_threshold=args.std_threshold,
+                      bc_lower_bound=args.bc_lower_bound,
+                      bc_decay=args.bc_decay,
                       )
     else:
         raise NotImplementedError
@@ -158,26 +162,23 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
     best_nreward = -np.inf
     while (training_iters < max_timesteps) and (not early_stop):
         iterations = int(args.eval_freq * args.num_steps_per_epoch)
-        begin_time = time.time()
         loss_metric = agent.train(data_sampler,
                                   iterations=iterations,
                                   batch_size=args.batch_size,
                                   log_writer=writer)
         training_iters += iterations
-        print(f"{args.num_steps_per_epoch} time cost:{time.time() - begin_time}")
-        # training_iters += iterations
         curr_epoch = int(training_iters // int(args.num_steps_per_epoch))
-
         # Logging
         utils.print_banner(
             f"Train step: {training_iters}", separator="*", num_star=90)
-        logger.record_tabular('Trained Epochs', curr_epoch)
-        logger.record_tabular('BC Loss', np.mean(loss_metric['bc_loss']))
-        logger.record_tabular('QL Loss', np.mean(loss_metric['ql_loss']))
-        logger.record_tabular('Actor Loss', np.mean(loss_metric['actor_loss']))
-        logger.record_tabular(
-            'Critic Loss', np.mean(loss_metric['critic_loss']))
-        logger.dump_tabular()
+        if not using_server:
+            logger.record_tabular('Trained Epochs', curr_epoch)
+            logger.record_tabular('BC Loss', np.mean(loss_metric['bc_loss']))
+            logger.record_tabular('QL Loss', np.mean(loss_metric['ql_loss']))
+            logger.record_tabular('Actor Loss', np.mean(loss_metric['actor_loss']))
+            logger.record_tabular(
+                'Critic Loss', np.mean(loss_metric['critic_loss']))
+            logger.dump_tabular()
 
         # Evaluation
         eval_res, eval_res_std, eval_norm_res, eval_norm_res_std = eval_policy(agent, args.env_name, args.seed,
@@ -186,19 +187,26 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                             'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
         logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
                             'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
-        logger_zhiao.dumpkvs()
+        
         evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
                             np.mean(loss_metric['bc_loss']), np.mean(
                                 loss_metric['ql_loss']),
                             np.mean(loss_metric['actor_loss']), np.mean(
                                 loss_metric['critic_loss']),
                             curr_epoch])
-        np.save(os.path.join(output_dir, "eval"), evaluations)
-        logger.record_tabular('Average Episodic Reward', eval_res)
-        logger.record_tabular('Average Episodic N-Reward', eval_norm_res)
-        logger.dump_tabular()
+        if not using_server:    
+            np.save(os.path.join(output_dir, "eval"), evaluations)
+            logger.record_tabular('Average Episodic Reward', eval_res)
+            logger.record_tabular('Average Episodic N-Reward', eval_norm_res)
+            logger.dump_tabular()
 
         bc_loss = np.mean(loss_metric['bc_loss'])
+        for k, v in loss_metric.items():
+            logger_zhiao.logkv(k, np.mean(v))
+            logger_zhiao.logkv(k + '_std', np.std(v))   
+            logger_zhiao.logkv(k + '_max', np.max(v))
+            logger_zhiao.logkv(k + '_min', np.min(v))
+        logger_zhiao.dumpkvs()
         if args.early_stop:
             early_stop = stop_check(metric, bc_loss)
 
@@ -236,7 +244,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
-def eval_policy(policy, env_name, seed, eval_episodes=10):
+def eval_policy(policy, env_name, seed, eval_episodes=10, need_animation=False):
     eval_env = gym.make(env_name)
     eval_env.seed(seed + 100)
 
@@ -259,16 +267,16 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
 
     utils.print_banner(
         f"Evaluation over {eval_episodes} episodes: {avg_reward:.2f} {avg_norm_score:.2f}")
-
-    state, done = eval_env.reset(), False
-    ims = []
-    while not done:
-        action = policy.sample_action(np.array(state))
-        state, reward, done, _ = eval_env.step(action)
-        traj_return += reward
-        ims.append(eval_env.render(mode='rgb_array'))
-    logger_zhiao.animate(ims, f'{args.env_name}_{args.algo}_{args.T}.mp4')
-    scores.append(traj_return)
+    if need_animation:
+        state, done = eval_env.reset(), False
+        ims = []
+        while not done:
+            action = policy.sample_action(np.array(state))
+            state, reward, done, _ = eval_env.step(action)
+            traj_return += reward
+            ims.append(eval_env.render(mode='rgb_array'))
+        logger_zhiao.animate(ims, f'{args.env_name}_{args.algo}_{args.T}.mp4')
+        scores.append(traj_return)
 
     return avg_reward, std_reward, avg_norm_score, std_norm_score
 

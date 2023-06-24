@@ -109,10 +109,14 @@ class Diffusion_AC(object):
                  compute_consistency=True,
                  iql_style="discount",
                  expectile=0.7,
-                quantile=0.6,
+                 quantile=0.6,
                  temperature=1.0,
                  bc_weight=1.0,
                  log_every=10,
+                 tune_bc_weight=False,
+                 std_threshold=1e-4,
+                 bc_lower_bound=1e-4,
+                 bc_decay=0.995,
                  ):
 
         self.model = MLP(state_dim=state_dim,
@@ -159,7 +163,11 @@ class Diffusion_AC(object):
         self.temperature = temperature
         self.bc_weight = bc_weight
         self.log_every = log_every
-
+        self.tune_bc_weight = tune_bc_weight
+        self.std_threshold = std_threshold
+        self.bc_lower_bound = bc_lower_bound
+        self.bc_decay = bc_decay
+        
     def step_ema(self):
         if self.step < self.step_start_ema:
             return
@@ -205,10 +213,9 @@ class Diffusion_AC(object):
                 target_q1, target_q2 = self.critic_target(
                     state, denoised_noisy_action, t)
                 # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
-                target_q = self.discount2 * torch.min(target_q1, target_q2)
+                target_q = self.discount2 * torch.min(target_q1, target_q2).detach()
                 if self.iql_style == "discount":
-                    consistency_loss = F.mse_loss(
-                        current_q1, target_q) + F.mse_loss(current_q2, target_q)
+                    consistency_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
                 elif self.iql_style == "expectile":
                     consistency_loss = expectile_loss(current_q1, target_q, self.expectile) + expectile_loss(current_q2, target_q, self.expectile)
                 elif self.iql_style == "quantile":
@@ -223,12 +230,9 @@ class Diffusion_AC(object):
                 target_q1, target_q2 = self.critic_target(
                     state, action, t)  # Q'_1(s, a, t), Q'_2(s, a, t)
                 # \hat Q = min(Q'_1(s', a, t), Q'_2(s', a, t))
-                target_q = torch.min(target_q1, target_q2)
-                consistency_loss = F.mse_loss(
-                    current_q1, target_q) + F.mse_loss(current_q2, target_q)
-            # print('consistency loss time: ', time.time() - begin_time)
+                target_q = torch.min(target_q1, target_q2).detach()
+                consistency_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
             # MSBE loss
-            # begin_time = time.time()
             if self.max_q_backup:
                 next_state_rpt = torch.repeat_interleave(
                     next_state, repeats=10, dim=0)
@@ -253,20 +257,16 @@ class Diffusion_AC(object):
                 state, action, torch.zeros_like(t))
             MSBE_loss = F.mse_loss(current_q1, target_q) + \
                 F.mse_loss(current_q2, target_q)
-            # print('MSBE loss time: ', time.time() - begin_time)
 
             critic_loss = consistency_loss + self.MSBE_coef * MSBE_loss
-            # begin_time = time.time()
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
                 critic_grad_norms = nn.utils.clip_grad_norm_(
                     self.critic.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.critic_optimizer.step()
-            # print('critic update time: ', time.time() - begin_time)
 
             """ Policy Training """
-            # begin_time = time.time()
             bc_loss = self.actor.p_losses(action, state, t)
             new_action = self.actor.p_sample(noisy_action, t, state)
 
@@ -276,71 +276,49 @@ class Diffusion_AC(object):
             else:
                 q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
             actor_loss = self.bc_weight * bc_loss + self.eta * q_loss
-            # print('actor loss time: ', time.time() - begin_time)
-            # begin_time = time.time()
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.grad_norm > 0:
                 actor_grad_norms = nn.utils.clip_grad_norm_(
                     self.actor.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.actor_optimizer.step()
-            # print('actor update time: ', time.time() - begin_time)
-            # begin_time = time.time()
             """ Step Target network """
             if self.step % self.update_ema_every == 0:
                 self.step_ema()
-            # print('ema update time: ', time.time() - begin_time)
-            # begin_time = time.time()
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                 target_param.data.copy_(
                     self.tau * param.data + (1 - self.tau) * target_param.data)
-            # print('target update time: ', time.time() - begin_time)
             self.step += 1
-            # begin_time = time.time()
             """ Log """
-            if log_writer is not None and self.step % self.log_every == 0:
-                # if self.grad_norm > 0:
-                #     log_writer.add_scalar(
-                #         'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
-                #     log_writer.add_scalar(
-                #         'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
-                # log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
-                # log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
-                # log_writer.add_scalar(
-                #     'Critic Loss', critic_loss.item(), self.step)
-                # log_writer.add_scalar(
-                #     'Target_Q Mean', target_q.mean().item(), self.step)
-                # log_writer.add_scalar('Consistency Loss',
-                #                       consistency_loss.item(), self.step)
-                # log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
+            if log_writer is not None: 
+                if self.grad_norm > 0:
+                    log_writer.add_scalar(
+                        'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
+                    log_writer.add_scalar(
+                        'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
+                log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
+                log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
+                log_writer.add_scalar(
+                    'Critic Loss', critic_loss.item(), self.step)
+                log_writer.add_scalar(
+                    'Target_Q Mean', target_q.mean().item(), self.step)
+                log_writer.add_scalar('Consistency Loss',
+                                      consistency_loss.item(), self.step)
+                log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
+            metric['actor_loss'].append(actor_loss.item())
+            metric['bc_loss'].append(bc_loss.item())
+            metric['ql_loss'].append(q_loss.item())
+            metric['critic_loss'].append(critic_loss.item())
+            metric['consistency_loss'].append(consistency_loss.item())
+            metric['MSBE_loss'].append(MSBE_loss.item())
+            metric['bc_weight'].append(self.bc_weight)
 
-                metric['actor_loss'].append(actor_loss.item())
-                metric['bc_loss'].append(bc_loss.item())
-                metric['ql_loss'].append(q_loss.item())
-                metric['critic_loss'].append(critic_loss.item())
-                metric['consistency_loss'].append(consistency_loss.item())
-                metric['MSBE_loss'].append(MSBE_loss.item())
-
-                logger_zhiao.logkv_mean_std('Actor Loss', actor_loss.item())
-                logger_zhiao.logkv_mean_std('BC Loss', bc_loss.item())
-                logger_zhiao.logkv_mean_std('QL Loss', q_loss.item())
-                logger_zhiao.logkv_mean_std('Critic Loss', critic_loss.item())
-                logger_zhiao.logkv_mean_std(
-                    'Consistency Loss', consistency_loss.item())
-                logger_zhiao.logkv_mean_std('MSBE Loss', MSBE_loss.item())
-                logger_zhiao.logkv_mean_std(
-                    'Target_Q Mean', target_q.mean().item())
-                logger_zhiao.logkv_mean_std('current_q1', current_q1.mean().item())
-                logger_zhiao.logkv_mean_std('current_q2', current_q2.mean().item())
-                logger_zhiao.logkv_mean_std(
-                    'q1_new_action', q1_new_action.mean().item())
-                logger_zhiao.logkv_mean_std(
-                    'q2_new_action', q2_new_action.mean().item())
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
-            # print('lr decay time: ', time.time() - begin_time)
-            # print(f'Actor Loss: {actor_loss.item():.4f}, BC Loss: {bc_loss.item():.4f}, QL Loss: {q_loss.item():.4f}, Critic Loss: {critic_loss.item():.4f}')
+            
+            if self.tune_bc_weight and self.step > 10 and np.std(metric['bc_loss'][-10:]) < self.std_threshold:
+                self.bc_weight = max(self.bc_lower_bound, self.bc_weight * self.bc_decay)
 
         return metric
 

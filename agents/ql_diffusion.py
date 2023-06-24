@@ -192,24 +192,10 @@ class Diffusion_QL(object):
                     'Critic Loss', critic_loss.item(), self.step)
                 log_writer.add_scalar(
                     'Target_Q Mean', target_q.mean().item(), self.step)
-
             metric['actor_loss'].append(actor_loss.item())
             metric['bc_loss'].append(bc_loss.item())
             metric['ql_loss'].append(q_loss.item())
             metric['critic_loss'].append(critic_loss.item())
-
-            logger_zhiao.logkv_mean_std('Actor Loss', actor_loss.item())
-            logger_zhiao.logkv_mean_std('BC Loss', bc_loss.item())
-            logger_zhiao.logkv_mean_std('QL Loss', q_loss.item())
-            logger_zhiao.logkv_mean_std('Critic Loss', critic_loss.item())
-            logger_zhiao.logkv_mean_std(
-                'Target_Q Mean', target_q.mean().item())
-            logger_zhiao.logkv_mean_std('current_q1', current_q1.mean().item())
-            logger_zhiao.logkv_mean_std('current_q2', current_q2.mean().item())
-            logger_zhiao.logkv_mean_std(
-                'q1_new_action', q1_new_action.mean().item())
-            logger_zhiao.logkv_mean_std(
-                'q2_new_action', q2_new_action.mean().item())
 
         if self.lr_decay:
             self.actor_lr_scheduler.step()
