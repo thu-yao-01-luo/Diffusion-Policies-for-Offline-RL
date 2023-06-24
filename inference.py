@@ -1,6 +1,6 @@
 # Copyright 2022 Twitter, Inc and Zhendong Wang.
 # SPDX-License-Identifier: Apache-2.0
-
+import os
 import argparse
 import gym
 import numpy as np
@@ -63,7 +63,8 @@ def bug_mix_reward_q():
     np.save("rewards.npy", rewards)
     
 def infer():
-    env = gym.make('hopper-medium-v2')
+    # env = gym.make('hopper-medium-v2')
+    env= gym.make('halfcheetah-medium-v2')
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
@@ -94,7 +95,6 @@ def infer():
     agent = Agent(
                 **kwargs
                 )
-    env = gym.make('hopper-medium-v2')
     dataset = env.get_dataset()
     # dataset = d4rl.get_dataset(env_id)
 
@@ -104,8 +104,10 @@ def infer():
     states = dataset["observations"]
     actions = dataset["actions"]
     rewards = dataset["rewards"]
-    dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints"
-    agent.load_model(dir, id=7200)
+    # dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints"
+    dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints/halfcheetah/"
+
+    agent.load_model(dir, id=7550)
     my_actions = []
     rewards = []
     q_values = []
@@ -126,9 +128,15 @@ def infer():
     my_actions = np.array(my_actions)
     rewards = np.array(rewards)
     q_values = np.array(q_values)
-    np.save("actions.npy", my_actions)
-    np.save("rewards.npy", rewards)
-    np.save("q_values.npy", q_values)
+    action_path = os.path.join(dir, "actions.npy")
+    reward_path = os.path.join(dir, "rewards.npy")
+    q_value_path = os.path.join(dir, "q_values.npy")
+    np.save(action_path, my_actions)
+    np.save(reward_path, rewards)
+    np.save(q_value_path, q_values)
+    # np.save("actions.npy", my_actions)
+    # np.save("rewards.npy", rewards)
+    # np.save("q_values.npy", q_values)
 
 if __name__ == "__main__":
     infer()

@@ -76,6 +76,8 @@ class Config:
     quantile: float = 0.6
     temperature: float = 1.0
     bc_weight: float = 1.0
+    name: str = 'dac'
+    id: str = 'dac'
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
     # Load buffer
@@ -308,8 +310,10 @@ if __name__ == "__main__":
         format_strs=args.format,
         config=args,
         project="dream-ac-fix",
-        name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-{args.algo}-{args.env_name}-lrd{args.lr_decay}-cc{args.compute_consistency}-iql{args.iql_style}-{time.time()}",
-        id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-{args.algo}-{args.env_name}-lrd{args.lr_decay}-cc{args.compute_consistency}-iql{args.iql_style}-{time.time()}",
+        # name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-{args.algo}-{args.env_name}-lrd{args.lr_decay}-cc{args.compute_consistency}-iql{args.iql_style}-{time.time()}",
+        # id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-{args.algo}-{args.env_name}-lrd{args.lr_decay}-cc{args.compute_consistency}-iql{args.iql_style}-{time.time()}",
+        name=args.name, 
+        id=args.id,
     )  # type: ignore
 
     args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
