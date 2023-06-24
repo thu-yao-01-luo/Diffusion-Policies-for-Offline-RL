@@ -5,5 +5,5 @@ discount2: 0.999
 env_name: halfcheetah-medium-v2
 id: halfch-bc
 iql_style: discount
-named: halfch-bc
+name: halfch-bc
 seed: 0

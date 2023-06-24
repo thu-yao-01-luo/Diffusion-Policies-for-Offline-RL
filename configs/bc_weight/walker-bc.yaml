@@ -5,5 +5,5 @@ discount2: 0.999
 env_name: walker2d-medium-v2
 id: walker-bc
 iql_style: discount
-named: walker-bc
+name: walker-bc
 seed: 0

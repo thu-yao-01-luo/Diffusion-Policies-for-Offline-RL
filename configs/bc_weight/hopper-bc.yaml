@@ -5,5 +5,5 @@ discount2: 0.999
 env_name: hopper-medium-v2
 id: hopper-bc
 iql_style: discount
-named: hopper-bc
+name: hopper-bc
 seed: 0
