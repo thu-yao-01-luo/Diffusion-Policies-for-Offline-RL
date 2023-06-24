@@ -423,9 +423,29 @@ def jun24_bc_weight():
     job_list = []
     env = ["hopper-medium-v2", "walker2d-medium-v2", "halfcheetah-medium-v2"]
     bc_weights = [1.0, 1.5, 2.5, 7.5]
-    bc_tunes = [True, False]
+    # bc_tunes = [True, False]
+    bc_tunes = [True]
     config_dir = "configs/bc_weight/"
     os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        job_id = f"{env_name[:6]}-bc"
+        file_name = job_id + ".yaml"
+        config = {
+            "discount2": 0.999,
+            "coef": 1.0,
+            "seed": 0,
+            "T": 1,
+            "algo": "bc",
+            "env_name": env_name,
+            "iql_style": "discount",
+            "name": job_id,
+            "id": job_id,
+        }
+        job_list.append(
+            job_id)
+        filename = os.path.join(config_dir, file_name)
+        file_paths.append(filename)
+        # make_config_file(filename, config)
     for env_name in env:
         for bc_tune in bc_tunes:
             for bc_weight in bc_weights:
@@ -451,28 +471,9 @@ def jun24_bc_weight():
                     job_id)
                 filename = os.path.join(config_dir, file_name)
                 file_paths.append(filename)
-                make_config_file(filename, config)
-    for env_name in env:
-        job_id = f"{env_name[:6]}-bc"
-        file_name = job_id + ".yaml"
-        config = {
-            "discount2": 0.999,
-            "coef": 1.0,
-            "seed": 0,
-            "T": 1,
-            "algo": "bc",
-            "env_name": env_name,
-            "iql_style": "discount",
-            "name": job_id,
-            "id": job_id,
-        }
-        job_list.append(
-            job_id)
-        filename = os.path.join(config_dir, file_name)
-        file_paths.append(filename)
-        make_config_file(filename, config)
-    # for ind, job in enumerate(job_list):
-    #     run_python_file(job, file_paths[ind])
+                # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 
 if __name__ == "__main__":
