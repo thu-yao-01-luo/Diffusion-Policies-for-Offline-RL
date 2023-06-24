@@ -443,7 +443,6 @@ def jun24_bc_weight():
                     "tune_bc_weight": bc_tune,
                     "name": job_id,
                     "id": job_id,
-                    "tune_bc_weight": False,
                     "std_threshold": 1e-4,
                     "bc_lower_bound": 1e-3,
                     "bc_decay": 0.995,
@@ -452,7 +451,7 @@ def jun24_bc_weight():
                     job_id)
                 filename = os.path.join(config_dir, file_name)
                 file_paths.append(filename)
-                # make_config_file(filename, config)
+                make_config_file(filename, config)
     for env_name in env:
         job_id = f"{env_name[:6]}-bc"
         file_name = job_id + ".yaml"
@@ -471,9 +470,9 @@ def jun24_bc_weight():
             job_id)
         filename = os.path.join(config_dir, file_name)
         file_paths.append(filename)
-        # make_config_file(filename, config)
-    for ind, job in enumerate(job_list):
-        run_python_file(job, file_paths[ind])
+        make_config_file(filename, config)
+    # for ind, job in enumerate(job_list):
+    #     run_python_file(job, file_paths[ind])
 
 
 if __name__ == "__main__":

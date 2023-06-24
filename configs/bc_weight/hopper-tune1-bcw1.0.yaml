@@ -11,4 +11,4 @@ iql_style: discount
 name: hopper-tune1-bcw1.0
 seed: 0
 std_threshold: 0.0001
-tune_bc_weight: false
+tune_bc_weight: true
