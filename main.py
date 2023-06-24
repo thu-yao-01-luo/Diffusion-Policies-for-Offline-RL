@@ -79,6 +79,7 @@ class Config:
     name: str = 'dac'
     id: str = 'dac'
 
+
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args):
     # Load buffer
     dataset = d4rl.qlearning_dataset(env)
@@ -135,7 +136,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       expectile=args.expectile,
                       quantile=args.quantile,
                       temperature=args.temperature,
-                      bc_weight = args.bc_weight,
+                      bc_weight=args.bc_weight,
                       )
     else:
         raise NotImplementedError
@@ -199,6 +200,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
         metric = bc_loss
 
         if args.save_best_model and eval_norm_res > best_nreward:
+            best_nreward = eval_norm_res
             agent.save_model(output_dir, curr_epoch)
 
     # Model Selection: online or offline
