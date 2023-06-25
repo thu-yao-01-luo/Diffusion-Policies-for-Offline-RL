@@ -317,8 +317,8 @@ class Diffusion_AC(object):
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
             
-            if self.tune_bc_weight and self.step > 15 and np.std(metric['bc_loss'][-15:]) < self.std_threshold:
-                self.bc_weight = max(self.bc_lower_bound, self.bc_weight * self.bc_decay)
+        if self.tune_bc_weight and np.std(metric['bc_loss']) < self.std_threshold:
+            self.bc_weight = max(self.bc_lower_bound, self.bc_weight * self.bc_decay)
 
         return metric
 

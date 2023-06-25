@@ -80,7 +80,7 @@ class Config:
     id: str = 'dac'
     tune_bc_weight: bool = False
     std_threshold: float = 1e-4
-    bc_lower_bound: float = 1e-4
+    bc_lower_bound: float = 1e-2
     bc_decay: float = 0.995
 
 
