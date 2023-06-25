@@ -534,4 +534,5 @@ if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
     # jun23_bc_discount()
-    jun24_bc_weight()
+    # jun24_bc_weight()
+    jun24_bc_decay() 
