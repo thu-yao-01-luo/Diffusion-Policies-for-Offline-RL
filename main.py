@@ -83,7 +83,7 @@ class Config:
     bc_lower_bound: float = 1e-2
     bc_decay: float = 0.995
     bc_upper_bound: float = 1e2
-    value_threshold = 2.5e-4
+    value_threshold: float = 2.5e-4
 
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
