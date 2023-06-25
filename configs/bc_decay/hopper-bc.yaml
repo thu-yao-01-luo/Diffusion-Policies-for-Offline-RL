@@ -1,0 +1,9 @@
+T: 1
+algo: bc
+coef: 1.0
+discount2: 0.999
+env_name: hopper-medium-v2
+id: hopper-bc
+iql_style: discount
+name: hopper-bc
+seed: 0

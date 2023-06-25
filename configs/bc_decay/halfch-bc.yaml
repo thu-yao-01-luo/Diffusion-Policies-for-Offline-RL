@@ -1,0 +1,9 @@
+T: 1
+algo: bc
+coef: 1.0
+discount2: 0.999
+env_name: halfcheetah-medium-v2
+id: halfch-bc
+iql_style: discount
+name: halfch-bc
+seed: 0
