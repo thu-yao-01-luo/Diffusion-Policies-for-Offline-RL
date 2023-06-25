@@ -475,6 +475,60 @@ def jun24_bc_weight():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+def jun24_bc_weight_decay():
+    file_paths = []
+    job_list = []
+    env = ["hopper-medium-v2", "walker2d-medium-v2", "halfcheetah-medium-v2"]
+    bc_weights = [1.5, 2.5, 5.0, 10.0]
+    config_dir = "configs/bc_decay/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        job_id = f"{env_name[:6]}-bc"
+        file_name = job_id + ".yaml"
+        config = {
+            "discount2": 0.999,
+            "coef": 1.0,
+            "seed": 0,
+            "T": 1,
+            "algo": "bc",
+            "env_name": env_name,
+            "iql_style": "discount",
+            "name": job_id,
+            "id": job_id,
+        }
+        job_list.append(
+            job_id)
+        filename = os.path.join(config_dir, file_name)
+        file_paths.append(filename)
+        make_config_file(filename, config)
+    for env_name in env:
+        for bc_weight in bc_weights:
+            job_id = f"{env_name[:6]}-bcw{bc_weight}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": 1,
+                "algo": "dac",
+                "env_name": env_name,
+                "iql_style": "discount",
+                "bc_weight": bc_weight,
+                "tune_bc_weight": True,
+                "name": job_id,
+                "id": job_id,
+                "std_threshold": 1e-4,
+                "bc_lower_bound": 1e-2,
+                "bc_decay": 0.995,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    # for ind, job in enumerate(job_list):
+    #     run_python_file(job, file_paths[ind])
+
 
 if __name__ == "__main__":
     # jun22_all_env()
