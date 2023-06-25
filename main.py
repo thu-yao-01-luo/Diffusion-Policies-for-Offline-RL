@@ -82,6 +82,8 @@ class Config:
     std_threshold: float = 1e-4
     bc_lower_bound: float = 1e-2
     bc_decay: float = 0.995
+    bc_upper_bound: float = 1e2
+    value_threshold = 2.5e-4
 
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
@@ -147,6 +149,8 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       std_threshold=args.std_threshold,
                       bc_lower_bound=args.bc_lower_bound,
                       bc_decay=args.bc_decay,
+                      bc_upper_bound=args.bc_upper_bound,
+                      value_threshold=args.value_threshold,
                       )
     else:
         raise NotImplementedError

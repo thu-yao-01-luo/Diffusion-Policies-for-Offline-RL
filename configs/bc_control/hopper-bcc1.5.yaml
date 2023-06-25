@@ -1,0 +1,16 @@
+T: 1
+algo: dac
+bc_decay: 0.995
+bc_lower_bound: 0.01
+bc_upper_bound: 100.0
+bc_weight: 1.5
+coef: 1.0
+discount2: 0.999
+env_name: hopper-medium-v2
+id: hopper-bcc1.5
+iql_style: discount
+name: hopper-bcc1.5
+seed: 0
+std_threshold: 0.0001
+tune_bc_weight: true
+value_threshold: 0.00036

@@ -115,8 +115,10 @@ class Diffusion_AC(object):
                  log_every=10,
                  tune_bc_weight=False,
                  std_threshold=1e-4,
-                 bc_lower_bound=1e-4,
+                 bc_lower_bound=1e-2,
                  bc_decay=0.995,
+                 value_threshold=2.5e-4,
+                 bc_upper_bound=1e2,
                  ):
 
         self.model = MLP(state_dim=state_dim,
@@ -167,6 +169,8 @@ class Diffusion_AC(object):
         self.std_threshold = std_threshold
         self.bc_lower_bound = bc_lower_bound
         self.bc_decay = bc_decay
+        self.value_threshold = value_threshold
+        self.bc_upper_bound = bc_upper_bound
         
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -317,8 +321,12 @@ class Diffusion_AC(object):
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
             
-        if self.tune_bc_weight and np.std(metric['bc_loss']) < self.std_threshold:
+        # if self.tune_bc_weight and np.std(metric['bc_loss']) < self.std_threshold:
+        #     self.bc_weight = max(self.bc_lower_bound, self.bc_weight * self.bc_decay)
+        if self.tune_bc_weight and np.mean(metric['bc_loss']) < self.value_threshold:
             self.bc_weight = max(self.bc_lower_bound, self.bc_weight * self.bc_decay)
+        else:
+            self.bc_weight = min(self.bc_upper_bound, self.bc_weight / self.bc_decay)
 
         return metric
 
