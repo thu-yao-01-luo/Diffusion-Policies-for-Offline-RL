@@ -187,12 +187,11 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
             logger.dump_tabular()
 
         # Evaluation
-        eval_res, eval_res_std, eval_norm_res, eval_norm_res_std = eval_policy(agent, args.env_name, args.seed,
+        eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std = eval_policy(agent, args.env_name, args.seed,
                                                                                eval_episodes=args.eval_episodes)
         logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
-                            'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
-        logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
-                            'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std})
+                            'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std,
+                            'eval_len': eval_len, 'eval_len_std': eval_len_std,})
 
         evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
                             np.mean(loss_metric['bc_loss']), np.mean(
@@ -255,17 +254,23 @@ def eval_policy(policy, env_name, seed, eval_episodes=10, need_animation=False):
     eval_env.seed(seed + 100)
 
     scores = []
+    lengths = []
     for _ in range(eval_episodes):
         traj_return = 0.
+        traj_length = 0
         state, done = eval_env.reset(), False
         while not done:
             action = policy.sample_action(np.array(state))
             state, reward, done, _ = eval_env.step(action)
             traj_return += reward
+            traj_length += 1
         scores.append(traj_return)
+        lengths.append(traj_length)
 
     avg_reward = np.mean(scores)
     std_reward = np.std(scores)
+    avg_length = np.mean(lengths)
+    std_length = np.std(lengths)
 
     normalized_scores = [eval_env.get_normalized_score(s) for s in scores]
     avg_norm_score = eval_env.get_normalized_score(avg_reward)
@@ -284,7 +289,7 @@ def eval_policy(policy, env_name, seed, eval_episodes=10, need_animation=False):
         logger_zhiao.animate(ims, f'{args.env_name}_{args.algo}_{args.T}.mp4')
         scores.append(traj_return)
 
-    return avg_reward, std_reward, avg_norm_score, std_norm_score
+    return avg_reward, std_reward, avg_norm_score, std_norm_score, avg_length, std_length
 
 
 if __name__ == "__main__":
