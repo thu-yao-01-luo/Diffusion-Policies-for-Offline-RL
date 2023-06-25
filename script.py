@@ -475,6 +475,7 @@ def jun24_bc_weight():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun24_bc_weight_decay():
     file_paths = []
     job_list = []
@@ -500,7 +501,7 @@ def jun24_bc_weight_decay():
             job_id)
         filename = os.path.join(config_dir, file_name)
         file_paths.append(filename)
-        make_config_file(filename, config)
+        # make_config_file(filename, config)
     for env_name in env:
         for bc_weight in bc_weights:
             job_id = f"{env_name[:6]}-bcw{bc_weight}"
@@ -525,9 +526,9 @@ def jun24_bc_weight_decay():
                 job_id)
             filename = os.path.join(config_dir, file_name)
             file_paths.append(filename)
-            make_config_file(filename, config)
-    # for ind, job in enumerate(job_list):
-    #     run_python_file(job, file_paths[ind])
+            # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 
 if __name__ == "__main__":
@@ -535,4 +536,4 @@ if __name__ == "__main__":
     # jun23_discount_all_env()
     # jun23_bc_discount()
     # jun24_bc_weight()
-    jun24_bc_weight_decay() 
+    jun24_bc_weight_decay()
