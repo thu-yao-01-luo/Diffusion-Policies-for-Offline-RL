@@ -17,6 +17,51 @@ from agents.model import MLP
 import time
 from agents.helpers import EMA, SinusoidalPosEmb
 
+# class Q_function(nn.Module):
+#     """
+#     MLP Model
+#     """
+
+#     def __init__(self,
+#                  state_dim,
+#                  action_dim,
+#                  hidden_dim=256):
+
+#         super(Q_function, self).__init__()
+
+#         input_dim = state_dim + action_dim
+#         self.mid_layer = nn.Sequential(nn.Linear(input_dim, hidden_dim),
+#                                        nn.Mish(),
+#                                        nn.Linear(hidden_dim, hidden_dim),
+#                                        nn.Mish(),
+#                                        nn.Linear(hidden_dim, hidden_dim),
+#                                        nn.Mish())
+
+#         self.final_layer = nn.Linear(hidden_dim, 1)
+
+#     def forward(self, state, noisy_action):
+#         x = torch.cat([state, noisy_action], dim=1)
+#         x = self.mid_layer(x)
+
+#         return self.final_layer(x)
+
+
+# class NoisyCritic(nn.Module):
+#     def __init__(self, state_dim, action_dim, hidden_dim=256):
+#         super(NoisyCritic, self).__init__()
+#         self.q1_model = Q_function(state_dim, action_dim, hidden_dim)
+#         self.q2_model = Q_function(state_dim, action_dim, hidden_dim)
+
+#     def forward(self, state, noisy_action):
+#         return self.q1_model(state, noisy_action), self.q2_model(state, noisy_action)
+
+#     def q1(self, state, noisy_action):
+#         return self.q1_model(state, noisy_action)
+
+#     def q_min(self, state, noisy_action):
+#         q1, q2 = self.forward(state, noisy_action)
+#         return torch.min(q1, q2)
+
 class Q_function(nn.Module):
     """
     MLP Model
@@ -25,11 +70,19 @@ class Q_function(nn.Module):
     def __init__(self,
                  state_dim,
                  action_dim,
-                 hidden_dim=256):
+                 hidden_dim=256,
+                 t_dim=16):
 
         super(Q_function, self).__init__()
 
-        input_dim = state_dim + action_dim
+        self.time_mlp = nn.Sequential(
+            SinusoidalPosEmb(t_dim),
+            nn.Linear(t_dim, t_dim * 2),
+            nn.Mish(),
+            nn.Linear(t_dim * 2, t_dim),
+        )
+
+        input_dim = state_dim + action_dim + t_dim
         self.mid_layer = nn.Sequential(nn.Linear(input_dim, hidden_dim),
                                        nn.Mish(),
                                        nn.Linear(hidden_dim, hidden_dim),
@@ -39,30 +92,30 @@ class Q_function(nn.Module):
 
         self.final_layer = nn.Linear(hidden_dim, 1)
 
-    def forward(self, state, noisy_action):
-        x = torch.cat([state, noisy_action], dim=1)
+    def forward(self, state, noisy_action, time):
+
+        t = self.time_mlp(time)
+        x = torch.cat([state, noisy_action, t], dim=1)
         x = self.mid_layer(x)
 
         return self.final_layer(x)
 
 
 class NoisyCritic(nn.Module):
-    def __init__(self, state_dim, action_dim, hidden_dim=256):
+    def __init__(self, state_dim, action_dim, hidden_dim=256, t_dim=16):
         super(NoisyCritic, self).__init__()
-        self.q1_model = Q_function(state_dim, action_dim, hidden_dim)
-        self.q2_model = Q_function(state_dim, action_dim, hidden_dim)
+        self.q1_model = Q_function(state_dim, action_dim, hidden_dim, t_dim)
+        self.q2_model = Q_function(state_dim, action_dim, hidden_dim, t_dim)
 
-    def forward(self, state, noisy_action):
-        return self.q1_model(state, noisy_action), self.q2_model(state, noisy_action)
+    def forward(self, state, noisy_action, t):
+        return self.q1_model(state, noisy_action, t), self.q2_model(state, noisy_action, t)
 
-    def q1(self, state, noisy_action):
-        return self.q1_model(state, noisy_action)
+    def q1(self, state, noisy_action, t):
+        return self.q1_model(state, noisy_action, t)
 
-    def q_min(self, state, noisy_action):
-        q1, q2 = self.forward(state, noisy_action)
+    def q_min(self, state, noisy_action, t):
+        q1, q2 = self.forward(state, noisy_action, t)
         return torch.min(q1, q2)
-
-
 
 class VAE_AC(object):
     def __init__(self,
@@ -163,28 +216,38 @@ class VAE_AC(object):
             # Sample replay buffer / batch
             state, action, next_state, reward, not_done = replay_buffer.sample(
                 batch_size)
+            t_one = torch.ones(state.shape[0], device=self.device, requires_grad=False).long()
+            t_zero = torch.zeros(state.shape[0], device=self.device, requires_grad=False).long()
             
             """ Latent Variable """
 
-            recon_a, _, mu, logvar = self.actor(action, state)
-            
-            loss_recon = self.actor.reconstruction_loss(recon_a, action)
-            loss_kl = self.actor.KL_loss(mu, logvar)
-            bc_loss = loss_recon + loss_kl
+            ema_mean, ema_logvar = self.ema_model.encoder(action, state)
+            ema_latent = self.ema_model.reparam(ema_mean, ema_logvar)
             
             """ Q Training """
+            # consistency loss
+            # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
+            current_q1, current_q2 = self.critic(
+                state, ema_latent, t_one)  # Q_1(s, a^t, t), Q_2(s, a^t, t)
+            pred_action = self.ema_model.decoder(ema_latent, state)  # a^{t-1}, a = a^{-1}
+            # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
+            target_q1, target_q2 = self.critic_target(
+                state, pred_action, t_zero)
+            # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
+            target_q = self.discount2 * torch.min(target_q1, target_q2).detach()
+            consistency_loss = F.mse_loss(current_q1, target_q) + F.mse_loss(current_q2, target_q)
             # MSBE loss
             next_action = self.ema_model.sample(next_state)
             target_q1, target_q2 = self.critic_target(
-                next_state, next_action)
+                next_state, next_action, t_one)
             target_q = torch.min(target_q1, target_q2)
             target_q = (reward + not_done *
                         self.discount * target_q).detach()
-            current_q1, current_q2 = self.critic(state, action)
+            current_q1, current_q2 = self.critic(state, action, t_zero)
             MSBE_loss = F.mse_loss(current_q1, target_q) + \
                 F.mse_loss(current_q2, target_q)
 
-            critic_loss = MSBE_loss
+            critic_loss = consistency_loss + self.MSBE_coef * MSBE_loss
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
@@ -196,10 +259,12 @@ class VAE_AC(object):
             Attention! The policy only depends on decoder of VAE, not encoder.
             So we need to use the ema_model to get the latent variable.
             """
-            ema_mean, ema_logvar = self.ema_model.encoder(action, state)
-            ema_latent = self.ema_model.reparam(ema_mean, ema_logvar)
+            recon_a, _, mu, logvar = self.actor(action, state)
+            loss_recon = self.actor.reconstruction_loss(recon_a, action)
+            loss_kl = self.actor.KL_loss(mu, logvar)
+            bc_loss = loss_recon + loss_kl
             goal_action = self.actor.decoder(ema_latent, state)
-            q1_new_action, q2_new_action = self.critic(state, goal_action)
+            q1_new_action, q2_new_action = self.critic(state, goal_action, t_zero)
             if np.random.uniform() > 0.5:
                 q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
             else:
@@ -267,7 +332,8 @@ class VAE_AC(object):
         state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
         with torch.no_grad():
             action = self.actor.sample(state_rpt)
-            q_value = self.critic_target.q_min(state_rpt, action).flatten()
+            q_value = self.critic_target.q_min(state_rpt, action, torch.zeros(
+                action.shape[0], device=self.device).long()).flatten()
             idx = torch.multinomial(F.softmax(q_value, dim=-1), 1)
         return action[idx].cpu().data.numpy().flatten()
 
