@@ -606,6 +606,7 @@ def jun25_consistency():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun26_consistency():
     file_paths = []
     job_list = []
@@ -613,32 +614,34 @@ def jun26_consistency():
     config_dir = "configs/bc_control_consistency/"
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
-            job_id = f"{env_name[:6]}-consist"
-            file_name = job_id + ".yaml"
-            config = {
-                "discount2": 0.999,
-                "coef": 1.0,
-                "seed": 0,
-                "T": 1,
-                "algo": "dac",
-                "env_name": env_name,
-                "iql_style": "discount",
-                "bc_weight": 10,
-                "tune_bc_weight": True,
-                "name": job_id,
-                "id": job_id,
-                "std_threshold": 1e-4,
-                "bc_lower_bound": 1e-2,
-                "bc_decay": 0.995,
-                "value_threshold": 3.8e-4 if env_name == "hopper-medium-v2" else 2.8e-4,
-                "bc_upper_bound": 1e2,
-                "consistency": False,
-            }
-            job_list.append(
-                job_id)
-            filename = os.path.join(config_dir, file_name)
-            file_paths.append(filename)
-            make_config_file(filename, config)
+        job_id = f"{env_name[:6]}-consist"
+        file_name = job_id + ".yaml"
+        config = {
+            "discount2": 0.999,
+            "coef": 1.0,
+            "seed": 0,
+            "T": 1,
+            "algo": "dac",
+            "env_name": env_name,
+            "iql_style": "discount",
+            "bc_weight": 10,
+            "tune_bc_weight": True,
+            "name": job_id,
+            "id": job_id,
+            "std_threshold": 1e-4,
+            "bc_lower_bound": 1e-2,
+            "bc_decay": 0.995,
+            "value_threshold": 3.8e-4 if env_name == "hopper-medium-v2" else 2.8e-4,
+            "bc_upper_bound": 1e2,
+            "consistency": False,
+        }
+        job_list.append(
+            job_id)
+        filename = os.path.join(config_dir, file_name)
+        file_paths.append(filename)
+        # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 
 if __name__ == "__main__":
