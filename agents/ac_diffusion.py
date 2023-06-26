@@ -344,8 +344,9 @@ class Diffusion_AC(object):
             metric['bc_loss'].append(bc_loss.item())
             metric['ql_loss'].append(q_loss.item())
             metric['critic_loss'].append(critic_loss.item())
-            metric['consistency_loss'].append(consistency_loss.item())
-            metric['MSBE_loss'].append(MSBE_loss.item())
+            if self.consistency:
+                metric['consistency_loss'].append(consistency_loss.item())
+                metric['MSBE_loss'].append(MSBE_loss.item())
             metric['bc_weight'].append(self.bc_weight)
 
             if self.lr_decay:
