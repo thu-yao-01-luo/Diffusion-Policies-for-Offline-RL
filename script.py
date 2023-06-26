@@ -568,6 +568,7 @@ def jun25_bc_weight():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun25_consistency():
     file_paths = []
     job_list = []
@@ -601,9 +602,9 @@ def jun25_consistency():
                 job_id)
             filename = os.path.join(config_dir, file_name)
             file_paths.append(filename)
-            make_config_file(filename, config)
-    # for ind, job in enumerate(job_list):
-    #     run_python_file(job, file_paths[ind])
+            # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 def jun26_consistency():
     file_paths = []
