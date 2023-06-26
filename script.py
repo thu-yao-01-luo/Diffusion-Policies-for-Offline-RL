@@ -683,8 +683,8 @@ def jun26_consistency_ql():
 def jun26_vae_ac():
     file_paths = []
     job_list = []
-    bc_weights = [1.5, 2.5, 7.5]
-    env = ["hopper-medium-v2", "walker2d-medium-v2", "halfcheetah-medium-v2"]
+    bc_weights = [2.5, 7.5]
+    env = ["walker2d-medium-v2", "halfcheetah-medium-v2"]
     config_dir = "configs/vae_ac/"
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
