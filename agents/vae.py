@@ -29,10 +29,11 @@ class Decoder(nn.Module):
 
     # ------------------------------------------ sampling ------------------------------------------#
 
-    def forward(self, s):
+    def forward(self, z, s):
         batch_size = s.shape[0]
-        a = torch.randn(batch_size, self.action_dim).to(s.device) 
-        a = self.final_layer(self.mid_layer(torch.cat([s, a], dim=1)))
+        # a = torch.randn(batch_size, self.action_dim).to(s.device) 
+        a = self.mid_layer(torch.cat([s, z], dim=1))
+        a = self.final_layer(a)
         return a.clamp_(-self.max_action, self.max_action)
     
 class Encoder(nn.Module):
@@ -54,7 +55,7 @@ class Encoder(nn.Module):
     # ------------------------------------------ sampling ------------------------------------------#
 
     def forward(self, a, s):
-        h = self.mid_layer(torch.cat([s, a], dim=1))
+        h = self.mid_layer(torch.cat([a, s], dim=1))
         mean = self.mean_layer(h)
         log_var = self.log_var_layer(h)
         return mean, log_var 
@@ -76,7 +77,7 @@ class VAE(nn.Module):
     def forward(self, a, s):    
         mean, log_var = self.encoder(a, s)
         z = self.reparam(mean, log_var)
-        recon_a = self.decoder(z)
+        recon_a = self.decoder(z, s)
         return recon_a, z, mean, log_var
     
     def KL_loss(self, mean, log_var):
@@ -88,6 +89,6 @@ class VAE(nn.Module):
     def sample(self, s):
         batch_size = s.shape[0]
         z = torch.randn(batch_size, self.action_dim).to(s.device) 
-        a = self.decoder(z)
+        a = self.decoder(z, s)
         return a.clamp_(-self.max_action, self.max_action)
    

@@ -103,7 +103,7 @@ class VAE_AC(object):
 
         self.actor = VAE(state_dim=state_dim, action_dim=action_dim, max_action=max_action,)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
-
+        self.actor = self.actor.to(device)
         self.lr_decay = lr_decay
         self.grad_norm = grad_norm
         self.MSBE_coef = MSBE_coef
@@ -166,7 +166,7 @@ class VAE_AC(object):
             
             """ Latent Variable """
 
-            recon_a, z, mu, logvar = self.actor(state, action)
+            recon_a, _, mu, logvar = self.actor(action, state)
             
             loss_recon = self.actor.reconstruction_loss(recon_a, action)
             loss_kl = self.actor.KL_loss(mu, logvar)
