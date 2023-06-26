@@ -724,4 +724,5 @@ if __name__ == "__main__":
     # jun25_bc_weight()
     # jun25_consistency()
     # jun26_consistency()
-    jun26_consistency_ql()
+    # jun26_consistency_ql()
+    jun26_vae_ac()
