@@ -110,7 +110,7 @@ class Diffusion_QL(object):
         self.eta = eta  # q_learning weight
         self.device = device
         self.max_q_backup = max_q_backup
-        
+
         # --------------my code----------------
         self.tune_bc_weight = tune_bc_weight
         self.bc_lower_bound = bc_lower_bound
@@ -175,7 +175,8 @@ class Diffusion_QL(object):
                 q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
             else:
                 q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
-            actor_loss = self.bc_weight * bc_loss + self.eta * q_loss # add bc weight control
+            actor_loss = self.bc_weight * bc_loss + \
+                self.eta * q_loss  # add bc weight control
 
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
