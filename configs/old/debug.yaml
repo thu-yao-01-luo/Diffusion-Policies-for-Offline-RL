@@ -7,6 +7,6 @@ early_stop: false
 env_name: halfcheetah-medium-v2
 iql_style: discount
 lr_decay: false
-seed: 11
+seed: 0
 num_steps_per_epoch: 1
 format: ['stdout']
