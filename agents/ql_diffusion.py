@@ -128,7 +128,7 @@ class Diffusion_QL(object):
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
 
         metric = {'bc_loss': [], 'ql_loss': [],
-                  'actor_loss': [], 'critic_loss': []}
+                  'actor_loss': [], 'critic_loss': [], 'bc_weight': []}
         for _ in range(iterations):
             # Sample replay buffer / batch
             state, action, next_state, reward, not_done = replay_buffer.sample(
@@ -212,6 +212,7 @@ class Diffusion_QL(object):
             metric['bc_loss'].append(bc_loss.item())
             metric['ql_loss'].append(q_loss.item())
             metric['critic_loss'].append(critic_loss.item())
+            metric['bc_weight'].append(self.bc_weight)
 
         if self.lr_decay:
             self.actor_lr_scheduler.step()
@@ -221,10 +222,10 @@ class Diffusion_QL(object):
         if self.tune_bc_weight:
             if np.mean(metric['bc_loss']) < self.value_threshold:
                 self.bc_weight = max(self.bc_lower_bound,
-                                    self.bc_weight * self.bc_decay)
+                                     self.bc_weight * self.bc_decay)
             else:
                 self.bc_weight = min(self.bc_upper_bound,
-                                    self.bc_weight / self.bc_decay)
+                                     self.bc_weight / self.bc_decay)
 
         # -----------------------------------------
 
