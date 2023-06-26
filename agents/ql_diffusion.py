@@ -218,12 +218,13 @@ class Diffusion_QL(object):
             self.critic_lr_scheduler.step()
 
         # ----------------my code-------------------
-        if self.tune_bc_weight and np.mean(metric['bc_loss']) < self.value_threshold:
-            self.bc_weight = max(self.bc_lower_bound,
-                                 self.bc_weight * self.bc_decay)
-        else:
-            self.bc_weight = min(self.bc_upper_bound,
-                                 self.bc_weight / self.bc_decay)
+        if self.tune_bc_weight:
+            if np.mean(metric['bc_loss']) < self.value_threshold:
+                self.bc_weight = max(self.bc_lower_bound,
+                                    self.bc_weight * self.bc_decay)
+            else:
+                self.bc_weight = min(self.bc_upper_bound,
+                                    self.bc_weight / self.bc_decay)
 
         # -----------------------------------------
 
