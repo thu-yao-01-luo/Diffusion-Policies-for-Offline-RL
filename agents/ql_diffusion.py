@@ -67,6 +67,12 @@ class Diffusion_QL(object):
                  lr_decay=False,
                  lr_maxt=1000,
                  grad_norm=1.0,
+                 bc_weight=1.0,
+                 tune_bc_weight=False,
+                 bc_lower_bound=1e-2,
+                 bc_decay=0.995,
+                 value_threshold=2.5e-4,
+                 bc_upper_bound=1e2,
                  ):
 
         self.model = MLP(state_dim=state_dim,
@@ -104,6 +110,15 @@ class Diffusion_QL(object):
         self.eta = eta  # q_learning weight
         self.device = device
         self.max_q_backup = max_q_backup
+        
+        # --------------my code----------------
+        self.tune_bc_weight = tune_bc_weight
+        self.bc_lower_bound = bc_lower_bound
+        self.bc_weight = bc_weight
+        self.bc_decay = bc_decay
+        self.value_threshold = value_threshold
+        self.bc_upper_bound = bc_upper_bound
+        # -------------------------------------
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -160,7 +175,7 @@ class Diffusion_QL(object):
                 q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
             else:
                 q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
-            actor_loss = bc_loss + self.eta * q_loss
+            actor_loss = self.bc_weight * bc_loss + self.eta * q_loss # add bc weight control
 
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
@@ -200,6 +215,16 @@ class Diffusion_QL(object):
         if self.lr_decay:
             self.actor_lr_scheduler.step()
             self.critic_lr_scheduler.step()
+
+        # ----------------my code-------------------
+        if self.tune_bc_weight and np.mean(metric['bc_loss']) < self.value_threshold:
+            self.bc_weight = max(self.bc_lower_bound,
+                                 self.bc_weight * self.bc_decay)
+        else:
+            self.bc_weight = min(self.bc_upper_bound,
+                                 self.bc_weight / self.bc_decay)
+
+        # -----------------------------------------
 
         return metric
 
