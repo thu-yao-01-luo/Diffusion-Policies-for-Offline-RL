@@ -84,6 +84,7 @@ class Config:
     bc_decay: float = 0.995
     bc_upper_bound: float = 1e2
     value_threshold: float = 2.5e-4
+    consistency: bool = True
 
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
@@ -151,6 +152,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       bc_decay=args.bc_decay,
                       bc_upper_bound=args.bc_upper_bound,
                       value_threshold=args.value_threshold,
+                      consistency=args.consistency,
                       )
     else:
         raise NotImplementedError
@@ -188,10 +190,10 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
 
         # Evaluation
         eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std = eval_policy(agent, args.env_name, args.seed,
-                                                                               eval_episodes=args.eval_episodes)
+                                                                                                       eval_episodes=args.eval_episodes)
         logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
                             'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std,
-                            'eval_len': eval_len, 'eval_len_std': eval_len_std,})
+                             'eval_len': eval_len, 'eval_len_std': eval_len_std, })
 
         evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
                             np.mean(loss_metric['bc_loss']), np.mean(
