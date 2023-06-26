@@ -643,6 +643,7 @@ def jun26_consistency():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun26_consistency_ql():
     file_paths = []
     job_list = []
@@ -674,9 +675,9 @@ def jun26_consistency_ql():
                 job_id)
             filename = os.path.join(config_dir, file_name)
             file_paths.append(filename)
-            make_config_file(filename, config)
-    # for ind, job in enumerate(job_list):
-    #     run_python_file(job, file_paths[ind]) 
+            # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 
 if __name__ == "__main__":
