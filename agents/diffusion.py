@@ -116,7 +116,7 @@ class Diffusion(nn.Module):
     def p_sample(self, x, t, s):
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, t=t, s=s)
-        noise = torch.randn_like(x)
+        noise = torch.randn_like(x) * self.scale
         # no noise when t == 0
         nonzero_mask = (1 - (t == 0).float()).reshape(b,
                                                       *((1,) * (len(x.shape) - 1)))
@@ -161,7 +161,7 @@ class Diffusion(nn.Module):
 
     def q_sample(self, x_start, t, noise=None):
         if noise is None:
-            noise = torch.randn_like(x_start)
+            noise = torch.randn_like(x_start) * self.scale
 
         sample = (
             extract(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start +
@@ -172,7 +172,7 @@ class Diffusion(nn.Module):
         return sample
 
     def p_losses(self, x_start, state, t, weights=1.0):
-        noise = torch.randn_like(x_start)
+        noise = torch.randn_like(x_start) * self.scale
 
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
 
