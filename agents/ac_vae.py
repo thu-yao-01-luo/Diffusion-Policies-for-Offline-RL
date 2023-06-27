@@ -222,7 +222,7 @@ class VAE_AC(object):
             """ Latent Variable """
 
             ema_mean, ema_logvar = self.ema_model.encoder(action, state)
-            ema_latent = self.ema_model.reparam(ema_mean, ema_logvar)
+            ema_latent = self.ema_model.reparam(ema_mean, ema_logvar).detach()
             
             """ Q Training """
             # consistency loss
