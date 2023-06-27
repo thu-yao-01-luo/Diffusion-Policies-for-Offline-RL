@@ -749,9 +749,9 @@ def jun26_noise_decay():
                 job_id)
             filename = os.path.join(config_dir, file_name)
             file_paths.append(filename)
-            # make_config_file(filename, config)
-    for ind, job in enumerate(job_list):
-        run_python_file(job, file_paths[ind])
+            make_config_file(filename, config)
+    # for ind, job in enumerate(job_list):
+    #     run_python_file(job, file_paths[ind])
 
 def jun26_bc_weight():
     file_paths = []
@@ -824,6 +824,41 @@ def jun26_bc():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+def jun27_init_noise_decay():
+    file_paths = []
+    job_list = []
+    # scales = [1e-1, 1e-2, 1e-3]
+    scales = [1e-4, 1e-6, 0.0]
+    env = ["halfcheetah-medium-v2"]
+    config_dir = "configs/init_noise/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for scale in scales:
+            job_id = f"{env_name[:6]}-init_noise-{scale}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": 1,
+                "algo": "dac",
+                "env_name": env_name,
+                "bc_weight": 7.5,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "bc_lower_bound": 1e-2,
+                "bc_decay": 0.995,
+                "value_threshold": 2.8e-4,
+                "bc_upper_bound": 1e2,
+                "scale": scale,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -835,6 +870,7 @@ if __name__ == "__main__":
     # jun26_consistency()
     # jun26_consistency_ql()
     # jun26_vae_ac()
-    jun26_noise_decay()
+    # jun26_noise_decay()
     # jun26_bc_weight()
     # jun26_bc()
+    jun27_init_noise_decay()
