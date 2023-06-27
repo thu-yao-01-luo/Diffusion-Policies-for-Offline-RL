@@ -138,7 +138,68 @@ def infer():
     # np.save("rewards.npy", rewards)
     # np.save("q_values.npy", q_values)
 
-if __name__ == "__main__":
-    infer()
+def diffusion_training():
+    import torch
+    import torch.optim as optim
+    from agents.diffusion import Diffusion
+    from agents.model import MLP
+    state_dim = 2
+    action_dim = 5
+    max_action = 1.0
+    scale = 1.0
+    # n_timesteps = 1
+    n_timestep_list = [1, 5, 10, 100]
+    device = 'cuda'
+    plt.figure(figsize=(10, 10))
+    for n_timesteps in n_timestep_list:
+        model = MLP(state_dim=state_dim,
+                            action_dim=action_dim, device=device)
+        beta_schedule = 'vp'
 
+        diffusion_model = Diffusion(state_dim=state_dim, action_dim=action_dim, model=model, max_action=max_action,
+                                beta_schedule=beta_schedule, n_timesteps=n_timesteps, scale=scale).to(device)
+
+        # Set up your diffusion model architecture and parameters
+        num_steps = 500
+        batch_size = 32
+        learning_rate = 0.001
+
+        # Set up optimizer
+        optimizer = optim.Adam(diffusion_model.parameters(), lr=learning_rate)
+
+        states = torch.rand(10000, 2, device=device)
+        actions = torch.rand(10000, 5, device=device) * states[:, 0].unsqueeze(1)  
+        losses = []
+
+        # Training loop
+        for step in range(num_steps):
+            # Generate a batch of samples from the diffusion model
+            indices = np.random.randint(0, 10000, batch_size)
+            state = states[indices]
+            action = actions[indices]
+            # Clear the gradients
+            optimizer.zero_grad()
+            
+            # Backpropagation
+            loss = diffusion_model.loss(action, state)
+            loss.backward()
+            
+            # Update the model parameters
+            optimizer.step()
+            
+            # Report the loss
+            if (step + 1) % 10 == 0:
+                print(f"n_timesteps: {n_timesteps} Step [{step+1}/{num_steps}], Loss: {loss.item()}")
+            losses.append(loss.item())
+        plt.plot(losses, label=f'n_timesteps={n_timesteps}')
     
+    plt.xlabel('Episode')
+    plt.ylabel('Episode Loss')
+    plt.title('Loss vs. Episode')
+    plt.legend()
+    plt.savefig(f'loss-plot.png')
+    plt.close()
+
+if __name__ == "__main__":
+    # infer()
+    diffusion_training()    
