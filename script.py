@@ -796,14 +796,14 @@ def jun26_bc():
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
         for T in Ts:
-                job_id = f"{env_name[:6]}-time{T}"
+                job_id = f"{env_name[:6]}-bc-time{T}"
                 file_name = job_id + ".yaml"
                 config = {
                     "discount2": 0.999,
                     "coef": 1.0,
                     "seed": 0,
                     "T": T,
-                    "algo": "dac",
+                    "algo": "bc",
                     "env_name": env_name,
                     "iql_style": "discount",
                     "bc_weight": 2.5,
@@ -819,9 +819,9 @@ def jun26_bc():
                     job_id)
                 filename = os.path.join(config_dir, file_name)
                 file_paths.append(filename)
-                # make_config_file(filename, config)
-    for ind, job in enumerate(job_list):
-        run_python_file(job, file_paths[ind])
+                make_config_file(filename, config)
+    # for ind, job in enumerate(job_list):
+    #     run_python_file(job, file_paths[ind])
 
 if __name__ == "__main__":
     # jun22_all_env()
