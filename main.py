@@ -115,6 +115,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       bc_decay=args.bc_decay,
                       bc_upper_bound=args.bc_upper_bound,
                       value_threshold=args.value_threshold,
+                      scale=args.scale,
                       )
     elif args.algo == 'bc':
         from agents.bc_diffusion import Diffusion_BC as Agent
