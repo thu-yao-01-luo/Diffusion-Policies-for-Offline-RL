@@ -191,7 +191,7 @@ class Diffusion_AC(object):
 
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
-                  'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": []}
+                  'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": []}
         for _ in range(iterations):
             # Sample replay buffer / batch
             # begin_time = time.time()

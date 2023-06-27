@@ -129,7 +129,7 @@ class Diffusion_QL(object):
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
 
         metric = {'bc_loss': [], 'ql_loss': [],
-                  'actor_loss': [], 'critic_loss': [], 'bc_weight': []}
+                  'actor_loss': [], 'critic_loss': [], 'bc_weight': [], "target_q": []}
         for _ in range(iterations):
             # Sample replay buffer / batch
             state, action, next_state, reward, not_done = replay_buffer.sample(
