@@ -181,6 +181,7 @@ class Diffusion_AC(object):
         self.value_threshold = value_threshold
         self.bc_upper_bound = bc_upper_bound
         self.consistency = consistency
+        self.scale = scale
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -212,7 +213,7 @@ class Diffusion_AC(object):
             # begin_time = time.time()
             t = torch.randint(0, self.actor.n_timesteps,
                               (batch_size,), device=self.device).long()
-            noise = torch.randn_like(action)
+            noise = torch.randn_like(action) * self.scale
             noisy_action = self.actor.q_sample(action, t, noise)
             # new_action = self.actor.p_sample(noisy_action, t, state)
 
@@ -275,7 +276,7 @@ class Diffusion_AC(object):
                         next_state, repeats=10, dim=0)
                     # next_action_rpt = self.ema_model(next_state_rpt)
                     next_action_rpt = torch.randn(
-                        next_state_rpt.shape[0], self.action_dim, device=self.device)  # random noise
+                        next_state_rpt.shape[0], self.action_dim, device=self.device) * self.scale # random noise
                     target_q1, target_q2 = self.critic_target(
                         next_state_rpt, next_action_rpt, total_t.expand(next_state_rpt.shape[0]))
                     target_q1 = target_q1.view(
@@ -285,7 +286,7 @@ class Diffusion_AC(object):
                     target_q = torch.min(target_q1, target_q2)
                 else:
                     # next_action = self.ema_model(next_state)
-                    next_action = torch.randn_like(action)  # random noise
+                    next_action = torch.randn_like(action) * self.scale  # random noise
                     target_q1, target_q2 = self.critic_target(
                         next_state, next_action, total_t.expand(next_state.shape[0]))
                     target_q = torch.min(target_q1, target_q2)
