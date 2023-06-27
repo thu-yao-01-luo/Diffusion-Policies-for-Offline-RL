@@ -797,5 +797,5 @@ if __name__ == "__main__":
     # jun26_consistency()
     # jun26_consistency_ql()
     # jun26_vae_ac()
-    # jun26_noise_decay()
-    jun26_bc_weight()
+    jun26_noise_decay()
+    # jun26_bc_weight()
