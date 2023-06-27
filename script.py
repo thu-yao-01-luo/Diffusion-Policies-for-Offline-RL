@@ -732,7 +732,7 @@ def jun26_noise_decay():
                 "coef": 1.0,
                 "seed": 0,
                 "T": 1,
-                "algo": "vae-ac",
+                "algo": "dac",
                 "env_name": env_name,
                 "bc_weight": 7.5,
                 "tune_bc_weight": False,
@@ -742,14 +742,15 @@ def jun26_noise_decay():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
+                "scale": scale,
             }
             job_list.append(
                 job_id)
             filename = os.path.join(config_dir, file_name)
             file_paths.append(filename)
-            # make_config_file(filename, config)
-    for ind, job in enumerate(job_list):
-        run_python_file(job, file_paths[ind])
+            make_config_file(filename, config)
+    # for ind, job in enumerate(job_list):
+    #     run_python_file(job, file_paths[ind])
 
 def jun26_bc_weight():
     file_paths = []
@@ -797,5 +798,5 @@ if __name__ == "__main__":
     # jun26_consistency()
     # jun26_consistency_ql()
     # jun26_vae_ac()
-    jun26_noise_decay()
-    # jun26_bc_weight()
+    # jun26_noise_decay()
+    jun26_bc_weight()
