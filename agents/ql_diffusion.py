@@ -213,6 +213,7 @@ class Diffusion_QL(object):
             metric['ql_loss'].append(q_loss.item())
             metric['critic_loss'].append(critic_loss.item())
             metric['bc_weight'].append(self.bc_weight)
+            metric['target_q'].append(target_q.mean().item())
 
         if self.lr_decay:
             self.actor_lr_scheduler.step()
