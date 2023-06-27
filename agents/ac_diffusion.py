@@ -375,12 +375,12 @@ class Diffusion_AC(object):
 
     def sample_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
-        state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
+        state_rpt = torch.repeat_interleave(state, repeats=5, dim=0)
         with torch.no_grad():
             action = self.actor.sample(state_rpt)
             q_value = self.critic_target.q_min(state_rpt, action, torch.zeros(
                 action.shape[0], device=self.device).long()).flatten()
-            idx = torch.multinomial(F.softmax(q_value, dim=-1), 1)
+            idx = torch.multinomial(F.softmax(q_value, dim=-1), 1) 
         return action[idx].cpu().data.numpy().flatten()
 
     def save_model(self, dir, id=None):
