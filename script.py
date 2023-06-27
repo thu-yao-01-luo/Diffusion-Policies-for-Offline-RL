@@ -912,5 +912,5 @@ if __name__ == "__main__":
     # jun26_noise_decay()
     # jun26_bc_weight()
     # jun26_bc()
-    # jun27_init_noise_decay()
-    jun27_ql_noise()
+    jun27_init_noise_decay()
+    # jun27_ql_noise()
