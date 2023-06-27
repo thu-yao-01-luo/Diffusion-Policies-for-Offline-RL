@@ -719,7 +719,8 @@ def jun26_vae_ac():
 def jun26_noise_decay():
     file_paths = []
     job_list = []
-    scales = [1e-1, 1e-2, 1e-3]
+    # scales = [1e-1, 1e-2, 1e-3]
+    scales = [1e-4, 1e-6, 0.0]
     env = ["halfcheetah-medium-v2"]
     config_dir = "configs/scale/"
     os.makedirs(config_dir, exist_ok=True)
@@ -783,9 +784,9 @@ def jun26_bc_weight():
                     job_id)
                 filename = os.path.join(config_dir, file_name)
                 file_paths.append(filename)
-                # make_config_file(filename, config)
-    for ind, job in enumerate(job_list):
-        run_python_file(job, file_paths[ind])
+                make_config_file(filename, config)
+    # for ind, job in enumerate(job_list):
+    #     run_python_file(job, file_paths[ind])
 
 def jun26_bc():
     file_paths = []
@@ -834,6 +835,6 @@ if __name__ == "__main__":
     # jun26_consistency()
     # jun26_consistency_ql()
     # jun26_vae_ac()
-    # jun26_noise_decay()
+    jun26_noise_decay()
     # jun26_bc_weight()
-    jun26_bc()
+    # jun26_bc()
