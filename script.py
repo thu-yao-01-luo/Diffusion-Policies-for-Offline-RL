@@ -819,9 +819,9 @@ def jun26_bc():
                     job_id)
                 filename = os.path.join(config_dir, file_name)
                 file_paths.append(filename)
-                make_config_file(filename, config)
-    # for ind, job in enumerate(job_list):
-    #     run_python_file(job, file_paths[ind])
+                # make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 if __name__ == "__main__":
     # jun22_all_env()
