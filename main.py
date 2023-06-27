@@ -85,7 +85,7 @@ class Config:
     bc_upper_bound: float = 1e2
     value_threshold: float = 2.5e-4
     consistency: bool = True
-
+    scale: float = 1.0
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
     # Load buffer
@@ -159,6 +159,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       bc_upper_bound=args.bc_upper_bound,
                       value_threshold=args.value_threshold,
                       consistency=args.consistency,
+                      scale=args.scale,
                       )
     elif args.algo == 'vae-ac':         
         from agents.ac_vae import VAE_AC as Agent

@@ -19,13 +19,14 @@ from utils.utils import Progress, Silent
 class Diffusion(nn.Module):
     def __init__(self, state_dim, action_dim, model, max_action,
                  beta_schedule='linear', n_timesteps=100,
-                 loss_type='l2', clip_denoised=True, predict_epsilon=True):
+                 loss_type='l2', clip_denoised=True, predict_epsilon=True, scale=1.0):
         super(Diffusion, self).__init__()
 
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.max_action = max_action
         self.model = model
+        self.scale = scale
 
         if beta_schedule == 'linear':
             betas = linear_beta_schedule(n_timesteps)
@@ -115,7 +116,7 @@ class Diffusion(nn.Module):
     def p_sample(self, x, t, s):
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, t=t, s=s)
-        noise = torch.randn_like(x)
+        noise = torch.randn_like(x) * self.noise_scale
         # no noise when t == 0
         nonzero_mask = (1 - (t == 0).float()).reshape(b,
                                                       *((1,) * (len(x.shape) - 1)))
