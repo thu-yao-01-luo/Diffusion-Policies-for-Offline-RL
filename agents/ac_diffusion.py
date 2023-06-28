@@ -126,13 +126,14 @@ class Diffusion_AC(object):
                  bc_upper_bound=1e2,
                  consistency=True,
                  scale=1.0,
+                 predict_epsilon=False,
                  ):
 
         self.model = MLP(state_dim=state_dim,
                          action_dim=action_dim, device=device)
 
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
-                               beta_schedule=beta_schedule, n_timesteps=n_timesteps, scale=scale).to(device)
+                               beta_schedule=beta_schedule, n_timesteps=n_timesteps, scale=scale, predict_epsilon=predict_epsilon).to(device)
 
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
 
@@ -192,7 +193,9 @@ class Diffusion_AC(object):
 
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
-                  'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": []}
+                  'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
+                  "max_next_ac": [], "td_error": [], "consistency_error": []}
+        ood = 0 # out of distribution
         for _ in range(iterations):
             # Sample replay buffer / batch
             # begin_time = time.time()
@@ -217,12 +220,14 @@ class Diffusion_AC(object):
             noisy_action = self.actor.q_sample(action, t, noise)
             # new_action = self.actor.p_sample(noisy_action, t, state)
 
-            # print('add noise sample time: ', time.time() - begin_time)
             """ Q Training """
-            # begin_time = time.time()
             # consistency loss
             if not self.consistency:
                 next_action = self.ema_model.p_sample(noisy_action, t, state)
+                max_ac = next_action.abs().max()
+                metric['max_next_ac'].append(max_ac.item())
+                ood += next_action.abs().max() > self.max_action
+                next_action = next_action.clamp(-self.max_action, self.max_action)
                 current_q1, current_q2 = self.critic(
                     state, action, t)
                 target_q1, target_q2 = self.critic_target(
@@ -231,6 +236,7 @@ class Diffusion_AC(object):
                 target_q = torch.min(target_q1, target_q2).detach()
                 target_q = (reward + not_done *
                             self.discount * target_q).detach()
+                metric['td_error'].append((current_q1 - target_q).mean().item())
                 critic_loss = F.mse_loss(current_q1, target_q) + \
                     F.mse_loss(current_q2, target_q)
             else:
@@ -246,6 +252,7 @@ class Diffusion_AC(object):
                     # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
                     target_q = self.discount2 * \
                         torch.min(target_q1, target_q2).detach()
+                    metric['consistency_error'].append((current_q1 - target_q).mean().item()) 
                     if self.iql_style == "discount":
                         consistency_loss = F.mse_loss(
                             current_q1, target_q) + F.mse_loss(current_q2, target_q)
@@ -294,6 +301,7 @@ class Diffusion_AC(object):
                             self.discount * target_q).detach()
                 current_q1, current_q2 = self.critic(
                     state, action, torch.zeros_like(t))
+                metric['td_error'].append((current_q1 - target_q).mean().item())
                 MSBE_loss = F.mse_loss(current_q1, target_q) + \
                     F.mse_loss(current_q2, target_q)
 
@@ -361,6 +369,7 @@ class Diffusion_AC(object):
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
 
+        logger_zhiao.logkv("ood", ood)
         # if self.tune_bc_weight and np.std(metric['bc_loss']) < self.std_threshold:
         #     self.bc_weight = max(self.bc_lower_bound, self.bc_weight * self.bc_decay)
         if self.tune_bc_weight:

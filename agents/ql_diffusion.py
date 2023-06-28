@@ -74,13 +74,14 @@ class Diffusion_QL(object):
                  value_threshold=2.5e-4,
                  bc_upper_bound=1e2,
                  scale=1.0,
+                 predict_epsilon=True,
                  ):
 
         self.model = MLP(state_dim=state_dim,
                          action_dim=action_dim, device=device)
 
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
-                               beta_schedule=beta_schedule, n_timesteps=n_timesteps, scale=scale).to(device)
+                               beta_schedule=beta_schedule, n_timesteps=n_timesteps, scale=scale, predict_epsilon=predict_epsilon).to(device)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
 
         self.lr_decay = lr_decay

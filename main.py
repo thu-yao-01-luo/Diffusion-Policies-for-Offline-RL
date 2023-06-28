@@ -86,6 +86,7 @@ class Config:
     value_threshold: float = 2.5e-4
     consistency: bool = True
     scale: float = 1.0
+    predict_epsilon: bool = True
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
     # Load buffer
@@ -116,6 +117,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       bc_upper_bound=args.bc_upper_bound,
                       value_threshold=args.value_threshold,
                       scale=args.scale,
+                      predict_epsilon=args.predict_epsilon,
                       )
     elif args.algo == 'bc':
         from agents.bc_diffusion import Diffusion_BC as Agent
@@ -161,6 +163,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       value_threshold=args.value_threshold,
                       consistency=args.consistency,
                       scale=args.scale,
+                      predict_epsilon=args.predict_epsilon,
                       )
     elif args.algo == 'vae-ac':         
         from agents.ac_vae import VAE_AC as Agent
@@ -249,10 +252,15 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
 
         bc_loss = np.mean(loss_metric['bc_loss'])
         for k, v in loss_metric.items():
-            logger_zhiao.logkv(k, np.mean(v))
-            logger_zhiao.logkv(k + '_std', np.std(v))
-            logger_zhiao.logkv(k + '_max', np.max(v))
-            logger_zhiao.logkv(k + '_min', np.min(v))
+            try:
+                logger_zhiao.logkv(k, np.mean(v))
+                logger_zhiao.logkv(k + '_std', np.std(v))
+                logger_zhiao.logkv(k + '_max', np.max(v))
+                logger_zhiao.logkv(k + '_min', np.min(v))
+            except:
+                # logger_zhiao.logkv(k, v)
+                Warning(f"Logging {k} failed")
+                continue
         logger_zhiao.dumpkvs()
         if args.early_stop:
             early_stop = stop_check(metric, bc_loss)
