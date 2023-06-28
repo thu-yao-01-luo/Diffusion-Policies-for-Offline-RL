@@ -1205,5 +1205,5 @@ if __name__ == "__main__":
     # jun28_consist() 
     # jun28_bct()
     jun28_sota_noise()
-    jun28_sample_bcw()
+    # jun28_sample_bcw()
 
