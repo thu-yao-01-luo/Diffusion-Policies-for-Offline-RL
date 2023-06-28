@@ -175,7 +175,7 @@ class Diffusion_QL(object):
             bc_loss = self.actor.loss(action, state)
             if self.actor.predict_epsilon:
                 self.actor.predict_epsilon = False
-                true_bc_loss = self.actor.p_losses(action, state, t)
+                true_bc_loss = self.actor.loss(action, state)
                 metric["true_bc_loss"].append(true_bc_loss.item())
                 self.actor.predict_epsilon = True
             new_action = self.actor(state)
