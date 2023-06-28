@@ -252,15 +252,12 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
 
         bc_loss = np.mean(loss_metric['bc_loss'])
         for k, v in loss_metric.items():
-            try:
-                logger_zhiao.logkv(k, np.mean(v))
-                logger_zhiao.logkv(k + '_std', np.std(v))
-                logger_zhiao.logkv(k + '_max', np.max(v))
-                logger_zhiao.logkv(k + '_min', np.min(v))
-            except:
-                # logger_zhiao.logkv(k, v)
-                Warning(f"Logging {k} failed")
-                continue
+            if v == []:
+                continue    
+            logger_zhiao.logkv(k, np.mean(v))
+            logger_zhiao.logkv(k + '_std', np.std(v))
+            logger_zhiao.logkv(k + '_max', np.max(v))
+            logger_zhiao.logkv(k + '_min', np.min(v))
         logger_zhiao.dumpkvs()
         if args.early_stop:
             early_stop = stop_check(metric, bc_loss)

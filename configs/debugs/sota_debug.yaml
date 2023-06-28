@@ -10,3 +10,4 @@ lr_decay: false
 seed: 0
 num_steps_per_epoch: 1
 format: ['stdout']
+predict_epsilon: True

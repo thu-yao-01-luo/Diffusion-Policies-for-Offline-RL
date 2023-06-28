@@ -318,6 +318,7 @@ class Diffusion_AC(object):
             new_action = self.actor.p_sample(noisy_action, t, state)
 
             q1_new_action, q2_new_action = self.critic(state, new_action, t)
+            metric["actor_q"].append(q1_new_action.mean().item())
             if np.random.uniform() > 0.5:
                 q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
             else:

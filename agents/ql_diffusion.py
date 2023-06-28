@@ -130,7 +130,8 @@ class Diffusion_QL(object):
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
 
         metric = {'bc_loss': [], 'ql_loss': [],
-                  'actor_loss': [], 'critic_loss': [], 'bc_weight': [], "target_q": []}
+                  'actor_loss': [], 'critic_loss': [], 'bc_weight': [], "target_q": [], 
+                  "max_next_ac": [], "td_error": [], "actor_q": []}
         for _ in range(iterations):
             # Sample replay buffer / batch
             state, action, next_state, reward, not_done = replay_buffer.sample(
@@ -152,12 +153,14 @@ class Diffusion_QL(object):
                 target_q = torch.min(target_q1, target_q2)
             else:
                 next_action = self.ema_model(next_state)
+                metric["max_next_ac"].append(next_action.max().item())
                 target_q1, target_q2 = self.critic_target(
                     next_state, next_action)
                 target_q = torch.min(target_q1, target_q2)
 
             target_q = (reward + not_done * self.discount * target_q).detach()
-
+            
+            metric["td_error"].append((current_q1 - target_q).mean().item())
             critic_loss = F.mse_loss(
                 current_q1, target_q) + F.mse_loss(current_q2, target_q)
 
@@ -173,6 +176,7 @@ class Diffusion_QL(object):
             new_action = self.actor(state)
 
             q1_new_action, q2_new_action = self.critic(state, new_action)
+            metric["actor_q"].append(q1_new_action.mean().item())
             if np.random.uniform() > 0.5:
                 q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
             else:
