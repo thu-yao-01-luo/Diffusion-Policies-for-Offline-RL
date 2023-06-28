@@ -1058,5 +1058,5 @@ if __name__ == "__main__":
     # jun27_init_noise_decay()
     # jun27_ql_noise()
     # jun27_init_noise_decay_fix()
-    jun28_sota()
-    jun28_consist() 
+    # jun28_sota()
+    # jun28_consist() 
