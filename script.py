@@ -982,7 +982,7 @@ def jun28_sota():
                 "coef": 1.0,
                 "seed": 0,
                 "T": 1,
-                "algo": "dql",
+                "algo": "ql",
                 "env_name": env_name,
                 "bc_weight": bc_weight,
                 "tune_bc_weight": False,
@@ -1031,7 +1031,7 @@ def jun28_consist():
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
                 "predict_epsilon": False,   
-                "consist": False,
+                "consistency": False,
             }
             job_list.append(
                 job_id)

@@ -1,5 +1,5 @@
 T: 1
-algo: dql
+algo: ql
 bc_decay: 0.995
 bc_lower_bound: 0.01
 bc_upper_bound: 100.0
