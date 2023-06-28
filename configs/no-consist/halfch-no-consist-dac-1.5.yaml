@@ -5,7 +5,7 @@ bc_lower_bound: 0.01
 bc_upper_bound: 100.0
 bc_weight: 1.5
 coef: 1.0
-consist: false
+consistency: false
 discount2: 0.999
 env_name: halfcheetah-medium-v2
 id: halfch-no-consist-dac-1.5
