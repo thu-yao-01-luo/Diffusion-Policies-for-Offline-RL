@@ -1082,6 +1082,107 @@ def jun28_bct():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+def jun28_sota_noise():
+    file_paths = []
+    job_list = []
+    bc_weights = [1.5, 2.5]
+    env = ["halfcheetah-medium-v2"]
+    config_dir = "configs/sota-noise/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        # for scale in scales:
+        for bc_weight in bc_weights:
+            job_id = f"{env_name[:6]}-dac-bc-loss-noise-{bc_weight}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": 1,
+                "algo": "dac",
+                "env_name": env_name,
+                "bc_weight": bc_weight,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "bc_lower_bound": 1e-2,
+                "bc_decay": 0.995,
+                "value_threshold": 2.8e-4,
+                "bc_upper_bound": 1e2,
+                "predict_epsilon": True,   
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+
+    for env_name in env:
+        # for scale in scales:
+        for bc_weight in bc_weights:
+            job_id = f"{env_name[:6]}-ql-bc-loss-noise-{bc_weight}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": 1,
+                "algo": "ql",
+                "env_name": env_name,
+                "bc_weight": bc_weight,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "bc_lower_bound": 1e-2,
+                "bc_decay": 0.995,
+                "value_threshold": 2.8e-4,
+                "bc_upper_bound": 1e2,
+                "predict_epsilon": True,   
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
+
+def jun28_sample_bcw():
+    file_paths = []
+    job_list = []
+    bc_weights = [0.0097, 0.016]
+    env = ["halfcheetah-medium-v2"]
+    config_dir = "configs/sample-bcw/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for bc_weight in bc_weights:
+            job_id = f"{env_name[:6]}-ql-sample-bcw-{bc_weight}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": 1,
+                "algo": "ql",
+                "env_name": env_name,
+                "bc_weight": bc_weight,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "bc_lower_bound": 1e-2,
+                "bc_decay": 0.995,
+                "value_threshold": 2.8e-4,
+                "bc_upper_bound": 1e2,
+                "predict_epsilon": False,   
+                "consistency": False,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 if __name__ == "__main__":
     # jun22_all_env()
@@ -1102,5 +1203,7 @@ if __name__ == "__main__":
     # jun27_init_noise_decay_fix()
     # jun28_sota()
     # jun28_consist() 
-    jun28_bct()
+    # jun28_bct()
+    jun28_sota_noise()
+    jun28_sample_bcw()
 

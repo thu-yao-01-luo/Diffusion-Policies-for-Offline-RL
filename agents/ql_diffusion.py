@@ -131,7 +131,7 @@ class Diffusion_QL(object):
 
         metric = {'bc_loss': [], 'ql_loss': [],
                   'actor_loss': [], 'critic_loss': [], 'bc_weight': [], "target_q": [], 
-                  "max_next_ac": [], "td_error": [], "actor_q": []}
+                  "max_next_ac": [], "td_error": [], "actor_q": [], "true_bc_loss": []}
         for _ in range(iterations):
             # Sample replay buffer / batch
             state, action, next_state, reward, not_done = replay_buffer.sample(
@@ -173,6 +173,11 @@ class Diffusion_QL(object):
 
             """ Policy Training """
             bc_loss = self.actor.loss(action, state)
+            if self.actor.predict_epsilon:
+                self.actor.predict_epsilon = False
+                true_bc_loss = self.actor.p_losses(action, state, t)
+                metric["true_bc_loss"].append(true_bc_loss.item())
+                self.actor.predict_epsilon = True
             new_action = self.actor(state)
 
             q1_new_action, q2_new_action = self.critic(state, new_action)

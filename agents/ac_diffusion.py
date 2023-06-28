@@ -194,7 +194,7 @@ class Diffusion_AC(object):
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
                   'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
-                  "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": []}
+                  "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": []}
         # ood = 0 # out of distribution
         for _ in range(iterations):
             # Sample replay buffer / batch
@@ -314,6 +314,11 @@ class Diffusion_AC(object):
 
             """ Policy Training """
             bc_loss = self.actor.p_losses(action, state, t)
+            if self.actor.predict_epsilon:
+                self.actor.predict_epsilon = False
+                true_bc_loss = self.actor.p_losses(action, state, t)
+                metric["true_bc_loss"].append(true_bc_loss.item())
+                self.actor.predict_epsilon = True
             new_action = self.actor.p_sample(noisy_action, t, state)
 
             q1_new_action, q2_new_action = self.critic(state, new_action, t)
