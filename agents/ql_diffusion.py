@@ -75,6 +75,7 @@ class Diffusion_QL(object):
                  bc_upper_bound=1e2,
                  scale=1.0,
                  predict_epsilon=True,
+                 debug = False
                  ):
 
         self.model = MLP(state_dim=state_dim,
@@ -120,6 +121,7 @@ class Diffusion_QL(object):
         self.bc_decay = bc_decay
         self.value_threshold = value_threshold
         self.bc_upper_bound = bc_upper_bound
+        self.debug = debug
         # -------------------------------------
 
     def step_ema(self):
@@ -172,7 +174,8 @@ class Diffusion_QL(object):
             self.critic_optimizer.step()
 
             """ Policy Training """
-            bc_loss = self.actor.loss(action, state)
+            bc_loss = self.actor.loss(action, state) if not self.debug \
+            else self.actor.loss_to_verify(action, state)
             if self.actor.predict_epsilon:
                 self.actor.predict_epsilon = False
                 true_bc_loss = self.actor.loss(action, state)
