@@ -1102,8 +1102,5 @@ if __name__ == "__main__":
     # jun27_init_noise_decay_fix()
     # jun28_sota()
     # jun28_consist() 
-<<<<<<< HEAD
-=======
     jun28_bct()
 
->>>>>>> 8f329f9b17d057710d2b2b6bc163f9c7d7a25893
