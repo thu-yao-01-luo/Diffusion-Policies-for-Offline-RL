@@ -18,9 +18,9 @@ def compute_interval_lengths(arr):
 
 def vis_dataset():
     # Create the HalfCheetah environment
-    # env_name = 'halfcheetah-medium-v2'
+    env_name = 'halfcheetah-medium-v2'
     # env_name = 'halfcheetah-medium-expert-v2'
-    env_name = 'hopper-medium-v2'
+    # env_name = 'hopper-medium-v2'
     # env_name = 'walker2d-medium-v2'
     # env = gym.make('halfcheetah-medium-v2')
     env=gym.make(env_name)
@@ -63,7 +63,8 @@ def vis_dataset():
 
 def vis_impl():
     filename = "/home/kairong/Diffusion-Policies-for-Offline-RL"
-    dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints/halfcheetah/"
+    # dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints/halfcheetah/"
+    dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints/ql/"
     action_path = os.path.join(dir, "actions.npy")
     reward_path = os.path.join(dir, "rewards.npy")
     q_value_path = os.path.join(dir, "q_values.npy")
@@ -111,5 +112,5 @@ def vis_impl():
     plt.close()
 
 if __name__ == "__main__":
-    # vis_impl()
-    vis_dataset()
+    vis_impl()
+    # vis_dataset()

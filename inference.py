@@ -83,18 +83,30 @@ def infer():
         lr_decay=False,
         lr_maxt=8000,
         grad_norm=9.0,
-        MSBE_coef=1.0,
-        discount2=0.999,
-        compute_consistency=True,
-        iql_style="discount",
-        expectile=0.7,
-        quantile=0.6,
-        temperature=1.0
+        bc_weight=7.5,
+        tune_bc_weight=False,
+        bc_lower_bound=1e-2,
+        bc_decay=0.995,
+        value_threshold=2.5e-4,
+        bc_upper_bound=1e2,
+        scale=1.0,
+        predict_epsilon=True,
+        # MSBE_coef=1.0,
+        # discount2=0.999,
+        # compute_consistency=True,
+        # iql_style="discount",
+        # expectile=0.7,
+        # quantile=0.6,
+        # temperature=1.0
     )
-    from agents.ac_diffusion import Diffusion_AC as Agent
+    # from agents.ac_diffusion import Diffusion_AC as Agent
+    # agent = Agent(
+    #             **kwargs
+    #             )
+    from agents.ql_diffusion import Diffusion_QL as Agent
     agent = Agent(
-                **kwargs
-                )
+        **kwargs
+    )   
     dataset = env.get_dataset()
     # dataset = d4rl.get_dataset(env_id)
 
@@ -105,9 +117,10 @@ def infer():
     actions = dataset["actions"]
     rewards = dataset["rewards"]
     # dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints"
-    dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints/halfcheetah/"
+    dir = "/home/kairong/Diffusion-Policies-for-Offline-RL/test/checkpoints/ql/"
 
-    agent.load_model(dir, id=7550)
+    # agent.load_model(dir, id=7550)
+    agent.load_model(dir, id=9200)
     my_actions = []
     rewards = []
     q_values = []
@@ -201,5 +214,5 @@ def diffusion_training():
     plt.close()
 
 if __name__ == "__main__":
-    # infer()
-    diffusion_training()    
+    infer()
+    # diffusion_training()    
