@@ -1330,12 +1330,13 @@ def jun28_walker():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind]) 
 
-def jun28_():
+def jun28_hopper():
     file_paths = []
     job_list = []
     # env = ["halfcheetah-medium-v2"]
-    env = ["walker2d-medium-v2"]
-    Ts = [1, 2, 4, 8]
+    # env = ["walker2d-medium-v2"]
+    env = ["hopper-medium-v2"]
+    Ts = [4, 8]
     config_dir = "configs/sample-bc-low/"
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
@@ -1354,7 +1355,7 @@ def jun28_():
                 "tune_bc_weight": False,
                 "name": job_id,
                 "id": job_id,
-                "bc_lower_bound": 5e-2,
+                "bc_lower_bound": 5e-3,
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
@@ -1368,7 +1369,6 @@ def jun28_():
             make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind]) 
-
 
 if __name__ == "__main__":
     # jun22_all_env()
@@ -1394,4 +1394,5 @@ if __name__ == "__main__":
     # jun28_sample_bcw()
     # jun28_sample_low_weight()
     # jun28_sota_noise_t()
-    jun28_walker()
+    # jun28_walker()
+    jun28_hopper()
