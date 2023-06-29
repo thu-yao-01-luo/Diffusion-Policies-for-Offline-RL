@@ -753,6 +753,7 @@ def jun26_noise_decay():
     # for ind, job in enumerate(job_list):
     #     run_python_file(job, file_paths[ind])
 
+
 def jun26_bc_weight():
     file_paths = []
     job_list = []
@@ -762,31 +763,32 @@ def jun26_bc_weight():
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
         for bc_weight in bc_weights:
-                job_id = f"{env_name[:6]}-tune{int(False)}-bcw{bc_weight}"
-                file_name = job_id + ".yaml"
-                config = {
-                    "discount2": 0.999,
-                    "coef": 1.0,
-                    "seed": 0,
-                    "T": 1,
-                    "algo": "dac",
-                    "env_name": env_name,
-                    "iql_style": "discount",
-                    "bc_weight": bc_weight,
-                    "tune_bc_weight": False,
-                    "name": job_id,
-                    "id": job_id,
-                    "std_threshold": 1e-4,
-                    "bc_lower_bound": 1e-3,
-                    "bc_decay": 0.995,
-                }
-                job_list.append(
-                    job_id)
-                filename = os.path.join(config_dir, file_name)
-                file_paths.append(filename)
-                make_config_file(filename, config)
+            job_id = f"{env_name[:6]}-tune{int(False)}-bcw{bc_weight}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": 1,
+                "algo": "dac",
+                "env_name": env_name,
+                "iql_style": "discount",
+                "bc_weight": bc_weight,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "std_threshold": 1e-4,
+                "bc_lower_bound": 1e-3,
+                "bc_decay": 0.995,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
     # for ind, job in enumerate(job_list):
     #     run_python_file(job, file_paths[ind])
+
 
 def jun26_bc():
     file_paths = []
@@ -797,32 +799,33 @@ def jun26_bc():
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
         for T in Ts:
-                job_id = f"{env_name[:6]}-bc-time{T}"
-                file_name = job_id + ".yaml"
-                config = {
-                    "discount2": 0.999,
-                    "coef": 1.0,
-                    "seed": 0,
-                    "T": T,
-                    "algo": "bc",
-                    "env_name": env_name,
-                    "iql_style": "discount",
-                    "bc_weight": 2.5,
-                    "tune_bc_weight": True,
-                    "name": job_id,
-                    "id": job_id,
-                    "std_threshold": 1e-4,
-                    "bc_lower_bound": 1e-3,
-                    "bc_decay": 0.99,
-                    "value_threshold": 2.8e-4,
-                }
-                job_list.append(
-                    job_id)
-                filename = os.path.join(config_dir, file_name)
-                file_paths.append(filename)
-                # make_config_file(filename, config)
+            job_id = f"{env_name[:6]}-bc-time{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": T,
+                "algo": "bc",
+                "env_name": env_name,
+                "iql_style": "discount",
+                "bc_weight": 2.5,
+                "tune_bc_weight": True,
+                "name": job_id,
+                "id": job_id,
+                "std_threshold": 1e-4,
+                "bc_lower_bound": 1e-3,
+                "bc_decay": 0.99,
+                "value_threshold": 2.8e-4,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            # make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
+
 
 def jun27_init_noise_decay():
     file_paths = []
@@ -861,6 +864,7 @@ def jun27_init_noise_decay():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun27_ql_noise():
     file_paths = []
     job_list = []
@@ -897,6 +901,7 @@ def jun27_ql_noise():
             # make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
+
 
 def jun27_init_noise_decay_fix():
     file_paths = []
@@ -935,6 +940,7 @@ def jun27_init_noise_decay_fix():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+
 def jun28_sota():
     file_paths = []
     job_list = []
@@ -964,7 +970,7 @@ def jun28_sota():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": False,   
+                "predict_epsilon": False,
             }
             job_list.append(
                 job_id)
@@ -992,7 +998,7 @@ def jun28_sota():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": False,   
+                "predict_epsilon": False,
             }
             job_list.append(
                 job_id)
@@ -1030,7 +1036,7 @@ def jun28_consist():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": False,   
+                "predict_epsilon": False,
                 "consistency": False,
             }
             job_list.append(
@@ -1040,6 +1046,7 @@ def jun28_consist():
             make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
+
 
 def jun28_bct():
     file_paths = []
@@ -1064,7 +1071,7 @@ def jun28_bct():
                 "T": t,
                 "algo": "ql",
                 "env_name": env_name,
-                "bc_weight": 7.5, 
+                "bc_weight": 7.5,
                 "tune_bc_weight": False,
                 "name": job_id,
                 "id": job_id,
@@ -1072,7 +1079,7 @@ def jun28_bct():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": False,   
+                "predict_epsilon": False,
             }
             job_list.append(
                 job_id)
@@ -1081,6 +1088,7 @@ def jun28_bct():
             make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
+
 
 def jun28_sota_noise():
     file_paths = []
@@ -1109,7 +1117,7 @@ def jun28_sota_noise():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": True,   
+                "predict_epsilon": True,
             }
             job_list.append(
                 job_id)
@@ -1137,7 +1145,7 @@ def jun28_sota_noise():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": True,   
+                "predict_epsilon": True,
             }
             job_list.append(
                 job_id)
@@ -1146,6 +1154,7 @@ def jun28_sota_noise():
             make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
+
 
 def jun28_sample_bcw():
     file_paths = []
@@ -1173,7 +1182,7 @@ def jun28_sample_bcw():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": False,   
+                "predict_epsilon": False,
                 "consistency": False,
             }
             job_list.append(
@@ -1183,6 +1192,7 @@ def jun28_sample_bcw():
             make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
+
 
 def jun28_sample_low_weight():
     file_paths = []
@@ -1211,7 +1221,7 @@ def jun28_sample_low_weight():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": False,   
+                "predict_epsilon": False,
                 "consistency": False,
             }
             job_list.append(
@@ -1251,7 +1261,7 @@ def jun28_sota_noise_t():
     #             "bc_decay": 0.995,
     #             "value_threshold": 2.8e-4,
     #             "bc_upper_bound": 1e2,
-    #             "predict_epsilon": True,   
+    #             "predict_epsilon": True,
     #         }
     #         job_list.append(
     #             job_id)
@@ -1280,7 +1290,7 @@ def jun28_sota_noise_t():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": True,   
+                "predict_epsilon": True,
             }
             job_list.append(
                 job_id)
@@ -1319,7 +1329,7 @@ def jun28_walker():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": False,   
+                "predict_epsilon": False,
                 "consistency": False,
             }
             job_list.append(
@@ -1328,7 +1338,8 @@ def jun28_walker():
             file_paths.append(filename)
             make_config_file(filename, config)
     for ind, job in enumerate(job_list):
-        run_python_file(job, file_paths[ind]) 
+        run_python_file(job, file_paths[ind])
+
 
 def jun28_hopper():
     file_paths = []
@@ -1359,7 +1370,7 @@ def jun28_hopper():
                 "bc_decay": 0.995,
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
-                "predict_epsilon": False,   
+                "predict_epsilon": False,
                 "consistency": False,
             }
             job_list.append(
@@ -1368,7 +1379,85 @@ def jun28_hopper():
             file_paths.append(filename)
             make_config_file(filename, config)
     for ind, job in enumerate(job_list):
-        run_python_file(job, file_paths[ind]) 
+        run_python_file(job, file_paths[ind])
+
+
+def jun29_walker():
+    file_paths = []
+    job_list = []
+    env = ["walker2d-medium-v2"]
+    Ts = [1, 2, 4, 8]
+    config_dir = "configs/sample-bc-low0.05/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for T in Ts:
+            job_id = f"{env_name[:6]}-ql-bcw-low0.05-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": T,
+                "algo": "ql",
+                "env_name": env_name,
+                "bc_weight": 0.05,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "bc_lower_bound": 1e-2,
+                "bc_decay": 0.995,
+                "value_threshold": 2.8e-4,
+                "bc_upper_bound": 1e2,
+                "predict_epsilon": False,
+                "consistency": False,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
+
+
+def jun29_hopper():
+    file_paths = []
+    job_list = []
+    env = ["hopper-medium-v2"]
+    Ts = [1, 2, 4, 8]
+    config_dir = "configs/sample-bc-low-0.1/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        # for bc_weight in bc_weights:
+        for T in Ts:
+            job_id = f"{env_name[:6]}-ql-bcw-low0.1-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": T,
+                "algo": "ql",
+                "env_name": env_name,
+                "bc_weight": 0.1,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "bc_lower_bound": 1e-2,
+                "bc_decay": 0.995,
+                "value_threshold": 2.8e-4,
+                "bc_upper_bound": 1e2,
+                "predict_epsilon": False,
+                "consistency": False,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
+
 
 if __name__ == "__main__":
     # jun22_all_env()
@@ -1388,11 +1477,13 @@ if __name__ == "__main__":
     # jun27_ql_noise()
     # jun27_init_noise_decay_fix()
     # jun28_sota()
-    # jun28_consist() 
+    # jun28_consist()
     # jun28_bct()
     # jun28_sota_noise()
     # jun28_sample_bcw()
     # jun28_sample_low_weight()
     # jun28_sota_noise_t()
     # jun28_walker()
-    jun28_hopper()
+    # jun28_hopper()
+    jun29_walker()
+    jun29_hopper()
