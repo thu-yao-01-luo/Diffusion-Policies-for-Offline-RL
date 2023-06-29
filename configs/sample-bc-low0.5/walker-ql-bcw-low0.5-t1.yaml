@@ -1,0 +1,16 @@
+T: 1
+algo: ql
+bc_decay: 0.995
+bc_lower_bound: 0.01
+bc_upper_bound: 100.0
+bc_weight: 0.5
+coef: 1.0
+consistency: false
+discount2: 0.999
+env_name: walker2d-medium-v2
+id: walker-ql-bcw-low0.5-t1
+name: walker-ql-bcw-low0.5-t1
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
+value_threshold: 0.00028

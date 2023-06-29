@@ -1387,11 +1387,11 @@ def jun29_walker():
     job_list = []
     env = ["walker2d-medium-v2"]
     Ts = [1, 2, 4, 8]
-    config_dir = "configs/sample-bc-low0.05/"
+    config_dir = "configs/sample-bc-low0.5/"
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
         for T in Ts:
-            job_id = f"{env_name[:6]}-ql-bcw-low0.05-t{T}"
+            job_id = f"{env_name[:6]}-ql-bcw-low0.5-t{T}"
             file_name = job_id + ".yaml"
             config = {
                 "discount2": 0.999,
@@ -1400,7 +1400,7 @@ def jun29_walker():
                 "T": T,
                 "algo": "ql",
                 "env_name": env_name,
-                "bc_weight": 0.05,
+                "bc_weight": 0.5,
                 "tune_bc_weight": False,
                 "name": job_id,
                 "id": job_id,
@@ -1486,4 +1486,4 @@ if __name__ == "__main__":
     # jun28_walker()
     # jun28_hopper()
     jun29_walker()
-    jun29_hopper()
+    # jun29_hopper()
