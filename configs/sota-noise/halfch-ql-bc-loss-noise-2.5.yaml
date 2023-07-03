@@ -1,0 +1,15 @@
+T: 1
+algo: ql
+bc_decay: 0.995
+bc_lower_bound: 0.01
+bc_upper_bound: 100.0
+bc_weight: 2.5
+coef: 1.0
+discount2: 0.999
+env_name: halfcheetah-medium-v2
+id: halfch-ql-bc-loss-noise-2.5
+name: halfch-ql-bc-loss-noise-2.5
+predict_epsilon: true
+seed: 0
+tune_bc_weight: false
+value_threshold: 0.00028

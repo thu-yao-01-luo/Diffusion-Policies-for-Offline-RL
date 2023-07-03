@@ -87,6 +87,7 @@ class Config:
     consistency: bool = True
     scale: float = 1.0
     predict_epsilon: bool = True
+    debug: bool = False
 
 def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
     # Load buffer
@@ -118,6 +119,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       value_threshold=args.value_threshold,
                       scale=args.scale,
                       predict_epsilon=args.predict_epsilon,
+                      debug=args.debug,
                       )
     elif args.algo == 'bc':
         from agents.bc_diffusion import Diffusion_BC as Agent

@@ -195,3 +195,10 @@ class Diffusion(nn.Module):
 
     def forward(self, state, *args, **kwargs):
         return self.sample(state, *args, **kwargs)
+
+    def loss_to_verify(self, x, state, weights=1.0):
+        batch_size = len(x)
+        t = torch.randint(0, self.n_timesteps, (batch_size,),
+                          device=x.device).long()
+        return self.p_losses(x, state, t, weights) * \
+        (1.0 - extract(self.alphas_cumprod, t, x.shape)) / extract(self.alphas_cumprod, t, x.shape)
