@@ -1547,7 +1547,7 @@ def jul03_weight():
         # for bc_weight in bc_weights:
         for weight in weights:
             for T in Ts:
-                job_id = f"{env_name[:6]}-td3-bcw-low0.5-t{T}"
+                job_id = f"{env_name[:6]}-td3-bcw{weight}-t{T}"
                 file_name = job_id + ".yaml"
                 config = {
                     "discount2": 0.999,

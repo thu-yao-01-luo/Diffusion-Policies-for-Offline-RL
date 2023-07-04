@@ -12,3 +12,4 @@ num_steps_per_epoch: 1
 format: ["stdout"]
 predict_epsilon: False
 debug: True
+fast: True

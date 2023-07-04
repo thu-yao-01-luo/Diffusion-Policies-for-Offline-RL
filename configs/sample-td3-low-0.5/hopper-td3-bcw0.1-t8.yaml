@@ -1,0 +1,17 @@
+T: 8
+algo: td3
+bc_decay: 0.995
+bc_lower_bound: 0.01
+bc_upper_bound: 100.0
+bc_weight: 0.1
+coef: 1.0
+consistency: false
+debug: true
+discount2: 0.999
+env_name: hopper-medium-v2
+id: hopper-td3-bcw0.1-t8
+name: hopper-td3-bcw0.1-t8
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
+value_threshold: 0.00028
