@@ -186,7 +186,7 @@ class Diffusion_TD3(object):
             t_embed = torch.full(
                 (batch_size,), self.actor.n_timesteps, device=self.device, dtype=torch.long)
             pred_noise = self.actor.model(noise, t_embed, state)
-            new_action = self.actor.predict_start_from_noise(noise, self.actor.n_timestep, pred_noise) if self.fast else self.actor(state)
+            new_action = self.actor.predict_start_from_noise(noise, t_embed, pred_noise) if self.fast else self.actor(state)
 
             q1_new_action, q2_new_action = self.critic(state, new_action)
             metric["actor_q"].append(q1_new_action.mean().item())

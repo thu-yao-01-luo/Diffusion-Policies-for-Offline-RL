@@ -200,5 +200,27 @@ class Diffusion(nn.Module):
         batch_size = len(x)
         t = torch.randint(0, self.n_timesteps, (batch_size,),
                           device=x.device).long()
-        return self.p_losses(x, state, t, weights) * \
-        (1.0 - extract(self.alphas_cumprod, t, x.shape)) / extract(self.alphas_cumprod, t, x.shape)
+        # return self.p_losses(x, state, t, weights) * \
+        # (1.0 - extract(self.alphas_cumprod, t, x.shape)) / extract(self.alphas_cumprod, t, x.shape)
+        noise = torch.randn_like(x) * self.scale
+
+        x_noisy = self.q_sample(x_start=x, t=t, noise=noise)
+
+        x_recon = self.model(x_noisy, t, state)
+
+        assert noise.shape == x_recon.shape
+
+        if self.predict_epsilon:
+            # loss = self.loss_fn(x_recon, noise, weights)
+            loss_vec = ((x_recon - noise) ** 2).mean(dim=-1)
+            loss = loss_vec * (1.0 - extract(self.alphas_cumprod, t, loss_vec.shape)) / extract(
+                self.alphas_cumprod, t, loss_vec.shape)
+            loss = loss.mean()
+        else:
+            # loss = self.loss_fn(x_recon, x, weights)
+            loss_vec = ((x_recon - x) ** 2).mean(dim=-1)
+            loss = loss_vec * (1.0 - extract(self.alphas_cumprod, t, loss_vec.shape)) / extract(
+                self.alphas_cumprod, t, loss_vec.shape)
+            loss = loss.mean()
+
+        return loss
