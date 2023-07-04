@@ -1535,6 +1535,46 @@ def jun30_hopper():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+def jul03_weight():
+    file_paths = []
+    job_list = []
+    env = ["hopper-medium-v2", "walker2d-medium-v2", "halfcheetah-medium-v2"]
+    Ts = [2, 8]
+    weights = [0.1, 1.0]
+    config_dir = "configs/sample-td3-low-0.5/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        # for bc_weight in bc_weights:
+        for weight in weights:
+            for T in Ts:
+                job_id = f"{env_name[:6]}-td3-bcw-low0.5-t{T}"
+                file_name = job_id + ".yaml"
+                config = {
+                    "discount2": 0.999,
+                    "coef": 1.0,
+                    "seed": 0,
+                    "T": T,
+                    "algo": "td3",
+                    "env_name": env_name,
+                    "bc_weight": weight,
+                    "tune_bc_weight": False,
+                    "name": job_id,
+                    "id": job_id,
+                    "bc_lower_bound": 1e-2,
+                    "bc_decay": 0.995,
+                    "value_threshold": 2.8e-4,
+                    "bc_upper_bound": 1e2,
+                    "predict_epsilon": False,
+                    "consistency": False,
+                    "debug": True
+                }
+                job_list.append(
+                    job_id)
+                filename = os.path.join(config_dir, file_name)
+                file_paths.append(filename)
+                make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
 
 if __name__ == "__main__":
     # jun22_all_env()
@@ -1564,5 +1604,6 @@ if __name__ == "__main__":
     # jun28_hopper()
     # jun29_walker()
     # jun29_hopper()
-    jun30_walker()
-    jun30_hopper()
+    # jun30_walker()
+    # jun30_hopper()
+    jul03_weight()
