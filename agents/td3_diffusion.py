@@ -183,8 +183,8 @@ class Diffusion_TD3(object):
                 self.actor.predict_epsilon = True
             # new_action = self.actor(state) if self.fast else self.actor(state)
             noise = torch.randn_like(action) * self.scale
-            t_embed = torch.tensor(
-                self.actor.n_timesteps, dtype=torch.long, device=self.device)
+            t_embed = torch.full(
+                (batch_size,), self.actor.n_timesteps, device=self.device, dtype=torch.long)
             pred_noise = self.actor.model(noise, t_embed, state)
             new_action = self.actor.predict_start_from_noise(noise, self.actor.n_timestep, pred_noise) if self.fast else self.actor(state)
 
