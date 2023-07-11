@@ -213,7 +213,6 @@ class Diffusion_AC(object):
             Q(s, a^0, 1) and Q(s, a, 0) are different! or a = a^{-1}, below we use a^{-1} to denote the noise free action.
             and use $Q(s, a^t, t+1)$ pattern
             """
-            # begin_time = time.time()
             t = torch.randint(0, self.actor.n_timesteps,
                               (batch_size,), device=self.device).long()
             noise = torch.randn_like(action) * self.scale

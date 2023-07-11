@@ -15,7 +15,6 @@ from agents.helpers import (cosine_beta_schedule,
                             Losses)
 from utils.utils import Progress, Silent
 
-
 class Diffusion(nn.Module):
     def __init__(self, state_dim, action_dim, model, max_action,
                  beta_schedule='linear', n_timesteps=100,
@@ -200,8 +199,6 @@ class Diffusion(nn.Module):
         batch_size = len(x)
         t = torch.randint(0, self.n_timesteps, (batch_size,),
                           device=x.device).long()
-        # return self.p_losses(x, state, t, weights) * \
-        # (1.0 - extract(self.alphas_cumprod, t, x.shape)) / extract(self.alphas_cumprod, t, x.shape)
         noise = torch.randn_like(x) * self.scale
 
         x_noisy = self.q_sample(x_start=x, t=t, noise=noise)

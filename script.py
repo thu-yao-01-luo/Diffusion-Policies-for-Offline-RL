@@ -1617,6 +1617,43 @@ def jul04_weight():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+def jul10_bc_reg():
+    file_paths = []
+    job_list = []
+    env = ["halfcheetah-medium-v2"]
+    Ts = [1, 2, 4, 8]
+    config_dir = "configs/sample-ddd-low/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for T in Ts:
+            job_id = f"{env_name[:6]}-ddd-bcw-low-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": T,
+                "algo": "ddd",
+                "env_name": env_name,
+                "bc_weight": 0.01,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "bc_lower_bound": 1e-2,
+                "bc_decay": 0.995,
+                "value_threshold": 2.8e-4,
+                "bc_upper_bound": 1e2,
+                "predict_epsilon": False,
+                "consistency": False,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -1648,4 +1685,5 @@ if __name__ == "__main__":
     # jun30_walker()
     # jun30_hopper()
     # jul03_weight()
-    jul04_weight()
+    # jul04_weight()
+    jul10_bc_reg()

@@ -134,6 +134,33 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       n_timesteps=args.T,
                       lr=args.lr,
                       )
+    if args.algo == 'ddd':
+        from agents.dd_diffusion import Diffusion_DD as Agent
+        agent = Agent(state_dim=state_dim,
+                      action_dim=action_dim,
+                      max_action=max_action,
+                      device=device,
+                      discount=args.discount,
+                      tau=args.tau,
+                      max_q_backup=args.max_q_backup,
+                      beta_schedule=args.beta_schedule,
+                      n_timesteps=args.T,
+                      eta=args.eta,
+                      lr=args.lr,
+                      lr_decay=args.lr_decay,
+                      lr_maxt=args.num_epochs,
+                      grad_norm=args.gn,
+                      bc_weight=args.bc_weight,
+                      tune_bc_weight=args.tune_bc_weight,
+                      bc_lower_bound=args.bc_lower_bound,
+                      bc_decay=args.bc_decay,
+                      bc_upper_bound=args.bc_upper_bound,
+                      value_threshold=args.value_threshold,
+                      scale=args.scale,
+                      predict_epsilon=args.predict_epsilon,
+                      debug=args.debug,
+                      )
+        agent.fit_dataset(data_sampler)
     elif args.algo == 'dac':
         from agents.ac_diffusion import Diffusion_AC as Agent
         agent = Agent(state_dim=state_dim,
@@ -167,38 +194,6 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       consistency=args.consistency,
                       scale=args.scale,
                       predict_epsilon=args.predict_epsilon,
-                      )
-    elif args.algo == 'vae-ac':         
-        from agents.ac_vae import VAE_AC as Agent
-        agent = Agent(state_dim=state_dim,
-                      action_dim=action_dim,
-                      max_action=max_action,
-                      device=device,
-                      discount=args.discount,
-                      tau=args.tau,
-                      max_q_backup=args.max_q_backup,
-                      beta_schedule=args.beta_schedule,
-                      n_timesteps=args.T,
-                      eta=args.eta,
-                      lr=args.lr,
-                      lr_decay=args.lr_decay,
-                      lr_maxt=args.num_epochs,
-                      grad_norm=args.gn,
-                      MSBE_coef=args.coef,
-                      discount2=args.discount2,
-                      compute_consistency=args.compute_consistency,
-                      iql_style=args.iql_style,
-                      expectile=args.expectile,
-                      quantile=args.quantile,
-                      temperature=args.temperature,
-                      bc_weight=args.bc_weight,
-                      tune_bc_weight=args.tune_bc_weight,
-                      std_threshold=args.std_threshold,
-                      bc_lower_bound=args.bc_lower_bound,
-                      bc_decay=args.bc_decay,
-                      bc_upper_bound=args.bc_upper_bound,
-                      value_threshold=args.value_threshold,
-                      consistency=args.consistency,
                       )
     elif args.algo == 'td3':         
         from agents.td3_diffusion import Diffusion_TD3 as Agent
