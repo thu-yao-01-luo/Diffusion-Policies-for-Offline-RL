@@ -194,6 +194,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       consistency=args.consistency,
                       scale=args.scale,
                       predict_epsilon=args.predict_epsilon,
+                      debug=args.debug,
                       )
     elif args.algo == 'td3':         
         from agents.td3_diffusion import Diffusion_TD3 as Agent

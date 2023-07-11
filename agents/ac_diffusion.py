@@ -127,6 +127,7 @@ class Diffusion_AC(object):
                  consistency=True,
                  scale=1.0,
                  predict_epsilon=False,
+                 debug=False,
                  ):
 
         self.model = MLP(state_dim=state_dim,
@@ -183,6 +184,7 @@ class Diffusion_AC(object):
         self.bc_upper_bound = bc_upper_bound
         self.consistency = consistency
         self.scale = scale
+        self.debug = debug
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -198,10 +200,8 @@ class Diffusion_AC(object):
         # ood = 0 # out of distribution
         for _ in range(iterations):
             # Sample replay buffer / batch
-            # begin_time = time.time()
             state, action, next_state, reward, not_done = replay_buffer.sample(
                 batch_size)
-            # print('sample time: ', time.time() - begin_time)
             total_t = torch.tensor(
                 self.actor.n_timesteps, dtype=torch.long, device=self.device)
 
@@ -312,7 +312,8 @@ class Diffusion_AC(object):
             self.critic_optimizer.step()
 
             """ Policy Training """
-            bc_loss = self.actor.p_losses(action, state, t)
+            bc_loss = self.actor.p_losses(action, state, t) if not self.debug \
+            else self.actor.loss_to_verify(action, state)
             if self.actor.predict_epsilon:
                 self.actor.predict_epsilon = False
                 true_bc_loss = self.actor.p_losses(action, state, t)
