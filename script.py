@@ -1711,7 +1711,7 @@ def jul11_dac_walker_hopper():
                 "T": T,
                 "algo": "dac",
                 "env_name": env_name,
-                "bc_weight": 0.01,
+                "bc_weight": 0.5,
                 "tune_bc_weight": False,
                 "name": job_id,
                 "id": job_id,
