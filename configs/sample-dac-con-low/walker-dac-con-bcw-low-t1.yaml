@@ -1,0 +1,12 @@
+T: 1
+algo: dac
+bc_weight: 0.5
+coef: 1.0
+consistency: true
+discount2: 0.999
+env_name: walker2d-medium-v2
+id: walker-dac-con-bcw-low-t1
+name: walker-dac-con-bcw-low-t1
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false

@@ -1696,13 +1696,13 @@ def jul11_dac_walker_hopper():
     file_paths = []
     job_list = []
     # env = ["halfcheetah-medium-v2", "walker-medium-v2", "hopper-medium-v2"]
-    env = ["hopper-medium-v2"]
+    env = ["hopper-medium-v2", "walker2d-medium-v2"]
     Ts = [1, 2, 4, 8]
-    config_dir = "configs/sample-dac-low/"
+    config_dir = "configs/sample-dac-con-low/"
     os.makedirs(config_dir, exist_ok=True)
     for env_name in env:
         for T in Ts:
-            job_id = f"{env_name[:6]}-dac-bcw-low-t{T}"
+            job_id = f"{env_name[:6]}-dac-con-bcw-low-t{T}"
             file_name = job_id + ".yaml"
             config = {
                 "discount2": 0.999,
@@ -1715,12 +1715,8 @@ def jul11_dac_walker_hopper():
                 "tune_bc_weight": False,
                 "name": job_id,
                 "id": job_id,
-                "bc_lower_bound": 1e-2,
-                "bc_decay": 0.995,
-                "value_threshold": 2.8e-4,
-                "bc_upper_bound": 1e2,
                 "predict_epsilon": False,
-                "consistency": False,
+                "consistency": True,
             }
             job_list.append(
                 job_id)

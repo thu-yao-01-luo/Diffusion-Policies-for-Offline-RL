@@ -1,0 +1,12 @@
+T: 2
+algo: dac
+bc_weight: 0.5
+coef: 1.0
+consistency: true
+discount2: 0.999
+env_name: hopper-medium-v2
+id: hopper-dac-con-bcw-low-t2
+name: hopper-dac-con-bcw-low-t2
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
