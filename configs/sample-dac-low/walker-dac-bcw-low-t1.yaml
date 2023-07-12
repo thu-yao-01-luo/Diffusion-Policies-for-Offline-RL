@@ -1,0 +1,16 @@
+T: 1
+algo: dac
+bc_decay: 0.995
+bc_lower_bound: 0.01
+bc_upper_bound: 100.0
+bc_weight: 0.01
+coef: 1.0
+consistency: false
+discount2: 0.999
+env_name: walker-medium-v2
+id: walker-dac-bcw-low-t1
+name: walker-dac-bcw-low-t1
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
+value_threshold: 0.00028
