@@ -1696,7 +1696,7 @@ def jul11_dac_walker_hopper():
     file_paths = []
     job_list = []
     # env = ["halfcheetah-medium-v2", "walker-medium-v2", "hopper-medium-v2"]
-    env = ["walker2d-medium-v2"]
+    env = ["hopper-medium-v2"]
     Ts = [1, 2, 4, 8]
     config_dir = "configs/sample-dac-low/"
     os.makedirs(config_dir, exist_ok=True)
