@@ -7,7 +7,7 @@ bc_weight: 0.01
 coef: 1.0
 consistency: false
 discount2: 0.999
-env_name: walker-medium-v2
+env_name: walker2d-medium-v2
 id: walker-dac-bcw-low-t8
 name: walker-dac-bcw-low-t8
 predict_epsilon: false
