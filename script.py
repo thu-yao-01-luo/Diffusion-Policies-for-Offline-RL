@@ -1681,7 +1681,7 @@ def jul11_dac_reg():
                 "value_threshold": 2.8e-4,
                 "bc_upper_bound": 1e2,
                 "predict_epsilon": False,
-                "consistency": False,
+                "consistency": True,
             }
             job_list.append(
                 job_id)

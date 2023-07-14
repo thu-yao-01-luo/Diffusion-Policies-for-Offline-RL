@@ -236,6 +236,11 @@ class td3:
     def sample_action(self, o):
         return self.get_action(o, 0.1)
 
+    def train(self, update_every, replay_buffer, batch_size):
+        for i in range(update_every):
+            batch = replay_buffer.sample(batch_size)
+            self.update(batch, i)
+
 def eval_policy(policy, eval_env, eval_episodes=10, need_animation=False):
     scores = []
     lengths = []
@@ -379,8 +384,10 @@ def online_train(args, env_fn):
     best_nreward = -np.inf
     obs_space = env.observation_space
     action_space = env.action_space
-    
-    buffer = ReplayBuffer(buffer_size, obs_space, action_space, n_envs=num_envs, device="cpu")
+    if args.algo == 'td3':
+        buffer = ReplayBuffer(buffer_size, obs_space, action_space, n_envs=num_envs, device="cpu")
+    else: 
+        buffer = ReplayBuffer(buffer_size, obs_space, action_space, n_envs=num_envs)
     if args.algo == 'td3':    
         agent = td3(env_fn, MLPActorCritic, args.lr, args.lr, 0.2, 0.5, 2, args)
     elif args.algo == 'dac':
@@ -432,11 +439,12 @@ def online_train(args, env_fn):
         if args.init == "random":
             if t > start_steps:
                 a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
-            # a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
             else:
                 a = np.array([env.action_space.sample() for i in range(num_envs)])
-        else:
+        elif args.init == "dataset":
             a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
+        else:
+            raise NotImplementedError
 
         # Step the env
         o2, r, d, info = env.step(a)
@@ -466,12 +474,9 @@ def online_train(args, env_fn):
             logger_zhiao.logkv_mean('EpLen', ep_len[i])
             o[i], ep_ret[i], ep_len[i] = env.env_method("reset", indices=[i])[0], 0, 0
 
-        # Update handling
-        # data_sampler = BufferWrapper(buffer, device)
-        data_sampler = buffer
-        
         if t >= update_after and t % update_every == 0:
             if args.algo == 'dac':
+                data_sampler = BufferWrapper(buffer, device)
                 loss_metric = agent.train(data_sampler,
                                 iterations=update_every,
                                 batch_size=args.batch_size,
@@ -484,8 +489,14 @@ def online_train(args, env_fn):
                     logger_zhiao.logkv(k + '_max', np.max(v))
                     logger_zhiao.logkv(k + '_min', np.min(v))
             elif args.algo == 'td3':
-                batch = data_sampler.sample(args.batch_size)
-                agent.update(batch, t)
+                data_sampler = buffer
+                # batch = data_sampler.sample(args.batch_size)
+                # agent.update(batch, t)
+                agent.train(
+                    update_every,
+                    data_sampler,
+                    batch_size=args.batch_size,
+                )
             else: 
                 raise NotImplementedError
             if t % args.num_steps_per_epoch == 0:
