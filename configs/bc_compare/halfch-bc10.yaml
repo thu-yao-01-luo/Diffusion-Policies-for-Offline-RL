@@ -1,4 +1,4 @@
-T: 1
+T: 10
 algo: bc
 bc_decay: 0.995
 bc_lower_bound: 0.01

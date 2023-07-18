@@ -1,0 +1,7 @@
+T: 4
+algo: bc
+env_name: halfcheetah-medium-expert-v2
+id: halfch-bc-t4
+name: halfch-bc-t4
+predict_epsilon: false
+seed: 0
