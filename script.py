@@ -1743,7 +1743,7 @@ def jul18_bc():
             config = {
                 "seed": 0,
                 "T": T,
-                "algo": "bc",
+                "algo": 'bc',
                 "env_name": env_name,
                 "name": job_id,
                 "id": job_id,

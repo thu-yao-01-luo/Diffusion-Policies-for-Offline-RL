@@ -134,7 +134,7 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                       n_timesteps=args.T,
                       lr=args.lr,
                       )
-    if args.algo == 'ddd':
+    elif args.algo == 'ddd':
         from agents.dd_diffusion import Diffusion_DD as Agent
         agent = Agent(state_dim=state_dim,
                       action_dim=action_dim,
