@@ -83,7 +83,7 @@ class MLPActorCritic(nn.Module):
 
 hyperparameters = {
     'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 12000, 'gn': 9.0,  'top_k': 1},
-    'HalfCheetah-v2':         {'lr': 1e-3, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 12000, 'gn': 9.0,  'top_k': 1},
+    'HalfCheetah-v2':                {'lr': 1e-3, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 12000, 'gn': 9.0,  'top_k': 1},
     'hopper-medium-v2':              {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 24000, 'gn': 9.0,  'top_k': 2},
     'walker2d-medium-v2':            {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 24000, 'gn': 1.0,  'top_k': 1},
     'halfcheetah-medium-replay-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 2.0,  'top_k': 0},
@@ -182,7 +182,6 @@ class td3:
         q1_pi = ac.q1(o, ac.pi(o))
         return -q1_pi.mean()
 
-
     def update(self, data, timer):
         policy_delay = self.policy_delay
         ac = self.ac
@@ -233,7 +232,7 @@ class td3:
         act_dim = self.act_dim
         act_limit = self.act_limit
         
-        a = ac.act(torch.as_tensor(o, dtype=torch.float32))
+        a = ac.act(torch.as_tensor(o, dtype=torch.float32, device=ac.device))
         a += noise_scale * np.random.randn(act_dim)
         return np.clip(a, -act_limit, act_limit)  
 

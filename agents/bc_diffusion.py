@@ -23,11 +23,12 @@ class Diffusion_BC(object):
                  beta_schedule='linear',
                  n_timesteps=100,
                  lr=2e-4,
+                 predict_epsilon=False
                  ):
 
         self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
-                               beta_schedule=beta_schedule, n_timesteps=n_timesteps,
+                               beta_schedule=beta_schedule, n_timesteps=n_timesteps, predict_epsilon=predict_epsilon,
                                ).to(device)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
 
