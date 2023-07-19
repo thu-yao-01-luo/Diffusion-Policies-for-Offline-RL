@@ -1757,6 +1757,34 @@ def jul18_bc():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+def jul18_bc_sample():
+    file_paths = []
+    job_list = []
+    env = ["halfcheetah-medium-v2", "halfcheetah-medium-expert-v2"]
+    Ts = [1, 2, 4, 8]
+    config_dir = "configs/bc_sample_compare/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for T in Ts:
+            job_id = f"{env_name[-16:]}-bc-sample-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "seed": 0,
+                "T": T,
+                "algo": 'bc',
+                "env_name": env_name,
+                "name": job_id,
+                "id": job_id,
+                "predict_epsilon": False,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind])
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -1793,4 +1821,5 @@ if __name__ == "__main__":
     # jul11_dac_reg()
     # jul11_dac_walker_hopper()
     # jul11_dac_reg()
-    jul18_bc()
+    # jul18_bc()
+    jul18_bc_sample()

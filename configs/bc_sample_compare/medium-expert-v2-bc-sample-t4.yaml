@@ -1,0 +1,7 @@
+T: 4
+algo: bc
+env_name: halfcheetah-medium-expert-v2
+id: medium-expert-v2-bc-sample-t4
+name: medium-expert-v2-bc-sample-t4
+predict_epsilon: false
+seed: 0

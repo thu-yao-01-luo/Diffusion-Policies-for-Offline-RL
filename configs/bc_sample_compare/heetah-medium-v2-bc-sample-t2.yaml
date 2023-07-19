@@ -1,0 +1,7 @@
+T: 2
+algo: bc
+env_name: halfcheetah-medium-v2
+id: heetah-medium-v2-bc-sample-t2
+name: heetah-medium-v2-bc-sample-t2
+predict_epsilon: false
+seed: 0
