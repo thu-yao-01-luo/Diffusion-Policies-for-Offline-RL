@@ -9,7 +9,7 @@ import gym
 import numpy as np
 import torch
 from stable_baselines3.common.vec_env import SubprocVecEnv
-# from stable_baselines3.common.buffers import ReplayBuffer
+from stable_baselines3.common.buffers import ReplayBuffer
 from utils import utils
 from utils.data_sampler import Data_Sampler
 from utils.utils_zhiao import load_config
@@ -24,39 +24,39 @@ import torch
 from torch.optim import Adam
 import gym
 
-class ReplayBuffer:
-    """
-    A simple FIFO experience replay buffer for TD3 agents.
-    """
+# class ReplayBuffer:
+#     """
+#     A simple FIFO experience replay buffer for TD3 agents.
+#     """
 
-    def __init__(self, obs_dim, act_dim, size):
-        # self.obs_buf = np.zeros(core.combined_shape(size, obs_dim), dtype=np.float32)
-        # self.obs2_buf = np.zeros(core.combined_shape(size, obs_dim), dtype=np.float32)
-        # self.act_buf = np.zeros(core.combined_shape(size, act_dim), dtype=np.float32)
-        self.obs_buf = np.zeros((size, obs_dim), dtype=np.float32)
-        self.obs2_buf = np.zeros((size, obs_dim), dtype=np.float32)
-        self.act_buf = np.zeros((size, act_dim), dtype=np.float32)
-        self.rew_buf = np.zeros(size, dtype=np.float32)
-        self.done_buf = np.zeros(size, dtype=np.float32)
-        self.ptr, self.size, self.max_size = 0, 0, size
+#     def __init__(self, obs_dim, act_dim, size):
+#         # self.obs_buf = np.zeros(core.combined_shape(size, obs_dim), dtype=np.float32)
+#         # self.obs2_buf = np.zeros(core.combined_shape(size, obs_dim), dtype=np.float32)
+#         # self.act_buf = np.zeros(core.combined_shape(size, act_dim), dtype=np.float32)
+#         self.obs_buf = np.zeros((size, obs_dim), dtype=np.float32)
+#         self.obs2_buf = np.zeros((size, obs_dim), dtype=np.float32)
+#         self.act_buf = np.zeros((size, act_dim), dtype=np.float32)
+#         self.rew_buf = np.zeros(size, dtype=np.float32)
+#         self.done_buf = np.zeros(size, dtype=np.float32)
+#         self.ptr, self.size, self.max_size = 0, 0, size
 
-    def store(self, obs, act, rew, next_obs, done):
-        self.obs_buf[self.ptr] = obs
-        self.obs2_buf[self.ptr] = next_obs
-        self.act_buf[self.ptr] = act
-        self.rew_buf[self.ptr] = rew
-        self.done_buf[self.ptr] = done
-        self.ptr = (self.ptr+1) % self.max_size
-        self.size = min(self.size+1, self.max_size)
+#     def store(self, obs, act, rew, next_obs, done):
+#         self.obs_buf[self.ptr] = obs
+#         self.obs2_buf[self.ptr] = next_obs
+#         self.act_buf[self.ptr] = act
+#         self.rew_buf[self.ptr] = rew
+#         self.done_buf[self.ptr] = done
+#         self.ptr = (self.ptr+1) % self.max_size
+#         self.size = min(self.size+1, self.max_size)
 
-    def sample_batch(self, batch_size=32):
-        idxs = np.random.randint(0, self.size, size=batch_size)
-        batch = dict(obs=self.obs_buf[idxs],
-                     obs2=self.obs2_buf[idxs],
-                     act=self.act_buf[idxs],
-                     rew=self.rew_buf[idxs],
-                     done=self.done_buf[idxs])
-        return {k: torch.as_tensor(v, dtype=torch.float32) for k,v in batch.items()}
+#     def sample_batch(self, batch_size=32):
+#         idxs = np.random.randint(0, self.size, size=batch_size)
+#         batch = dict(obs=self.obs_buf[idxs],
+#                      obs2=self.obs2_buf[idxs],
+#                      act=self.act_buf[idxs],
+#                      rew=self.rew_buf[idxs],
+#                      done=self.done_buf[idxs])
+#         return {k: torch.as_tensor(v, dtype=torch.float32) for k,v in batch.items()}
 
 def combined_shape(length, shape=None):
     if shape is None:
@@ -343,18 +343,24 @@ class Buffer:
         self.device = device
 
     def sample(self, batch_size):
-        # sample = self.buffer.sample(batch_size)
+        sample = self.buffer.sample(batch_size)
         # obs = torch.tensor(sample[0], dtype=torch.float32).to(self.device)
         # act = torch.tensor(sample[1], dtype=torch.float32).to(self.device)
         # obs2 = torch.tensor(sample[2], dtype=torch.float32).to(self.device)
         # done = torch.tensor(sample[3], dtype=torch.float32).to(self.device)
         # rew = torch.tensor(sample[4], dtype=torch.float32).to(self.device)
-        sample = self.buffer.sample_batch(batch_size)
-        obs = sample['obs'].to(self.device)
-        act = sample['act'].to(self.device)
-        obs2 = sample['obs2'].to(self.device)
-        done = sample['done'].to(self.device)
-        rew = sample['rew'].to(self.device)
+        # sample = self.buffer.sample_batch(batch_size)
+        obs, act, obs2, rew, done = sample
+        obs = obs.to(self.device)
+        act = act.to(self.device)
+        obs2 = obs2.to(self.device)
+        done = done.to(self.device)
+        rew = rew.to(self.device)
+        # obs = sample['obs'].to(self.device)
+        # act = sample['act'].to(self.device)
+        # obs2 = sample['obs2'].to(self.device)
+        # done = sample['done'].to(self.device)
+        # rew = sample['rew'].to(self.device)
         return obs, act, obs2, rew, done
 
 @dataclass
@@ -414,9 +420,9 @@ class Config:
     seed: int =0
     num_steps_per_epoch: int = 4000
     replay_size: int = int(1e6)
-    start_steps: int = 10000
+    start_steps: int = 100
     update_after: int = 1000
-    update_every: int = 50
+    update_every: int = 500
     num_envs: int = 8
     max_ep_len: int = 1000
     hid: int = 256
@@ -438,9 +444,9 @@ def online_train(args, env_fn):
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    # env = [env_fn for _ in range(num_envs)]
-    # env = SubprocVecEnv(env, start_method="spawn",)
-    env = env_fn()
+    env = [env_fn for _ in range(num_envs)]
+    env = SubprocVecEnv(env, start_method="spawn",)
+    # env = env_fn()
     test_env = env_fn()
 
     obs_dim = env.observation_space.shape[-1] # type:ignore
@@ -457,8 +463,8 @@ def online_train(args, env_fn):
     best_nreward = -np.inf
     obs_space = env.observation_space
     action_space = env.action_space
-    # buffer = ReplayBuffer(buffer_size, obs_space, action_space, n_envs=num_envs)
-    buffer = ReplayBuffer(obs_dim, act_dim, buffer_size)
+    buffer = ReplayBuffer(buffer_size, obs_space, action_space, n_envs=num_envs)
+    # buffer = ReplayBuffer(obs_dim, act_dim, buffer_size)
 
     if args.algo == 'td3':    
         agent = td3(env_fn, MLPActorCritic, args)
@@ -502,8 +508,8 @@ def online_train(args, env_fn):
     else:
         raise NotImplementedError
 
-    # o, ep_ret, ep_len = env.reset(), np.zeros(num_envs, dtype=np.float32), np.zeros(num_envs, dtype=np.int32)
-    o, ep_ret, ep_len = env.reset(), 0, 0
+    o, ep_ret, ep_len = env.reset(), np.zeros(num_envs, dtype=np.float32), np.zeros(num_envs, dtype=np.int32)
+    # o, ep_ret, ep_len = env.reset(), 0, 0
     assert num_steps_per_epoch % update_every == 0, "num_steps_per_epoch must be a multiple of update_every"
     if args.init == "dataset":
         dataset = d4rl.qlearning_dataset(env_fn())
@@ -512,27 +518,26 @@ def online_train(args, env_fn):
                         dataset['actions'][8 * i: 8 * i + 8], dataset['rewards'][8 * i: 8 * i + 8],
                         dataset['terminals'][8 * i: 8 * i + 8], [{} for _ in range(8)])
     for t in range(max_timesteps):
-        # if args.init == "random":
-        #     if t >= start_steps and args.algo == 'td3':
-        #         a = np.array([agent.sample_action(o[i], test=False) for i in range(num_envs)])
-        #     elif args.algo == 'dac':
-        #         a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
-        #     else:
-        #         a = np.array([env.action_space.sample() for i in range(num_envs)])
+        if t >= start_steps and args.algo == 'td3':
+            a = np.array([agent.sample_action(o[i], test=False) for i in range(num_envs)])
+        elif args.algo == 'dac':
+            a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
+        else:
+            a = np.array([env.action_space.sample() for i in range(num_envs)])
         # elif args.init == "dataset":
         #     a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
         # else:
         #     raise NotImplementedError
-        if args.algo == 'td3':
-            if t >= start_steps:
-                a = np.array(agent.sample_action(o, test=False))
-            else:   
-                a = np.array(env.action_space.sample())
-        elif args.algo == 'dac':
-            if t >= start_steps:
-                a = np.array(agent.sample_action(o))
-            else:   
-                a = np.array(env.action_space.sample())
+        # if args.algo == 'td3':
+        #     if t >= start_steps:
+        #         a = np.array(agent.sample_action(o, test=False))
+        #     else:   
+        #         a = np.array(env.action_space.sample())
+        # elif args.algo == 'dac':
+        #     if t >= start_steps:
+        #         a = np.array(agent.sample_action(o))
+        #     else:   
+        #         a = np.array(env.action_space.sample())
 
         # Step the env
         o2, r, d, info = env.step(a)
@@ -544,36 +549,36 @@ def online_train(args, env_fn):
         # that isn't based on the agent's state)
 
         # d = ~(ep_len == max_ep_len) & d
-        d = False if ep_len == max_ep_len else d
+        # d = False if ep_len == max_ep_len else d
 
         # Store experience to replay buffer
         # assert o is np.array and o2 is np.array, "o and o2 must be np.array"
         o = np.array(o)
         o2 = np.array(o2)
-        # buffer.add(o, o2, a, r, d, info)
-        buffer.store(o, a, r, o2, d)
+        buffer.add(o, o2, a, r, d, info)
+        # buffer.store(o, a, r, o2, d)
         # Super critical, easy to overlook step: make sure to update 
         # most recent observation!
         o = o2
 
         # End of trajectory handling
 
-        # indices = np.where(d | (ep_len == max_ep_len))[0]
-        # for i in indices:
-        #     # logger.store(EpRet=ep_ret, EpLen=ep_len)
-        #     logger_zhiao.logkv_mean('EpRet', ep_ret[i])
-        #     logger_zhiao.logkv_mean('EpLen', ep_len[i])
-        #     o[i], ep_ret[i], ep_len[i] = env.env_method("reset", indices=[i])[0], 0, 0
-        if d or (ep_len == max_ep_len):
+        indices = np.where(d | (ep_len == max_ep_len))[0]
+        for i in indices:
             # logger.store(EpRet=ep_ret, EpLen=ep_len)
-            logger_zhiao.logkv_mean('EpRet', ep_ret)
-            logger_zhiao.logkv_mean('EpLen', ep_len)
-            o, ep_ret, ep_len = env.reset(), 0, 0
+            logger_zhiao.logkv_mean('EpRet', ep_ret[i])
+            logger_zhiao.logkv_mean('EpLen', ep_len[i])
+            o[i], ep_ret[i], ep_len[i] = env.env_method("reset", indices=[i])[0], 0, 0
+        # if d or (ep_len == max_ep_len):
+        #     # logger.store(EpRet=ep_ret, EpLen=ep_len)
+        #     logger_zhiao.logkv_mean('EpRet', ep_ret)
+        #     logger_zhiao.logkv_mean('EpLen', ep_len)
+        #     o, ep_ret, ep_len = env.reset(), 0, 0
 
         if t >= update_after and t % update_every == 0:
             if args.algo == 'dac':
-                # data_sampler = BufferWrapper(buffer, device)
-                data_sampler = Buffer(buffer, device)
+                data_sampler = BufferWrapper(buffer, device)
+                # data_sampler = Buffer(buffer, device)
                 loss_metric = agent.train(data_sampler,
                                 iterations=update_every,
                                 batch_size=args.batch_size,
