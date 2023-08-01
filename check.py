@@ -100,8 +100,7 @@ class Diffusion_AC(object):
                  tau,
                  max_q_backup=False,
                  eta=1.0,
-                #  beta_schedule='linear',
-                 beta_schedule='vp',
+                 beta_schedule='linear',
                  n_timesteps=100,
                  ema_decay=0.995,
                  step_start_ema=1000,
@@ -129,14 +128,7 @@ class Diffusion_AC(object):
                  scale=1.0,
                  predict_epsilon=False,
                  debug=False,
-                 g_mdp=True, 
-                 policy_freq=2,
-                 norm_q=True,
-                 consistency_coef=1.0,
-                 target_noise=0.2, 
-                 noise_clip=0.5,
-                 add_noise=False,
-                ):
+                 ):
 
         self.model = MLP(state_dim=state_dim,
                          action_dim=action_dim, device=device)
@@ -193,13 +185,6 @@ class Diffusion_AC(object):
         self.consistency = consistency
         self.scale = scale
         self.debug = debug
-        self.g_mdp = g_mdp
-        self.policy_freq = policy_freq
-        self.norm_q = norm_q
-        self.consistency_coef = consistency_coef
-        self.target_noise = target_noise
-        self.noise_clip = noise_clip
-        self.add_noise = add_noise
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -211,10 +196,10 @@ class Diffusion_AC(object):
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
                   'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
-                  "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": [], 
+                  "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": [],
                   "action_norm": [], "new_action_max": [], "new_action_mean": []}
         # ood = 0 # out of distribution
-        for ind in range(iterations):
+        for _ in range(iterations):
             # Sample replay buffer / batch
             state, action, next_state, reward, not_done = replay_buffer.sample(
                 batch_size)
@@ -237,97 +222,32 @@ class Diffusion_AC(object):
 
             """ Q Training """
             # consistency loss
-            if not self.consistency:
-                next_action = self.ema_model(next_state)
-                max_ac = next_action.max(1)[0].mean()
-                metric['max_next_ac'].append(max_ac.item())
-                # next_action = next_action.clamp(-self.max_action, self.max_action)
-                current_q1, current_q2 = self.critic(
-                    state, action, t)
-                target_q1, target_q2 = self.critic_target(
-                    next_state, next_action, t)  # Q'_1(s, a, t), Q'_2(s, a, t)
-                # \hat Q = min(Q'_1(s', a, t), Q'_2(s', a, t))
-                target_q = torch.min(target_q1, target_q2).detach()
-                target_q = (reward + not_done *
-                            self.discount * target_q).detach()
-                metric['td_error'].append((current_q1 - target_q).mean().item())
-                critic_loss = F.mse_loss(current_q1, target_q) + \
-                    F.mse_loss(current_q2, target_q)
-            else:
-                if self.compute_consistency:
-                    # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
-                    current_q1, current_q2 = self.critic(
-                        state, noisy_action, t+1)
-                    denoised_noisy_action = self.ema_model.p_sample(
-                        noisy_action, t, state)  # a^{t-1}, a = a^{-1}
-                    # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
-                    target_q1, target_q2 = self.critic_target(
-                        state, denoised_noisy_action, t)
-                    # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
-                    target_q = self.discount2 * \
-                        torch.min(target_q1, target_q2).detach()
-                    metric['consistency_error'].append((current_q1 - target_q).mean().item()) 
-                    if self.iql_style == "discount":
-                        consistency_loss = F.mse_loss(
-                            current_q1, target_q) + F.mse_loss(current_q2, target_q)
-                    elif self.iql_style == "expectile":
-                        consistency_loss = expectile_loss(
-                            current_q1, target_q, self.expectile) + expectile_loss(current_q2, target_q, self.expectile)
-                    elif self.iql_style == "quantile":
-                        consistency_loss = quantile_loss(
-                            current_q1, target_q, self.quantile) + quantile_loss(current_q2, target_q, self.quantile)
-                    elif self.iql_style == "exponential":
-                        consistency_loss = exponential_loss(
-                            current_q1, target_q, self.temperature) + exponential_loss(current_q2, target_q, self.temperature)
-                    else:
-                        raise NotImplementedError
-                else:
-                    # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
-                    current_q1, current_q2 = self.critic(
-                        state, noisy_action, t+1)
-                    target_q1, target_q2 = self.critic_target(
-                        state, action, t)  # Q'_1(s, a, t), Q'_2(s, a, t)
-                    # \hat Q = min(Q'_1(s', a, t), Q'_2(s', a, t))
-                    target_q = torch.min(target_q1, target_q2).detach()
-                    consistency_loss = F.mse_loss(
-                        current_q1, target_q) + F.mse_loss(current_q2, target_q)
-                # MSBE loss
-                if self.max_q_backup:
-                    next_state_rpt = torch.repeat_interleave(
-                        next_state, repeats=10, dim=0)
-                    # next_action_rpt = self.ema_model(next_state_rpt)
-                    next_action_rpt = torch.randn(
-                        next_state_rpt.shape[0], self.action_dim, device=self.device) * self.scale # random noise
-                    target_q1, target_q2 = self.critic_target(
-                        next_state_rpt, next_action_rpt, total_t.expand(next_state_rpt.shape[0]))
-                    target_q1 = target_q1.view(
-                        batch_size, 10).max(dim=1, keepdim=True)[0]
-                    target_q2 = target_q2.view(
-                        batch_size, 10).max(dim=1, keepdim=True)[0]
-                    target_q = torch.min(target_q1, target_q2)
-                else:
-                    # next_action = self.ema_model(next_state)
-                    if self.g_mdp:
-                        next_action = torch.randn_like(action) * self.scale  # random noise
-                    else:
-                        next_action = self.ema_model.sample(next_state)
-                        if self.add_noise:
-                            epsilon = torch.randn_like(next_action) * self.target_noise
-                            epsilon = torch.clamp(epsilon, -self.noise_clip, self.noise_clip)
-                            next_action=next_action+epsilon
-                            next_action = torch.clamp(next_action, -self.max_action, self.max_action)
-                    target_q1, target_q2 = self.critic_target(
-                        next_state, next_action, total_t.expand(next_state.shape[0]))
-                    target_q = torch.min(target_q1, target_q2)
-                target_q = (reward + not_done *
-                            self.discount * target_q).detach()
-                current_q1, current_q2 = self.critic(
-                    state, action, torch.zeros_like(t))
-                metric['td_error'].append((current_q1 - target_q).mean().item())
-                MSBE_loss = F.mse_loss(current_q1, target_q) + \
-                    F.mse_loss(current_q2, target_q)
+            # Q_1(s, a^t, t+1), Q_2(s, a^t, t+1)
+            current_q1, current_q2 = self.critic(
+                state, noisy_action, t+1)
+            denoised_noisy_action = self.ema_model.p_sample(
+                noisy_action, t, state)  # a^{t-1}, a = a^{-1}
+            # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
+            target_q1, target_q2 = self.critic_target(
+                state, denoised_noisy_action, t)
+            # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
+            target_q = self.discount2 * \
+                torch.min(target_q1, target_q2).detach()
+            metric['consistency_error'].append((current_q1 - target_q).mean().item()) 
+            # MSBE loss
+            next_action = torch.randn_like(action) * self.scale  # random noise
+            target_q1, target_q2 = self.critic_target(
+                next_state, next_action, total_t.expand(next_state.shape[0]))
+            target_q = torch.min(target_q1, target_q2)
+            target_q = (reward + not_done *
+                        self.discount * target_q).detach()
+            current_q1, current_q2 = self.critic(
+                state, action, torch.zeros_like(t))
+            metric['td_error'].append((current_q1 - target_q).mean().item())
+            MSBE_loss = F.mse_loss(current_q1, target_q) + \
+                F.mse_loss(current_q2, target_q)
 
-                critic_loss = self.consistency_coef * consistency_loss + self.MSBE_coef * MSBE_loss
+            critic_loss = consistency_loss + self.MSBE_coef * MSBE_loss
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
@@ -335,46 +255,40 @@ class Diffusion_AC(object):
                     self.critic.parameters(), max_norm=self.grad_norm, norm_type=2)
             self.critic_optimizer.step()
 
-            if ind % self.policy_freq == 0:
-                """ Policy Training """
-                bc_loss = self.actor.p_losses(action, state, t) if not self.debug \
-                else self.actor.loss_to_verify(action, state)
-                noisy_action2 = self.actor.q_sample(action, t)
-                recon_action = self.actor.model(noisy_action2, t, state)
-                metric["action_norm"].append(recon_action.norm(dim=1).mean().item())
-                if self.actor.predict_epsilon:
-                    self.actor.predict_epsilon = False
-                    true_bc_loss = self.actor.p_losses(action, state, t)
-                    metric["true_bc_loss"].append(true_bc_loss.item())
-                    self.actor.predict_epsilon = True
-                new_action = self.actor.p_sample(noisy_action, t, state)
-                metric["new_action_max"].append(new_action.abs().max().item())
-                metric["new_action_mean"].append(new_action.abs().mean().item())
-                q1_new_action, q2_new_action = self.critic(state, new_action, t)
-                metric["actor_q"].append(q1_new_action.mean().item())
-                if self.norm_q:
-                    if np.random.uniform() > 0.5:
-                        q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
-                    else:
-                        q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
-                else:
-                    if np.random.uniform() > 0.5:
-                        q_loss = - q1_new_action.mean()
-                    else:
-                        q_loss = - q2_new_action.mean()
-                actor_loss = self.bc_weight * bc_loss + self.eta * q_loss
-                self.actor_optimizer.zero_grad()
-                actor_loss.backward()
-                if self.grad_norm > 0:
-                    actor_grad_norms = nn.utils.clip_grad_norm_(
-                        self.actor.parameters(), max_norm=self.grad_norm, norm_type=2)
-                self.actor_optimizer.step()
-                """ Step Target network """
-                if self.step % self.update_ema_every == 0:
-                    self.step_ema()
-                for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-                    target_param.data.copy_(
-                        self.tau * param.data + (1 - self.tau) * target_param.data)
+            """ Policy Training """
+            bc_loss = self.actor.p_losses(action, state, t) 
+            noisy_action = self.actor.q_sample(action, t)
+            recon_action = self.actor.model(noisy_action, t, state)
+            metric["action_norm"].append(recon_action.norm(dim=1).mean().item())
+            if self.actor.predict_epsilon:
+                self.actor.predict_epsilon = False
+                true_bc_loss = self.actor.p_losses(action, state, t)
+                metric["true_bc_loss"].append(true_bc_loss.item())
+                self.actor.predict_epsilon = True
+            new_action = self.actor.p_sample(noisy_action, t, state)
+            # logger_zhiao.logkv("new_action_max", new_action.abs().max().item())
+            # logger_zhiao.logkv("new_action_mean", new_action.abs().mean().item())
+            metric["new_action_max"].append(new_action.abs().max().item())
+            metric["new_action_mean"].append(new_action.abs().mean().item())
+            q1_new_action, q2_new_action = self.critic(state, new_action, t)
+            metric["actor_q"].append(q1_new_action.mean().item())
+            if np.random.uniform() > 0.5:
+                q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
+            else:
+                q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
+            actor_loss = self.bc_weight * bc_loss + self.eta * q_loss
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            if self.grad_norm > 0:
+                actor_grad_norms = nn.utils.clip_grad_norm_(
+                    self.actor.parameters(), max_norm=self.grad_norm, norm_type=2)
+            self.actor_optimizer.step()
+            """ Step Target network """
+            if self.step % self.update_ema_every == 0:
+                self.step_ema()
+            for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+                target_param.data.copy_(
+                    self.tau * param.data + (1 - self.tau) * target_param.data)
             self.step += 1
             """ Log """
             if log_writer is not None:
@@ -423,13 +337,11 @@ class Diffusion_AC(object):
 
     # ---------------------------- #
 
-    def sample_action(self, state, noise_scale=0.0):
+    def sample_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
         state_rpt = torch.repeat_interleave(state, repeats=5, dim=0)
         with torch.no_grad():
             action = self.actor.sample(state_rpt)
-            action += noise_scale * torch.randn(action.shape, device=self.device)
-            action = torch.clamp(action, -self.max_action, self.max_action)
             q_value = self.critic_target.q_min(state_rpt, action, torch.zeros(
                 action.shape[0], device=self.device).long()).flatten()
             idx = torch.multinomial(F.softmax(q_value, dim=-1), 1) 

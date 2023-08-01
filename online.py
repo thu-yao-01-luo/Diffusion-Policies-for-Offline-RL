@@ -68,6 +68,7 @@ def mlp(sizes, activation, output_activation=nn.Identity):
     for j in range(len(sizes)-1):
         act = activation if j < len(sizes)-2 else output_activation
         layers += [nn.Linear(sizes[j], sizes[j+1]), act()]
+    # torch.nn.init.normal_(layers[-1][0].weight, std=0.1) # output layer init 
     return nn.Sequential(*layers)
 
 def count_vars(module):
@@ -213,7 +214,8 @@ class td3:
         o = data[0]
         # o = o.astype(np.float32)
         o = o.to(torch.float32)
-        q1_pi = ac.q1(o, ac.pi(o))
+        na = ac.pi(o)
+        q1_pi = ac.q1(o, na)
         return -q1_pi.mean()
 
     def update(self, data, timer):
@@ -269,14 +271,19 @@ class td3:
         a += noise_scale * np.random.randn(act_dim)
         return np.clip(a, -act_limit, act_limit)  
 
-    def sample_action(self, o, test=True):
+    # def sample_action(self, o, test=True):
+    #     device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    #     o = torch.tensor(o, dtype=torch.float32).to(device)
+    #     # return self.get_action(o, self.act_noise)
+    #     if not test:
+    #         return self.get_action(o, self.act_noise)
+    #     else:
+    #         return self.get_action(o, 0.0)
+
+    def sample_action(self, o, noise_scale=0.0):
         device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         o = torch.tensor(o, dtype=torch.float32).to(device)
-        # return self.get_action(o, self.act_noise)
-        if not test:
-            return self.get_action(o, self.act_noise)
-        else:
-            return self.get_action(o, 0.0)
+        return self.get_action(o, self.act_noise)
 
     def train(self, update_every, replay_buffer, batch_size):
         for i in range(update_every):
@@ -286,12 +293,14 @@ class td3:
 def eval_policy(policy, eval_env, eval_episodes=10, need_animation=False):
     scores = []
     lengths = []
+    actions = []
     for _ in range(eval_episodes):
         traj_return = 0.
         traj_length = 0
         state, done = eval_env.reset(), False
         while not done:
             action = policy.sample_action(np.array(state))
+            actions.append(np.mean(np.abs(action)))
             state, reward, done, _ = eval_env.step(action)
             traj_return += reward
             traj_length += 1
@@ -302,6 +311,11 @@ def eval_policy(policy, eval_env, eval_episodes=10, need_animation=False):
     std_reward = np.std(scores)
     avg_length = np.mean(lengths)
     std_length = np.std(lengths)
+    if len(actions) > 0:
+        avg_action = np.mean(actions)
+        std_action = np.std(actions)
+        logger_zhiao.logkv('AvgAction', avg_action)
+        logger_zhiao.logkv('StdAction', std_action)
 
     normalized_scores = [eval_env.get_normalized_score(s) for s in scores]
     avg_norm_score = eval_env.get_normalized_score(avg_reward)
@@ -320,7 +334,6 @@ def eval_policy(policy, eval_env, eval_episodes=10, need_animation=False):
             ims.append(eval_env.render(mode='rgb_array'))
         logger_zhiao.animate(ims, f'{args.env_name}_{args.algo}_{args.T}.mp4')
         scores.append(traj_return)
-
     return avg_reward, std_reward, avg_norm_score, std_norm_score, avg_length, std_length
 
 class BufferWrapper:
@@ -424,6 +437,13 @@ class Config:
     init: str = "random"
     policy_delay: int = 2
     act_noise: float = 0.1
+    g_mdp: bool = True # only used in the debug phase with T=1
+    norm_q: bool = True
+    consistency_coef: float = 1.0
+    target_noise: float = 0.2
+    noise_clip: float = 0.5
+    add_noise: bool = False
+    update_ema_every: int = 5
 
 def online_train(args, env_fn):
     num_envs = args.num_envs
@@ -498,6 +518,14 @@ def online_train(args, env_fn):
             scale=args.scale,
             predict_epsilon=args.predict_epsilon,
             debug=args.debug,
+            g_mdp=args.g_mdp,
+            policy_freq=args.policy_delay,
+            norm_q=args.norm_q,
+            consistency_coef=args.consistency_coef,
+            target_noise=args.target_noise, 
+            noise_clip=args.noise_clip,
+            add_noise=args.add_noise,
+            update_ema_every=args.update_ema_every,
             )
     else:
         raise NotImplementedError
@@ -523,16 +551,16 @@ def online_train(args, env_fn):
         #     a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
         # else:
         #     raise NotImplementedError
-        if args.algo == 'td3':
-            if t >= start_steps:
-                a = np.array(agent.sample_action(o, test=False))
-            else:   
-                a = np.array(env.action_space.sample())
-        elif args.algo == 'dac':
-            if t >= start_steps:
-                a = np.array(agent.sample_action(o))
-            else:   
-                a = np.array(env.action_space.sample())
+        # if args.algo == 'td3':
+        #     if t >= start_steps:
+        #         a = np.array(agent.sample_action(o, test=False))
+        #     else:   
+        #         a = np.array(env.action_space.sample())
+        # elif args.algo == 'dac':
+        if t >= start_steps:
+            a = np.array(agent.sample_action(o, noise_scale=args.act_noise))
+        else:   
+            a = np.array(env.action_space.sample())
 
         # Step the env
         o2, r, d, info = env.step(a)

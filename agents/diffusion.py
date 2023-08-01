@@ -103,7 +103,8 @@ class Diffusion(nn.Module):
             x, t=t, noise=self.model(x, t, s))
 
         if self.clip_denoised:
-            x_recon.clamp_(-self.max_action, self.max_action)
+            # x_recon.clamp_(-self.max_action, self.max_action)
+            x_recon = torch.tanh(x_recon) * self.max_action
         else:
             assert RuntimeError()
 
@@ -155,6 +156,7 @@ class Diffusion(nn.Module):
         shape = (batch_size, self.action_dim)
         action = self.p_sample_loop(state, shape, *args, **kwargs)
         return action.clamp_(-self.max_action, self.max_action)  # important
+        # return torch.tanh(action) * self.max_action
 
     # ------------------------------------------ training ------------------------------------------#
 

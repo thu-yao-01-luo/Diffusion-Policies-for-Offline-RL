@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Launch online.py with Environment Variables",
+      "type": "python",
+      "request": "launch",
+      "program": "online.py",
+      "args": [
+        "algo=dac",
+        // "algo=td3",
+        "T=1",
+        "g_mdp=False",
+        "norm_q=False",
+        "consistency_coef=0.0",
+        "add_noise=True",
+        "update_ema_every=1",
+        "name=dac-td3-proj",
+        "id=dac-td3-proj"
+      ],
+      "console": "integratedTerminal",
+      "env": {
+        "MODEL_DIR": "/home/kairong/Diffusion-Policies-for-Offline-RL"
+      }
+    }
+  ]
+}

@@ -17,7 +17,7 @@ class MLP(nn.Module):
                  state_dim,
                  action_dim,
                  device,
-                 t_dim=16):
+                 ):
 
         super(MLP, self).__init__()
         self.device = device
@@ -25,19 +25,25 @@ class MLP(nn.Module):
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(t_dim),
             nn.Linear(t_dim, t_dim * 2),
-            nn.Mish(),
+            # nn.Mish(),
+            activation(),
             nn.Linear(t_dim * 2, t_dim),
         )
 
         input_dim = state_dim + action_dim + t_dim
         self.mid_layer = nn.Sequential(nn.Linear(input_dim, 256),
-                                       nn.Mish(),
+                                    #    nn.Mish(),
+                                       activation(),
                                        nn.Linear(256, 256),
-                                       nn.Mish(),
+                                    #    nn.Mish(),
+                                       activation(),
                                        nn.Linear(256, 256),
-                                       nn.Mish())
-
+                                    #    nn.Mish()
+                                       activation(),
+                                       )
         self.final_layer = nn.Linear(256, action_dim)
+        torch.nn.init.normal_(self.final_layer.weight, std=0.1) # output layer init  
+        pass
 
     def forward(self, x, time, state):
 
