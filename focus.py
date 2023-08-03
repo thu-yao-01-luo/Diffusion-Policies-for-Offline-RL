@@ -1,3 +1,6 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from copy import deepcopy
 import d4rl
 import os
@@ -9,7 +12,6 @@ import gym
 import numpy as np
 import torch
 from stable_baselines3.common.vec_env import SubprocVecEnv
-# from stable_baselines3.common.buffers import ReplayBuffer
 from utils import utils
 from utils.data_sampler import Data_Sampler
 from utils.utils_zhiao import load_config
@@ -23,6 +25,7 @@ import numpy as np
 import torch
 from torch.optim import Adam
 import gym
+from demo_env import CustomEnvironment
 
 class ReplayBuffer:
     """
@@ -30,9 +33,6 @@ class ReplayBuffer:
     """
 
     def __init__(self, obs_dim, act_dim, size):
-        # self.obs_buf = np.zeros(core.combined_shape(size, obs_dim), dtype=np.float32)
-        # self.obs2_buf = np.zeros(core.combined_shape(size, obs_dim), dtype=np.float32)
-        # self.act_buf = np.zeros(core.combined_shape(size, act_dim), dtype=np.float32)
         self.obs_buf = np.zeros((size, obs_dim), dtype=np.float32)
         self.obs2_buf = np.zeros((size, obs_dim), dtype=np.float32)
         self.act_buf = np.zeros((size, act_dim), dtype=np.float32)
@@ -114,30 +114,6 @@ class MLPActorCritic(nn.Module):
         with torch.no_grad():
             return self.pi(obs).cpu().numpy()
 
-hyperparameters = {
-    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 12000, 'gn': 9.0,  'top_k': 1},
-    'HalfCheetah-v2':                {'lr': 1e-3, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 12000, 'gn': 9.0,  'top_k': 1},
-    'hopper-medium-v2':              {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 24000, 'gn': 9.0,  'top_k': 2},
-    'walker2d-medium-v2':            {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 24000, 'gn': 1.0,  'top_k': 1},
-    'halfcheetah-medium-replay-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 2.0,  'top_k': 0},
-    'hopper-medium-replay-v2':       {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 4.0,  'top_k': 2},
-    'walker2d-medium-replay-v2':     {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 4.0,  'top_k': 1},
-    'halfcheetah-medium-expert-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 7.0,  'top_k': 0},
-    'hopper-medium-expert-v2':       {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 5.0,  'top_k': 2},
-    'walker2d-medium-expert-v2':     {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 5.0,  'top_k': 1},
-    'antmaze-umaze-v0':              {'lr': 3e-4, 'eta': 0.5,   'max_q_backup': False,  'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 2.0,  'top_k': 2},
-    'antmaze-umaze-diverse-v0':      {'lr': 3e-4, 'eta': 2.0,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 3.0,  'top_k': 2},
-    'antmaze-medium-play-v0':        {'lr': 1e-3, 'eta': 2.0,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 2.0,  'top_k': 1},
-    'antmaze-medium-diverse-v0':     {'lr': 3e-4, 'eta': 3.0,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 1.0,  'top_k': 1},
-    'antmaze-large-play-v0':         {'lr': 3e-4, 'eta': 4.5,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 2},
-    'antmaze-large-diverse-v0':      {'lr': 3e-4, 'eta': 3.5,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 7.0,  'top_k': 1},
-    'pen-human-v1':                  {'lr': 3e-5, 'eta': 0.15,  'max_q_backup': False,  'reward_tune': 'normalize',   'eval_freq': 50, 'num_epochs': 1000, 'gn': 7.0,  'top_k': 2},
-    'pen-cloned-v1':                 {'lr': 3e-5, 'eta': 0.1,   'max_q_backup': False,  'reward_tune': 'normalize',   'eval_freq': 50, 'num_epochs': 1000, 'gn': 8.0,  'top_k': 2},
-    'kitchen-complete-v0':           {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 250, 'gn': 9.0,  'top_k': 2},
-    'kitchen-partial-v0':            {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 2},
-    'kitchen-mixed-v0':              {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 0},
-}
-
 class td3:
     def __init__(self, env_fn, actor_critic, args) -> None:
             # Set up optimizers for policy and q-function
@@ -209,9 +185,7 @@ class td3:
     # Set up function for computing TD3 pi loss
     def compute_loss_pi(self, data):
         ac = self.ac
-        # o = data['obs']
         o = data[0]
-        # o = o.astype(np.float32)
         o = o.to(torch.float32)
         na = ac.pi(o)
         q1_pi = ac.q1(o, na)
@@ -250,7 +224,6 @@ class td3:
                 p.requires_grad = True
 
             # Record things
-            # logger.store(LossPi=loss_pi.item())
             logger_zhiao.logkv_mean('LossPi', loss_pi.item())
 
             # Finally, update target networks by polyak averaging.
@@ -270,15 +243,6 @@ class td3:
         a += noise_scale * np.random.randn(act_dim)
         return np.clip(a, -act_limit, act_limit)  
 
-    # def sample_action(self, o, test=True):
-    #     device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    #     o = torch.tensor(o, dtype=torch.float32).to(device)
-    #     # return self.get_action(o, self.act_noise)
-    #     if not test:
-    #         return self.get_action(o, self.act_noise)
-    #     else:
-    #         return self.get_action(o, 0.0)
-
     def sample_action(self, o, noise_scale=0.0):
         device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         o = torch.tensor(o, dtype=torch.float32).to(device)
@@ -289,7 +253,7 @@ class td3:
             batch = replay_buffer.sample(batch_size)
             self.update(batch, i)
 
-def eval_policy(policy, eval_env, eval_episodes=10, need_animation=False):
+def eval_policy(policy, eval_env, eval_episodes=10, need_animation=False, d4rl=False, vis_q=False):
     scores = []
     lengths = []
     actions = []
@@ -315,10 +279,15 @@ def eval_policy(policy, eval_env, eval_episodes=10, need_animation=False):
         std_action = np.std(actions)
         logger_zhiao.logkv('AvgAction', avg_action)
         logger_zhiao.logkv('StdAction', std_action)
-
-    normalized_scores = [eval_env.get_normalized_score(s) for s in scores]
-    avg_norm_score = eval_env.get_normalized_score(avg_reward)
-    std_norm_score = np.std(normalized_scores)
+    
+    if d4rl:
+        normalized_scores = [eval_env.get_normalized_score(s) for s in scores]
+        avg_norm_score = eval_env.get_normalized_score(avg_reward)
+        std_norm_score = np.std(normalized_scores)
+    else:
+        normalized_scores = 0
+        avg_norm_score = 0
+        std_norm_score = 0
 
     utils.print_banner(
         f"Evaluation over {eval_episodes} episodes: {avg_reward:.2f} {avg_norm_score:.2f}")
@@ -330,7 +299,70 @@ def eval_policy(policy, eval_env, eval_episodes=10, need_animation=False):
             action = policy.sample_action(np.array(state))
             state, reward, done, _ = eval_env.step(action)
             traj_return += reward
-            ims.append(eval_env.render(mode='rgb_array'))
+            im_np = eval_env.render(mode='rgb_array')
+            if vis_q:
+                x = np.linspace(-10, 10, 50)
+                y = np.linspace(-10, 10, 50)
+                X, Y = np.meshgrid(x, y)
+                coords = np.stack((X, Y), axis=2).reshape(-1, 2)
+                # new_action = policy.sample_action(coords)
+                device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                coords = torch.FloatTensor(coords).to(device)
+                try:
+                    t = torch.zeros((coords.shape[0],), device=device).long()
+                    new_action = policy.actor.p_sample(torch.randn_like(coords), t, coords)
+                    # Calculate function values for each point in the grid
+                    value = policy.critic(coords, new_action, t)[0]
+                    value = value.cpu().detach().numpy().reshape(50, 50)
+                    # Plot the function values as a color map
+                except:
+                    new_a = policy.ac.pi(coords)
+                    val = policy.ac.q1(coords, new_a)
+                    value = val.cpu().detach().numpy().reshape(50, 50)
+                fig = plt.figure()
+                canvas = FigureCanvas(fig)
+                ax = fig.add_subplot(111)
+                # cmap = plt.get_cmap('Blues')  # Set the colormap to blue shades
+                cmap = plt.get_cmap('Reds')  # Set the colormap to blue shades
+                norm = plt.Normalize(vmin=0, vmax=np.max(value) /1.5)
+                ax.scatter(state[0], state[1], c='gold', marker='*', s=100)
+                im = ax.imshow(value, extent=[-10, 10, -10, 10], cmap=cmap, origin='lower', norm=norm)
+                fig.colorbar(im)
+
+                # Render the figure to an array
+                canvas.draw()
+                data = np.array(canvas.buffer_rgba())
+
+                # Return the NumPy array representation of the figure
+                plt.close(fig)
+                data_as_numpy = np.asarray(data)
+                # return data_as_numpy
+                # Create a figure with two subplots
+                fig, axs = plt.subplots(1, 2)
+
+                # Plot the first figure on the first subplot
+                axs[0].imshow(im_np)  # 'gray' colormap for grayscale images
+                axs[0].set_title('Figure 1')
+
+                # Plot the second figure on the second subplot
+                axs[1].imshow(data_as_numpy)  # 'gray' colormap for grayscale images
+                axs[1].set_title('Figure 2')
+
+                # Adjust layout to prevent overlapping of titles and axes
+                plt.tight_layout()
+
+                # Render the figure on a canvas
+                canvas = FigureCanvas(fig)
+
+                # Convert the canvas to a numpy array
+                canvas.draw()
+                width, height = fig.get_size_inches() * fig.get_dpi()
+                data_ = np.frombuffer(canvas.tostring_rgb(), dtype='uint8').reshape(int(height), int(width), 3)
+                plt.close(fig)
+                # data = np.array(canvas.buffer_rgba())    
+            else:
+                data_ = im_np
+            ims.append(data_)
         logger_zhiao.animate(ims, f'{args.env_name}_{args.algo}_{args.T}.mp4')
         scores.append(traj_return)
     return avg_reward, std_reward, avg_norm_score, std_norm_score, avg_length, std_length
@@ -355,12 +387,6 @@ class Buffer:
         self.device = device
 
     def sample(self, batch_size):
-        # sample = self.buffer.sample(batch_size)
-        # obs = torch.tensor(sample[0], dtype=torch.float32).to(self.device)
-        # act = torch.tensor(sample[1], dtype=torch.float32).to(self.device)
-        # obs2 = torch.tensor(sample[2], dtype=torch.float32).to(self.device)
-        # done = torch.tensor(sample[3], dtype=torch.float32).to(self.device)
-        # rew = torch.tensor(sample[4], dtype=torch.float32).to(self.device)
         sample = self.buffer.sample_batch(batch_size)
         obs = sample['obs'].to(self.device)
         act = sample['act'].to(self.device)
@@ -369,6 +395,20 @@ class Buffer:
         rew = sample['rew'].to(self.device)
         return obs, act, obs2, rew, done
 
+class BufferNotDone:
+    def __init__(self, buffer, device) -> None:
+        self.buffer = buffer 
+        self.device = device
+
+    def sample(self, batch_size):
+        sample = self.buffer.sample_batch(batch_size)
+        obs = sample['obs'].to(self.device)
+        act = sample['act'].to(self.device)
+        obs2 = sample['obs2'].to(self.device)
+        done = sample['done'].to(self.device)
+        rew = sample['rew'].to(self.device)
+        return obs, act, obs2, rew, 1-done
+
 @dataclass
 class Config:
     # experiment
@@ -376,8 +416,7 @@ class Config:
     device: int = 0
     device: int = 0
     env_name: str = 'halfcheetah-medium-v2'
-    # env_name: str = 'HalfCheetah-v2'
-    # online_env: str = 'HalfCheetah-v2'
+    # env_name: str = 'Demo-v0'
     dir: str = 'results'
     seed: int = 0
     # format: list = field(default_factory=lambda: ['stdout', "wandb"])
@@ -391,7 +430,6 @@ class Config:
     discount: float = 0.99
     discount2: float = 1.0
     tau: float = 0.005
-    # tau: float = 0.995
     # diffusion
     target_noise: float = 0.2
     noise_clip: float = 0.5
@@ -401,13 +439,13 @@ class Config:
     algo: str = 'dac'
     ms: str = 'offline'
     coef: float = 0.2
+    MSBE_coef: float = 1.0
     eta: float = 1.0
     compute_consistency: bool = True
     iql_style: str = "discount"
     expectile: float = 0.7
     quantile: float = 0.6
     temperature: float = 1.0
-    # bc_weight: float = 1.0
     bc_weight: float = 0.0
     name: str = 'dac'
     id: str = 'dac'
@@ -442,8 +480,21 @@ class Config:
     noise_clip: float = 0.5
     add_noise: bool = False
     update_ema_every: int = 5
-
+    need_animation: bool = False
+    num_epochs: int = 1000
+    eval_freq: int = 50
+    eval_episodes: int = 10
+    lr: float = 3e-4
+    eta: float = 1.0
+    max_q_backup: bool = False
+    reward_tune: bool = "no"
+    gn: float = 9.0
+    top_k: int = 1
+    d4rl: bool = True
+    vis_q: bool = False
+    
 def online_train(args, env_fn):
+    # parameters
     num_envs = args.num_envs
     seed = args.seed
     num_steps_per_epoch = args.num_steps_per_epoch
@@ -455,12 +506,10 @@ def online_train(args, env_fn):
     output_dir = args.output_dir
     torch.manual_seed(seed)
     np.random.seed(seed)
-
-    # env = [env_fn for _ in range(num_envs)]
-    # env = SubprocVecEnv(env, start_method="spawn",)
+    # environment
     env = env_fn()
     test_env = env_fn()
-
+    # observation and action dimension
     obs_dim = env.observation_space.shape[-1] # type:ignore
     act_dim = env.action_space.shape[-1] # type:ignore
     # Action limit for clamping: critically, assumes all dimensions share the same bound!
@@ -468,14 +517,13 @@ def online_train(args, env_fn):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     writer = None  # SummaryWriter(output_dir)
-
+    # buffer and evaluation
     evaluations = []
     max_timesteps = args.num_epochs * args.num_steps_per_epoch
     buffer_size = replay_size
     best_nreward = -np.inf
     obs_space = env.observation_space
     action_space = env.action_space
-    # buffer = ReplayBuffer(buffer_size, obs_space, action_space, n_envs=num_envs)
     buffer = ReplayBuffer(obs_dim, act_dim, buffer_size)
 
     if args.algo == 'td3':    
@@ -498,7 +546,7 @@ def online_train(args, env_fn):
             lr_decay=args.lr_decay,
             lr_maxt=args.num_epochs,
             grad_norm=args.gn,
-            MSBE_coef=args.coef,
+            MSBE_coef=args.MSBE_coef,
             discount2=args.discount2,
             compute_consistency=args.compute_consistency,
             iql_style=args.iql_style,
@@ -528,33 +576,16 @@ def online_train(args, env_fn):
     else:
         raise NotImplementedError
 
-    # o, ep_ret, ep_len = env.reset(), np.zeros(num_envs, dtype=np.float32), np.zeros(num_envs, dtype=np.int32)
     o, ep_ret, ep_len = env.reset(), 0, 0
     assert num_steps_per_epoch % update_every == 0, "num_steps_per_epoch must be a multiple of update_every"
     if args.init == "dataset":
+        raise NotImplementedError
         dataset = d4rl.qlearning_dataset(env_fn())
         for i in range(len(dataset['observations']) // 8):   
             buffer.add(dataset['observations'][8 * i: 8 * i + 8], dataset['next_observations'][8 * i: 8 * i + 8],
                         dataset['actions'][8 * i: 8 * i + 8], dataset['rewards'][8 * i: 8 * i + 8],
                         dataset['terminals'][8 * i: 8 * i + 8], [{} for _ in range(8)])
     for t in range(max_timesteps):
-        # if args.init == "random":
-        #     if t >= start_steps and args.algo == 'td3':
-        #         a = np.array([agent.sample_action(o[i], test=False) for i in range(num_envs)])
-        #     elif args.algo == 'dac':
-        #         a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
-        #     else:
-        #         a = np.array([env.action_space.sample() for i in range(num_envs)])
-        # elif args.init == "dataset":
-        #     a = np.array([agent.sample_action(o[i]) for i in range(num_envs)])
-        # else:
-        #     raise NotImplementedError
-        # if args.algo == 'td3':
-        #     if t >= start_steps:
-        #         a = np.array(agent.sample_action(o, test=False))
-        #     else:   
-        #         a = np.array(env.action_space.sample())
-        # elif args.algo == 'dac':
         if t >= start_steps:
             a = np.array(agent.sample_action(o, noise_scale=args.act_noise))
         else:   
@@ -569,37 +600,26 @@ def online_train(args, env_fn):
         # horizon (that is, when it's an artificial terminal signal
         # that isn't based on the agent's state)
 
-        # d = ~(ep_len == max_ep_len) & d
         d = False if ep_len == max_ep_len else d
 
         # Store experience to replay buffer
         # assert o is np.array and o2 is np.array, "o and o2 must be np.array"
         o = np.array(o)
         o2 = np.array(o2)
-        # buffer.add(o, o2, a, r, d, info)
         buffer.store(o, a, r, o2, d)
         # Super critical, easy to overlook step: make sure to update 
         # most recent observation!
         o = o2
 
         # End of trajectory handling
-
-        # indices = np.where(d | (ep_len == max_ep_len))[0]
-        # for i in indices:
-        #     # logger.store(EpRet=ep_ret, EpLen=ep_len)
-        #     logger_zhiao.logkv_mean('EpRet', ep_ret[i])
-        #     logger_zhiao.logkv_mean('EpLen', ep_len[i])
-        #     o[i], ep_ret[i], ep_len[i] = env.env_method("reset", indices=[i])[0], 0, 0
         if d or (ep_len == max_ep_len):
-            # logger.store(EpRet=ep_ret, EpLen=ep_len)
             logger_zhiao.logkv_mean('EpRet', ep_ret)
             logger_zhiao.logkv_mean('EpLen', ep_len)
             o, ep_ret, ep_len = env.reset(), 0, 0
 
         if t >= update_after and t % update_every == 0:
             if args.algo == 'dac':
-                # data_sampler = BufferWrapper(buffer, device)
-                data_sampler = Buffer(buffer, device)
+                data_sampler = BufferNotDone(buffer, device)
                 loss_metric = agent.train(data_sampler,
                                 iterations=update_every,
                                 batch_size=args.batch_size,
@@ -609,8 +629,8 @@ def online_train(args, env_fn):
                         continue    
                     logger_zhiao.logkv(k, np.mean(v))
                     logger_zhiao.logkv(k + '_std', np.std(v))
-                    logger_zhiao.logkv(k + '_max', np.max(v))
-                    logger_zhiao.logkv(k + '_min', np.min(v))
+                    # logger_zhiao.logkv(k + '_max', np.max(v))
+                    # logger_zhiao.logkv(k + '_min', np.min(v))
             elif args.algo == 'td3':
                 data_sampler = Buffer(buffer, device)
                 agent.train(
@@ -622,7 +642,7 @@ def online_train(args, env_fn):
                 raise NotImplementedError
             if t % args.num_steps_per_epoch == 0:
                 eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std = eval_policy(agent, test_env,
-                                                                                                            eval_episodes=args.eval_episodes)
+                eval_episodes=args.eval_episodes, need_animation=args.need_animation, d4rl=args.d4rl, vis_q=args.vis_q)
                 logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
                                     'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std,
                                     'eval_len': eval_len, 'eval_len_std': eval_len_std, })
@@ -637,7 +657,7 @@ def online_train(args, env_fn):
                     if args.save_best_model and eval_norm_res > best_nreward:
                         best_nreward = eval_norm_res
                         agent.save_model(output_dir, t // update_every)
-            logger_zhiao.dumpkvs()
+                logger_zhiao.dumpkvs()
 
 if __name__ == '__main__':
     args = load_config(Config)
@@ -653,15 +673,15 @@ if __name__ == '__main__':
     args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
     args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
 
-    args.num_epochs = hyperparameters[args.env_name]['num_epochs']
-    args.eval_freq = hyperparameters[args.env_name]['eval_freq']
-    args.eval_episodes = 10 if 'v2' in args.env_name else 100
-    args.lr = hyperparameters[args.env_name]['lr']
-    args.eta = hyperparameters[args.env_name]['eta'] if args.eta == 1.0 else args.eta
-    args.max_q_backup = hyperparameters[args.env_name]['max_q_backup']
-    args.reward_tune = hyperparameters[args.env_name]['reward_tune']
-    args.gn = hyperparameters[args.env_name]['gn']
-    args.top_k = hyperparameters[args.env_name]['top_k']
+    # args.num_epochs = hyperparameters[args.env_name]['num_epochs']
+    # args.eval_freq = hyperparameters[args.env_name]['eval_freq']
+    args.eval_episodes = 10 if 'v2' in args.env_name else 5
+    # args.lr = hyperparameters[args.env_name]['lr']
+    # args.eta = hyperparameters[args.env_name]['eta'] if args.eta == 1.0 else args.eta
+    # args.max_q_backup = hyperparameters[args.env_name]['max_q_backup']
+    # args.reward_tune = hyperparameters[args.env_name]['reward_tune']
+    # args.gn = hyperparameters[args.env_name]['gn']
+    # args.top_k = hyperparameters[args.env_name]['top_k']
 
     # Setup Logging
     file_name = f"{args.env_name}|{args.exp}|diffusion-{args.algo}|T-{args.T}"

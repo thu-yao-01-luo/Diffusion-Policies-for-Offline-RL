@@ -16,7 +16,8 @@
         "add_noise=True",
         "update_ema_every=1",
         "name=dac-td3-proj",
-        "id=dac-td3-proj"
+        "id=dac-td3-proj",
+        "predict_epsilon=False",
       ],
       "console": "integratedTerminal",
       "env": {
