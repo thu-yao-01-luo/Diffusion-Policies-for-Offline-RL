@@ -17,12 +17,12 @@ def compute_gaussian_density(s):
     height2 = 6
 
     if len(s.shape) == 2:
-        density1 = multivariate_normal.pdf(s, mean1, np.eye(2)) * height1
-        density2 = multivariate_normal.pdf(s, mean2, np.eye(2)) * height2
+        density1 = multivariate_normal.pdf(s, mean1, 0.5 * np.eye(2)) * height1
+        density2 = multivariate_normal.pdf(s, mean2, 0.5 * np.eye(2)) * height2
         return density1 + density2
     elif len(s.shape) == 1:
-        density1 = multivariate_normal.pdf(s, mean1, np.eye(2)) * height1
-        density2 = multivariate_normal.pdf(s, mean2, np.eye(2)) * height2
+        density1 = multivariate_normal.pdf(s, mean1, 0.5 * np.eye(2)) * height1
+        density2 = multivariate_normal.pdf(s, mean2, 0.5 * np.eye(2)) * height2
         return density1 + density2
     else:
         raise ValueError("Invalid shape for input 's'. It should be (b, 2) or (2).")
@@ -41,8 +41,8 @@ class CustomEnvironment(gym.Env):
         self.state = np.clip(self.state + action, -10, 10)
         # reward = self.calculate_reward(self.state)
         reward = compute_gaussian_density(self.state)
-        # done = False  # You can define a termination condition here if needed
-        done = reward > 6 - 1e-3
+        done = False  # You can define a termination condition here if needed
+        # done = reward > 6 - 1e-3
         info = {}  # Additional information, if any
         return self.state, reward, done, info
 
@@ -61,7 +61,7 @@ class CustomEnvironment(gym.Env):
         canvas = FigureCanvas(fig)
         ax = fig.add_subplot(111)
         cmap = plt.get_cmap('Blues')  # Set the colormap to blue shades
-        norm = plt.Normalize(vmin=0, vmax=np.max(Z) /1.5)
+        norm = plt.Normalize(vmin=0, vmax=np.max(Z))
         ax.scatter(self.state[0], self.state[1], c='gold', marker='*', s=100)
         im = ax.imshow(Z, extent=[-10, 10, -10, 10], cmap=cmap, origin='lower', norm=norm)
         fig.colorbar(im)

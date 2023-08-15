@@ -4,7 +4,6 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from copy import deepcopy
 import d4rl
 import os
-import itertools
 import numpy as np
 import torch
 from torch.optim import Adam
@@ -28,7 +27,8 @@ import gym
 from demo_env import CustomEnvironment, compute_gaussian_density
 from td3 import td3, MLPActorCritic
 from sac import SAC
-from visualize import animation
+# from visualize import animation
+from vis import animation
 from helpers import BufferNotDone, ReplayBuffer, Buffer, SACBufferNotDone   
 from config import Config
 
@@ -125,106 +125,7 @@ def online_train(args, env_fn):
     action_space = env.action_space
     buffer = ReplayBuffer(obs_dim, act_dim, buffer_size)
 
-    if args.algo == 'td3':    
-        agent = td3(env_fn, MLPActorCritic, args)
-        agent.ac = agent.ac.to(device)
-        agent.ac_targ = agent.ac_targ.to(device)
-    elif args.algo == 'sac':
-        sac_args = sac_args_type(args)
-        agent = SAC(
-            num_inputs=obs_dim,
-            action_space=action_space,
-            args=sac_args,
-        )
-    elif args.algo == 't1dac':
-        from agents.t1dac import T1DAC as Agent 
-        agent = Agent(state_dim=obs_dim,
-            action_dim=act_dim,
-            max_action=act_limit,
-            device=device,
-            discount=args.discount,
-            tau=args.tau,
-            max_q_backup=args.max_q_backup,
-            beta_schedule=args.beta_schedule,
-            n_timesteps=args.T,
-            eta=args.eta,
-            lr=args.lr,
-            lr_decay=args.lr_decay,
-            lr_maxt=args.num_epochs,
-            grad_norm=args.gn,
-            MSBE_coef=args.MSBE_coef,
-            discount2=args.discount2,
-            compute_consistency=args.compute_consistency,
-            iql_style=args.iql_style,
-            expectile=args.expectile,
-            quantile=args.quantile,
-            temperature=args.temperature,
-            bc_weight=args.bc_weight,
-            tune_bc_weight=args.tune_bc_weight,
-            std_threshold=args.std_threshold,
-            bc_lower_bound=args.bc_lower_bound,
-            bc_decay=args.bc_decay,
-            bc_upper_bound=args.bc_upper_bound,
-            value_threshold=args.value_threshold,
-            consistency=args.consistency,
-            scale=args.scale,
-            predict_epsilon=args.predict_epsilon,
-            debug=args.debug,
-            g_mdp=args.g_mdp,
-            policy_freq=args.policy_delay,
-            norm_q=args.norm_q,
-            consistency_coef=args.consistency_coef,
-            target_noise=args.target_noise, 
-            noise_clip=args.noise_clip,
-            add_noise=args.add_noise,
-            update_ema_every=args.update_ema_every,
-            test_critic=args.test_critic,
-            )
-    elif args.algo == 'dac':
-        from agents.ac_diffusion import Diffusion_AC as Agent
-        agent = Agent(state_dim=obs_dim,
-            action_dim=act_dim,
-            max_action=act_limit,
-            device=device,
-            discount=args.discount,
-            tau=args.tau,
-            max_q_backup=args.max_q_backup,
-            beta_schedule=args.beta_schedule,
-            n_timesteps=args.T,
-            eta=args.eta,
-            lr=args.lr,
-            lr_decay=args.lr_decay,
-            lr_maxt=args.num_epochs,
-            grad_norm=args.gn,
-            MSBE_coef=args.MSBE_coef,
-            discount2=args.discount2,
-            compute_consistency=args.compute_consistency,
-            iql_style=args.iql_style,
-            expectile=args.expectile,
-            quantile=args.quantile,
-            temperature=args.temperature,
-            bc_weight=args.bc_weight,
-            tune_bc_weight=args.tune_bc_weight,
-            std_threshold=args.std_threshold,
-            bc_lower_bound=args.bc_lower_bound,
-            bc_decay=args.bc_decay,
-            bc_upper_bound=args.bc_upper_bound,
-            value_threshold=args.value_threshold,
-            consistency=args.consistency,
-            scale=args.scale,
-            predict_epsilon=args.predict_epsilon,
-            debug=args.debug,
-            g_mdp=args.g_mdp,
-            policy_freq=args.policy_delay,
-            norm_q=args.norm_q,
-            consistency_coef=args.consistency_coef,
-            target_noise=args.target_noise, 
-            noise_clip=args.noise_clip,
-            add_noise=args.add_noise,
-            update_ema_every=args.update_ema_every,
-            test_critic=args.test_critic,
-            )
-    elif args.algo == 'dac2':
+    if args.algo == 'dac':
         from agents.ac import Diffusion_AC as Agent
         agent = Agent(state_dim=obs_dim,
             action_dim=act_dim,
@@ -273,13 +174,6 @@ def online_train(args, env_fn):
 
     o, ep_ret, ep_len = env.reset(), 0, 0
     assert num_steps_per_epoch % update_every == 0, "num_steps_per_epoch must be a multiple of update_every"
-    if args.init == "dataset":
-        raise NotImplementedError
-        dataset = d4rl.qlearning_dataset(env_fn())
-        for i in range(len(dataset['observations']) // 8):   
-            buffer.add(dataset['observations'][8 * i: 8 * i + 8], dataset['next_observations'][8 * i: 8 * i + 8],
-                        dataset['actions'][8 * i: 8 * i + 8], dataset['rewards'][8 * i: 8 * i + 8],
-                        dataset['terminals'][8 * i: 8 * i + 8], [{} for _ in range(8)])
     for t in range(max_timesteps):
         if t >= start_steps:
             a = np.array(agent.sample_action(o, noise_scale=args.act_noise))
@@ -314,9 +208,9 @@ def online_train(args, env_fn):
 
         # replay_buffer, iterations, batch_size=100, log_writer=None):
         if t >= update_after and t % update_every == 0:
-            if args.algo == 'dac' or "dac2":
+            if args.algo == 'dac':
                 data_sampler = BufferNotDone(buffer, device)
-                torch.autograd.set_detect_anomaly(True)
+                # torch.autograd.set_detect_anomaly(True)
                 loss_metric = agent.train(
                                 replay_buffer=data_sampler,
                                 iterations=update_every,
@@ -327,49 +221,10 @@ def online_train(args, env_fn):
                         continue    
                     try:
                         logger_zhiao.logkv(k, np.mean(v))
+                        logger_zhiao.logkv(k + '_std', np.std(v))
                     except:
                         print("problem", k, v)
                         raise NotImplementedError
-                    logger_zhiao.logkv(k + '_std', np.std(v))
-            elif args.algo == "t1dac":
-                data_sampler = BufferNotDone(buffer, device)
-                torch.autograd.set_detect_anomaly(True)
-                loss_metric = agent.train(
-                            replay_buffer=data_sampler,
-                            iterations=update_every,
-                            batch_size=args.batch_size,
-                            log_writer=writer,
-                            t=t)
-                for k, v in loss_metric.items():
-                    if v == []:
-                        continue    
-                    try:
-                        logger_zhiao.logkv(k, np.mean(v))
-                    except:
-                        print("problem", k, v)
-                        raise NotImplementedError
-                    logger_zhiao.logkv(k + '_std', np.std(v))
-            elif args.algo == 'td3':
-                data_sampler = Buffer(buffer, device)
-                agent.train(
-                    update_every,
-                    data_sampler,
-                    batch_size=args.batch_size,
-                )
-            elif args.algo == 'sac':
-                data_sampler = SACBufferNotDone(buffer, device)
-                # agent.update_parameters(data_sampler, update_every, batch_size=args.batch_size)
-                loss_metric = agent.train(
-                    replay_buffer=data_sampler,
-                    iterations=update_every,
-                    batch_size=args.batch_size,
-                    log_writer=writer,
-                    t=t,)
-                for k, v in loss_metric.items():
-                    if v == []:
-                        continue    
-                    logger_zhiao.logkv(k, np.mean(v))
-                    logger_zhiao.logkv(k + '_std', np.std(v))
             else: 
                 raise NotImplementedError
             if t % args.num_steps_per_epoch == 0:
@@ -406,7 +261,8 @@ if __name__ == '__main__':
         id=args.id,
     )  # type: ignore
 
-    args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
+    # args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
+    args.device = "cuda" if torch.cuda.is_available() else "cpu"
     args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
     args.eval_episodes = 10 if 'v2' in args.env_name else 5
 

@@ -5,12 +5,11 @@ norm_q: False
 consistency_coef: 0.0 
 add_noise: True 
 update_ema_every: 1 
-name: "dac2td3-bc" 
-id: "dac2td3-bc" 
+name: "dac2td3-t1debug" 
+id: "dac2td3-t1debug" 
 predict_epsilon: False 
-# format: ['stdout', "wandb"]
+format: ['stdout', "wandb"]
 need_animation: True
 env_name: "Demo-v0"
 d4rl: False
 vis_q: True
-test_critic: True

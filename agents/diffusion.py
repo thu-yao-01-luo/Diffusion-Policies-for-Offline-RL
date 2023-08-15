@@ -104,7 +104,8 @@ class Diffusion(nn.Module):
 
         if self.clip_denoised:
             # x_recon.clamp_(-self.max_action, self.max_action)
-            x_recon = torch.tanh(x_recon) * self.max_action
+            x_recon = torch.clamp(x_recon, -self.max_action, self.max_action)
+            # x_recon = torch.tanh(x_recon) * self.max_action
         else:
             assert RuntimeError()
 

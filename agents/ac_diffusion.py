@@ -16,12 +16,16 @@ from agents.model import MLP
 import time
 from agents.helpers import EMA, SinusoidalPosEmb
 
+# Initialize Policy weights
+def weights_init_(m):
+    if isinstance(m, nn.Linear):
+        torch.nn.init.xavier_uniform_(m.weight, gain=1)
+        torch.nn.init.constant_(m.bias, 0)
 
 class Q_function(nn.Module):
     """
     MLP Model
     """
-
     def __init__(self,
                  state_dim,
                  action_dim,
@@ -71,23 +75,82 @@ class NoisyCritic(nn.Module):
         q1, q2 = self.forward(state, noisy_action, t)
         return torch.min(q1, q2)
 
+class QNetwork(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden_dim=256):
+        super(QNetwork, self).__init__()
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+
+        self.q_network = nn.Sequential(
+            nn.Linear(state_dim + action_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1)
+        )
+        
+        self.apply(weights_init_)
+
+    def forward(self, state, action):
+        x = torch.cat([state, action], dim=1)
+        return self.q_network(x)
+
+class VNetwork(nn.Module):
+    def __init__(self, state_dim, hidden_dim=256):
+        super(VNetwork, self).__init__()
+        self.state_dim = state_dim
+
+        self.v_network = nn.Sequential(
+            nn.Linear(state_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1)
+        )
+        self.apply(weights_init_)
+
+    def forward(self, state):
+        return self.v_network(state)
+
+class TestCritic(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden_dim=256):
+        super(TestCritic, self).__init__()
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+
+        self.q_network1 = QNetwork(state_dim, action_dim, hidden_dim)
+        self.q_network2 = QNetwork(state_dim, action_dim, hidden_dim)
+        self.v_network1 = VNetwork(state_dim, hidden_dim)
+        self.v_network2 = VNetwork(state_dim, hidden_dim)
+
+    def forward(self, state, noisy_action, t):
+        if torch.all(t == 0): 
+            return self.q_network1(state, noisy_action), self.q_network2(state, noisy_action)
+        elif torch.all(t == 1):
+            return self.v_network1(state), self.v_network2(state)
+        else:
+            raise ValueError("t must be either 0 or 1")
+
+    def q1(self, state, noisy_action, t):
+        # return self.q1_model(state, noisy_action, t)
+        return self.forward(state, noisy_action, t)[0]
+
+    def q_min(self, state, noisy_action, t):
+        q1, q2 = self.forward(state, noisy_action, t)
+        return torch.min(q1, q2)
+
 # iql_style
-
-
 def expectile_loss(q, target_q, expectile=0.7):
     diff = q - target_q
     return torch.mean(torch.where(diff > 0, expectile * diff ** 2, (1 - expectile) * diff ** 2))
-
 
 def quantile_loss(q, target_q, tau=0.6):
     diff = q - target_q
     return torch.mean(torch.where(diff > 0, tau * diff, (tau - 1) * diff))
 
-
 def exponential_loss(q, target_q, eta=1.0):
     diff = q - target_q
     return torch.mean(torch.exp(eta * diff) - eta * diff)
-
 
 class Diffusion_AC(object):
     def __init__(self,
@@ -135,8 +198,8 @@ class Diffusion_AC(object):
                  target_noise=0.2, 
                  noise_clip=0.5,
                  add_noise=False,
+                 test_critic=False,
                 ):
-
         self.model = MLP(state_dim=state_dim,
                          action_dim=action_dim, device=device)
 
@@ -155,8 +218,11 @@ class Diffusion_AC(object):
         self.ema = EMA(ema_decay)
         self.ema_model = copy.deepcopy(self.actor)
         self.update_ema_every = update_ema_every
-
-        self.critic = NoisyCritic(state_dim, action_dim).to(device)
+        self.test_critic = test_critic
+        if self.test_critic:
+            self.critic = TestCritic(state_dim, action_dim).to(device)
+        else:
+            self.critic = NoisyCritic(state_dim, action_dim).to(device)
         self.critic_target = copy.deepcopy(self.critic)
         self.critic_optimizer = torch.optim.Adam(
             self.critic.parameters(), lr=3e-4)
@@ -206,8 +272,9 @@ class Diffusion_AC(object):
         self.ema.update_model_average(self.ema_model, self.actor)
 
     # ---------------------------- #
-
-    def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
+    @DeprecationWarning
+    def pre_train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
+    # def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
                   'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
                   "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": [], 
@@ -233,20 +300,29 @@ class Diffusion_AC(object):
             # new_action = self.actor.p_sample(noisy_action, t, state)
             """ Q Training """
             current_q1, current_q2 = self.critic(
-                state, noisy_action, t+1)
+                state, noisy_action, t+1) # value function
             # denoised_noisy_action = self.ema_model.p_sample(
             #     noisy_action, t, state)  # a^{t-1}, a = a^{-1}
             # denoised_noisy_action = self.actor.p_mean_variance(noisy_action, t, state)[0]
-            denoised_noisy_action=self.actor.model(noisy_action, t, state)
+            # denoised_noisy_action=self.actor.model(noisy_action, t, state)
+            denoised_noisy_action=self.actor.model(noisy_action, state)
+
             # Q'_1(s, a^{t-1}, t), Q'_2(s, a^{t-1}, t)
-            target_q1, target_q2 = self.critic_target(
-                state, denoised_noisy_action, t)
+
+            # target_q1, target_q2 = self.critic_target(
+            #     state, denoised_noisy_action, t)
+            with torch.no_grad():
+                target_q1, target_q2 = self.critic(
+                    # state, denoised_noisy_action, t
+                    state, action, t
+                ) # q function
+
             # \hat Q = min(Q'_1(s', a^{t-1}, t), Q'_2(s', a^{t-1}, t))
             target_q = self.discount2 * \
                 torch.min(target_q1, target_q2).detach()
             metric['consistency_error'].append((current_q1 - target_q).mean().item()) 
             consistency_loss = F.mse_loss(
-                current_q1, target_q) + F.mse_loss(current_q2, target_q)
+                current_q1, target_q) + F.mse_loss(current_q2, target_q) 
                 
             if self.g_mdp:
                 next_action = torch.randn_like(action) * self.scale  # random noise
@@ -272,7 +348,15 @@ class Diffusion_AC(object):
             MSBE_loss = F.mse_loss(current_q1.reshape(-1), target_q) + \
                 F.mse_loss(current_q2.reshape(-1), target_q)
 
-            critic_loss = self.consistency_coef * consistency_loss + self.MSBE_coef * MSBE_loss
+            # critic_loss = self.consistency_coef * consistency_loss + self.MSBE_coef * MSBE_loss
+            if self.g_mdp:    
+                # if np.random.uniform() > 0.5:
+                #     critic_loss = consistency_loss * self.consistency_coef
+                # else: 
+                #     critic_loss = MSBE_loss * self.MSBE_coef
+                critic_loss = consistency_loss * self.consistency_coef + MSBE_loss * self.MSBE_coef
+            else:
+                critic_loss = consistency_loss * self.consistency_coef + MSBE_loss * self.MSBE_coef
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
@@ -282,17 +366,19 @@ class Diffusion_AC(object):
 
             if ind % self.policy_freq == 0:
                 """ Policy Training """
-                bc_loss = self.actor.p_losses(action, state, t) if not self.debug \
-                else self.actor.loss_to_verify(action, state)
+                # bc_loss = self.actor.p_losses(action, state, t) if not self.debug \
+                # else self.actor.loss_to_verify(action, state)
                 noisy_action2 = self.actor.q_sample(action, t)
-                recon_action = self.actor.model(noisy_action2, t, state)
+                # recon_action = self.actor.model(noisy_action2, t, state)
+                recon_action = self.actor.model(noisy_action2, state)
                 metric["action_norm"].append(recon_action.norm(dim=1).mean().item())
                 if self.actor.predict_epsilon:
                     self.actor.predict_epsilon = False
                     true_bc_loss = self.actor.p_losses(action, state, t)
                     metric["true_bc_loss"].append(true_bc_loss.item())
                     self.actor.predict_epsilon = True
-                new_action = self.actor.p_sample(noisy_action, t, state)
+                # new_action = self.actor.p_sample(noisy_action, t, state)
+                new_action = self.actor.model(noisy_action, state)
                 metric["new_action_max"].append(new_action.abs().max().item())
                 metric["new_action_mean"].append(new_action.abs().mean().item())
                 q1_new_action, q2_new_action = self.critic(state, new_action, t)
@@ -307,7 +393,8 @@ class Diffusion_AC(object):
                         q_loss = - q1_new_action.mean()
                     else:
                         q_loss = - q2_new_action.mean()
-                actor_loss = self.bc_weight * bc_loss + self.eta * q_loss
+                # actor_loss = self.bc_weight * bc_loss + self.eta * q_loss
+                actor_loss = self.eta * q_loss
                 self.actor_optimizer.zero_grad()
                 actor_loss.backward()
                 if self.grad_norm > 0:
@@ -350,6 +437,135 @@ class Diffusion_AC(object):
             metric['bc_weight'].append(self.bc_weight)
             metric['target_q'].append(target_q.mean().item())
 
+            if self.lr_decay:
+                self.actor_lr_scheduler.step()
+                self.critic_lr_scheduler.step()
+        if self.tune_bc_weight:
+            if np.mean(metric['bc_loss']) < self.value_threshold:
+                self.bc_weight = max(self.bc_lower_bound,
+                                    self.bc_weight * self.bc_decay)
+            else:
+                self.bc_weight = min(self.bc_upper_bound,
+                                    self.bc_weight / self.bc_decay)
+        return metric
+
+    def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
+        metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
+                  'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
+                  "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": [], 
+                  "action_norm": [], "new_action_max": [], "new_action_mean": []}
+        for ind in range(iterations):
+            # Sample replay buffer / batch
+            state, action, next_state, reward, not_done = replay_buffer.sample(
+                batch_size)
+            noisy_action = torch.randn_like(action) * self.scale
+            """ Q Training """
+            with torch.no_grad():
+                target_v1, target_v2 = self.critic_target.v_network1(
+                    next_state), self.critic_target.v_network2(next_state)
+                min_target_v = torch.min(target_v1, target_v2).reshape(-1) # (b,)
+                target_q = (reward.reshape(-1) + not_done.reshape(-1) * self.discount * min_target_v).detach().reshape(-1) # (b,)
+            q1, q2 = self.critic.q_network1(state, noisy_action).reshape(-1), self.critic.q_network2(state, noisy_action).reshape(-1) # (b, 1)
+            MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
+
+            self.critic_optimizer.zero_grad()
+            MSBE_loss.backward()
+            self.critic_optimizer.step()
+
+            # denoised_noisy_action=self.actor.model(noisy_action, t, state) # (b, a)
+            denoised_noisy_action=self.actor.model(noisy_action, state) # (b, a)
+            q_loss = - torch.min(self.critic.q_network1(state, denoised_noisy_action), self.critic.q_network2(state, denoised_noisy_action)).mean()
+
+            self.actor_optimizer.zero_grad()
+            q_loss.backward()
+            self.actor_optimizer.step()
+            
+            with torch.no_grad():
+                target_v = torch.min(self.critic.q_network1(state, denoised_noisy_action).detach().reshape(-1), self.critic.q_network2(state, denoised_noisy_action).detach().reshape(-1)) # (b, 1)->(b,)
+            v_loss = F.mse_loss(self.critic.v_network1(state).reshape(-1), target_v) + \
+                F.mse_loss(self.critic.v_network2(state).reshape(-1), target_v)
+            self.critic_optimizer.zero_grad()
+            v_loss.backward()
+            self.critic_optimizer.step()
+
+            """ Step Target network """
+            # self.step_ema()
+            if self.step % 2 == 0:
+                for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+                    target_param.data.copy_(
+                        self.tau * param.data + (1 - self.tau) * target_param.data)
+            self.step += 1
+            """ Log """
+            if log_writer is not None:
+                log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
+                log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
+                log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
+            metric['ql_loss'].append(q_loss.item())
+            if self.lr_decay:
+                self.actor_lr_scheduler.step()
+                self.critic_lr_scheduler.step()
+        if self.tune_bc_weight:
+            if np.mean(metric['bc_loss']) < self.value_threshold:
+                self.bc_weight = max(self.bc_lower_bound,
+                                    self.bc_weight * self.bc_decay)
+            else:
+                self.bc_weight = min(self.bc_upper_bound,
+                                    self.bc_weight / self.bc_decay)
+        return metric
+
+    def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
+        metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
+                  'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
+                  "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": [], 
+                  "action_norm": [], "new_action_max": [], "new_action_mean": []}
+        for ind in range(iterations):
+            # Sample replay buffer / batch
+            state, action, next_state, reward, not_done = replay_buffer.sample(
+                batch_size)
+            noisy_action = torch.randn_like(action) * self.scale
+            """ Q Training """
+            with torch.no_grad():
+                target_v1, target_v2 = self.critic_target.v_network1(
+                    next_state), self.critic_target.v_network2(next_state)
+                min_target_v = torch.min(target_v1, target_v2).reshape(-1) # (b,)
+                target_q = (reward.reshape(-1) + not_done.reshape(-1) * self.discount * min_target_v).detach().reshape(-1) # (b,)
+            # q1, q2 = self.critic.q_network1(state, noisy_action).reshape(-1), self.critic.q_network2(state, noisy_action).reshape(-1) # (b, 1)
+            q1, q2 = self.critic.q_network1(state, action).reshape(-1), self.critic.q_network2(state, action).reshape(-1) # (b, 1)
+            MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
+
+            self.critic_optimizer.zero_grad()
+            MSBE_loss.backward()
+            self.critic_optimizer.step()
+
+            denoised_noisy_action=self.actor.model(noisy_action, t, state) # (b, a)
+            # denoised_noisy_action=self.actor.model(noisy_action, state) # (b, a)
+            q_loss = - torch.min(self.critic.q_network1(state, denoised_noisy_action), self.critic.q_network2(state, denoised_noisy_action)).mean()
+
+            self.actor_optimizer.zero_grad()
+            q_loss.backward()
+            self.actor_optimizer.step()
+            
+            with torch.no_grad():
+                target_v = torch.min(self.critic.q_network1(state, denoised_noisy_action).detach().reshape(-1), self.critic.q_network2(state, denoised_noisy_action).detach().reshape(-1)) # (b, 1)->(b,)
+            v_loss = F.mse_loss(self.critic.v_network1(state).reshape(-1), target_v) + \
+                F.mse_loss(self.critic.v_network2(state).reshape(-1), target_v)
+            self.critic_optimizer.zero_grad()
+            v_loss.backward()
+            self.critic_optimizer.step()
+
+            """ Step Target network """
+            # self.step_ema()
+            if self.step % 2 == 0:
+                for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+                    target_param.data.copy_(
+                        self.tau * param.data + (1 - self.tau) * target_param.data)
+            self.step += 1
+            """ Log """
+            if log_writer is not None:
+                log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
+                log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
+                log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
+            metric['ql_loss'].append(q_loss.item())
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
@@ -577,7 +793,7 @@ class Diffusion_AC(object):
 
     # ---------------------------- #
 
-    def sample_action(self, state, noise_scale=0.0):
+    def pre_sample_action(self, state, noise_scale=0.0):
         state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
         state_rpt = torch.repeat_interleave(state, repeats=5, dim=0)
         with torch.no_grad():
@@ -588,6 +804,12 @@ class Diffusion_AC(object):
                 action.shape[0], device=self.device).long()).flatten()
             idx = torch.multinomial(F.softmax(q_value, dim=-1), 1) 
         return action[idx].cpu().data.numpy().flatten()
+
+    def sample_action(self, state, noise_scale=0.0):
+        state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+        # action = self.actor.sample(state)
+        action = self.actor.model(torch.randn_like(state, device=state.device) * noise_scale, state)
+        return action.cpu().data.numpy().flatten()
 
     def save_model(self, dir, id=None):
         if id is not None:

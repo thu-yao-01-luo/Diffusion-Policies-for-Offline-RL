@@ -1,4 +1,4 @@
-algo: "dac" 
+algo: "dac2" 
 T: 1 
 g_mdp: False 
 norm_q: False 
