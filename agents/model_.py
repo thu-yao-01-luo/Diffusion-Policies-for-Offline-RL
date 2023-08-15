@@ -26,7 +26,7 @@ class MLP(nn.Module):
         super(MLP, self).__init__()
         self.device = device
 
-        input_dim = state_dim 
+        input_dim = state_dim + action_dim
         self.mid_layer = nn.Sequential(nn.Linear(input_dim, 256),
                                        activation(),
                                        nn.Linear(256, 256),
@@ -37,7 +37,7 @@ class MLP(nn.Module):
         self.final_layer = nn.Linear(256, action_dim)
         self.apply(weights_init_)
 
-    def forward(self, state):
-        x = state
+    def forward(self, state, noisy_action):
+        x = torch.cat([state, noisy_action], dim=1)
         x = self.mid_layer(x)
         return torch.tanh(self.final_layer(x))

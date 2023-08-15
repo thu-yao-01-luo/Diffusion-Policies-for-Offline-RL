@@ -129,9 +129,10 @@ def animation(
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
         coords = torch.tensor(coords, dtype=torch.float32, requires_grad=True, device=device)
         if algo == 'dac':
+            # coords and actions are of the same shapes
             # t = torch.zeros((coords.shape[0],), device=device).long()
-            # new_action = policy.model(torch.randn_like(coords), coords)
-            new_action = policy.model(coords)
+            new_action = policy.model(coords, torch.randn_like(coords))
+            # new_action = policy.model(coords)
             # Calculate function values for each point in the grid
             # value = policy.critic(coords, new_action, t)[0]
             q = policy.critic.q1(coords, new_action)
@@ -144,7 +145,7 @@ def animation(
             next_state = torch.clamp(next_state, -10, 10)
             next_state_value = policy.critic.v(next_state)
             next_state_value_as_numpy = next_state_value.cpu().detach().numpy().reshape(50, 50)
-            next_action = policy.model(next_state)
+            next_action = policy.model(next_state, torch.randn_like(coords))
             next_state_q = policy.critic.q1(next_state, next_action)
             next_state_q_as_numpy = next_state_q.cpu().detach().numpy().reshape(50, 50)
             real_msbe_error = ((compute_gaussian_density(next_state.cpu().detach().numpy()).reshape(-1) + policy.discount * next_state_q.cpu().detach().numpy().reshape(-1)) - v.reshape(-1)).reshape(50, 50)
