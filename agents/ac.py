@@ -88,15 +88,15 @@ class TestCritic(nn.Module):
 
         self.q_network1 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
         self.q_network2 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
-        self.v_network = VNetwork(state_dim, action_dim, t_dim, hidden_dim)
+        # self.v_network = VNetwork(state_dim, action_dim, t_dim, hidden_dim)
 
     def q(self, state, action):
         return self.q_network1(state, action), self.q_network2(state, action)
     
     def v(self, state):
         action = torch.randn((state.shape[0], self.action_dim), device=state.device)
-        return self.v_network(state, action)
-        # return torch.min(self.q_network1(state, action, 1), self.q_network2(state, action, 1))
+        # return self.v_network(state, action)
+        return torch.min(self.q_network1(state, action, 1), self.q_network2(state, action, 1))
     
     def q1(self, state, action):
         return self.q_network1(state, action)
