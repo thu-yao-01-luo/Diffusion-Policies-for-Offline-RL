@@ -22,32 +22,48 @@ def weights_init_(m):
         torch.nn.init.constant_(m.bias, 0)
 
 class QNetwork(nn.Module):
-    def __init__(self, state_dim, action_dim, hidden_dim=256):
+    def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
         super(QNetwork, self).__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
+        self.input_dim = state_dim + action_dim + t_dim
 
         self.q_network = nn.Sequential(
-            nn.Linear(state_dim + action_dim, hidden_dim),
+            nn.Linear(self.input_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 1)
         )
         
+        self.time_mlp = nn.Sequential(
+            SinusoidalPosEmb(t_dim),
+            nn.Linear(t_dim, t_dim * 2),
+            nn.ReLU(),
+            nn.Linear(t_dim * 2, t_dim),
+        )
         self.apply(weights_init_)
 
-    def forward(self, state, action):
-        x = torch.cat([state, action], dim=1)
+    def forward(self, state, action, t=0):
+        t = torch.tensor([t] * state.shape[0], dtype=torch.float32, device=state.device)
+        t = self.time_mlp(t)
+        x = torch.cat([state, action, t], dim=1)
         return self.q_network(x)
 
 class VNetwork(nn.Module):
-    def __init__(self, state_dim, action_dim, hidden_dim=256):
+    def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
         super(VNetwork, self).__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
-        self.input_dim = state_dim + action_dim
+        self.input_dim = state_dim + action_dim + t_dim
 
+        self.time_mlp = nn.Sequential(
+            SinusoidalPosEmb(t_dim),
+            nn.Linear(t_dim, t_dim * 2),
+            nn.ReLU(),
+            nn.Linear(t_dim * 2, t_dim),
+        )
+        
         self.v_network = nn.Sequential(
             nn.Linear(self.input_dim, hidden_dim),
             nn.ReLU(),
@@ -57,19 +73,22 @@ class VNetwork(nn.Module):
         )
         self.apply(weights_init_)
 
-    def forward(self, state, action):
-        x = torch.cat([state, action], dim=1)
+    def forward(self, state, action, t=1):
+        t = torch.tensor([t] * state.shape[0], dtype=torch.float32, device=state.device)
+        t = self.time_mlp(t)
+        x = torch.cat([state, action, t], dim=1)
         return self.v_network(x)
 
 class TestCritic(nn.Module):
-    def __init__(self, state_dim, action_dim, hidden_dim=256):
+    def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
         super(TestCritic, self).__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
+        self.t_dim = t_dim
 
-        self.q_network1 = QNetwork(state_dim, action_dim, hidden_dim)
-        self.q_network2 = QNetwork(state_dim, action_dim, hidden_dim)
-        self.v_network = VNetwork(state_dim, action_dim, hidden_dim)
+        self.q_network1 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
+        self.q_network2 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
+        self.v_network = VNetwork(state_dim, action_dim, t_dim, hidden_dim)
 
     def q(self, state, action):
         return self.q_network1(state, action), self.q_network2(state, action)
@@ -77,6 +96,7 @@ class TestCritic(nn.Module):
     def v(self, state):
         action = torch.randn((state.shape[0], self.action_dim), device=state.device)
         return self.v_network(state, action)
+        # return torch.min(self.q_network1(state, action, 1), self.q_network2(state, action, 1))
     
     def q1(self, state, action):
         return self.q_network1(state, action)
