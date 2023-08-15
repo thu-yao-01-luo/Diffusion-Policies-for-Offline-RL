@@ -42,12 +42,14 @@ class QNetwork(nn.Module):
         return self.q_network(x)
 
 class VNetwork(nn.Module):
-    def __init__(self, state_dim, hidden_dim=256):
+    def __init__(self, state_dim, action_dim, hidden_dim=256):
         super(VNetwork, self).__init__()
         self.state_dim = state_dim
+        self.action_dim = action_dim
+        self.input_dim = state_dim + action_dim
 
         self.v_network = nn.Sequential(
-            nn.Linear(state_dim, hidden_dim),
+            nn.Linear(self.input_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
@@ -55,8 +57,9 @@ class VNetwork(nn.Module):
         )
         self.apply(weights_init_)
 
-    def forward(self, state):
-        return self.v_network(state)
+    def forward(self, state, action):
+        x = torch.cat([state, action], dim=1)
+        return self.v_network(x)
 
 class TestCritic(nn.Module):
     def __init__(self, state_dim, action_dim, hidden_dim=256):
@@ -66,13 +69,14 @@ class TestCritic(nn.Module):
 
         self.q_network1 = QNetwork(state_dim, action_dim, hidden_dim)
         self.q_network2 = QNetwork(state_dim, action_dim, hidden_dim)
-        self.v_network = VNetwork(state_dim, hidden_dim)
+        self.v_network = VNetwork(state_dim, action_dim, hidden_dim)
 
     def q(self, state, action):
         return self.q_network1(state, action), self.q_network2(state, action)
     
     def v(self, state):
-        return self.v_network(state)
+        action = torch.randn((state.shape[0], self.action_dim), device=state.device)
+        return self.v_network(state, action)
     
     def q1(self, state, action):
         return self.q_network1(state, action)
@@ -208,7 +212,8 @@ class Diffusion_AC(object):
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
             with torch.no_grad():
-                target_v = self.critic_target.v_network(next_state)
+                # target_v = self.critic_target.v_network(next_state)
+                target_v = self.critic_target.v(next_state)
                 target_q = (reward + not_done * self.discount * target_v).detach() # (b,)
             # q1, q2 = self.critic.q_network1(state, action), self.critic.q_network2(state, action) # (b, 1)
             q1, q2 = self.critic.q(state, action) # (b, 1)
