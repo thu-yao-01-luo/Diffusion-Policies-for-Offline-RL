@@ -50,35 +50,6 @@ class QNetwork(nn.Module):
         x = torch.cat([state, action, t], dim=1)
         return self.q_network(x)
 
-class VNetwork(nn.Module):
-    def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
-        super(VNetwork, self).__init__()
-        self.state_dim = state_dim
-        self.action_dim = action_dim
-        self.input_dim = state_dim + action_dim + t_dim
-
-        self.time_mlp = nn.Sequential(
-            SinusoidalPosEmb(t_dim),
-            nn.Linear(t_dim, t_dim * 2),
-            nn.ReLU(),
-            nn.Linear(t_dim * 2, t_dim),
-        )
-        
-        self.v_network = nn.Sequential(
-            nn.Linear(self.input_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, 1)
-        )
-        self.apply(weights_init_)
-
-    def forward(self, state, action, t=1):
-        t = torch.tensor([t] * state.shape[0], dtype=torch.float32, device=state.device)
-        t = self.time_mlp(t)
-        x = torch.cat([state, action, t], dim=1)
-        return self.v_network(x)
-
 class TestCritic(nn.Module):
     def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
         super(TestCritic, self).__init__()
@@ -88,20 +59,18 @@ class TestCritic(nn.Module):
 
         self.q_network1 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
         self.q_network2 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
-        # self.v_network = VNetwork(state_dim, action_dim, t_dim, hidden_dim)
 
-    def q(self, state, action):
-        return self.q_network1(state, action), self.q_network2(state, action)
+    def q(self, state, action, t=0):
+        return self.q_network1(state, action, t), self.q_network2(state, action, t)
     
     def v(self, state):
         action = torch.randn((state.shape[0], self.action_dim), device=state.device)
-        # return self.v_network(state, action)
         return torch.min(self.q_network1(state, action, 1), self.q_network2(state, action, 1))
     
-    def q1(self, state, action):
+    def q1(self, state, action, t=0):
         return self.q_network1(state, action)
     
-    def qmin(self, state, action):
+    def qmin(self, state, action, t=0):
         return torch.min(self.q_network1(state, action), self.q_network2(state, action))
 
 class Diffusion_AC(object):
@@ -233,10 +202,12 @@ class Diffusion_AC(object):
             not_done = not_done.reshape(-1, 1)
             with torch.no_grad():
                 # target_v = self.critic_target.v_network(next_state)
-                target_v = self.critic_target.v(next_state)
+                # target_v = self.critic_target.v(next_state)
+                noise = torch.randn_like(action, device=action.device)
+                target_v = self.critic_target.qmin(next_state, noise, 1)
                 target_q = (reward + not_done * self.discount * target_v).detach() # (b,)
             # q1, q2 = self.critic.q_network1(state, action), self.critic.q_network2(state, action) # (b, 1)
-            q1, q2 = self.critic.q(state, action) # (b, 1)
+            q1, q2 = self.critic.q(state, action, 0) # (b, 1)
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
 
             self.critic_optimizer.zero_grad()
@@ -248,7 +219,7 @@ class Diffusion_AC(object):
             noise = torch.randn_like(action, device=action.device)
             denoised_noisy_action=self.actor.model(state, noise) # (b, a)
             # q_loss = - torch.min(self.critic.q_network1(state, denoised_noisy_action), self.critic.q_network2(state, denoised_noisy_action)).mean()
-            q_loss = - self.critic.qmin(state, denoised_noisy_action).mean()
+            q_loss = - self.critic.qmin(state, denoised_noisy_action, 0).mean()
 
             self.actor_optimizer.zero_grad()
             q_loss.backward()
@@ -256,9 +227,11 @@ class Diffusion_AC(object):
             
             with torch.no_grad():
                 # target_v = torch.min(self.critic.q_network1(state, denoised_noisy_action).detach(), self.critic.q_network2(state, denoised_noisy_action).detach()) # (b, 1)->(b,)
-                target_v = self.critic.qmin(state, denoised_noisy_action).detach() # (b, 1)->(b,)
+                target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
             # v_loss = F.mse_loss(self.critic.v_network(state), target_v)
-            v_loss = F.mse_loss(self.critic.v(state), target_v)
+            # v_loss = F.mse_loss(self.critic.v(state), target_v)
+            noise = torch.randn_like(action, device=action.device)
+            v_loss = F.mse_loss(self.critic.qmin(state, noise, 0), target_v)
             self.critic_optimizer.zero_grad()
             v_loss.backward()
             self.critic_optimizer.step()
