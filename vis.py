@@ -44,7 +44,7 @@ def value_figure(
         for state in state_list:
             ax.scatter(state[0], state[1], c='gold', marker='*', s=100) # type: ignore
         if with_action:
-            ax.quiver(X, Y, u, v, scale=30) 
+            ax.quiver(X, Y, u, v, scale=25) 
         im = ax.imshow(value, extent=[-10, 10, -10, 10], cmap=cmap, origin='lower', norm=norm)
         fig.colorbar(im)
         # Render the figure to an array
@@ -130,9 +130,11 @@ def animation(
         coords = torch.tensor(coords, dtype=torch.float32, requires_grad=True, device=device)
         if algo == 'dac':
             # coords and actions are of the same shapes
-            # t = torch.zeros((coords.shape[0],), device=device).long()
-            new_action = policy.model(coords, torch.randn_like(coords))
+            t = torch.zeros((coords.shape[0],), device=device).long()
+            # new_action = policy.model(coords, torch.randn_like(coords))
             # new_action = policy.model(coords)
+            # new_action = policy.actor.sample(coords)
+            new_action = policy.actor.model(coords, t, torch.randn_like(coords))
             # Calculate function values for each point in the grid
             # value = policy.critic(coords, new_action, t)[0]
             q = policy.critic.q1(coords, new_action)
@@ -145,7 +147,10 @@ def animation(
             next_state = torch.clamp(next_state, -10, 10)
             next_state_value = policy.critic.v(next_state)
             next_state_value_as_numpy = next_state_value.cpu().detach().numpy().reshape(50, 50)
-            next_action = policy.model(next_state, torch.randn_like(coords))
+            # next_action = policy.model(next_state, torch.randn_like(coords))
+            # next_action = policy.sample_action(next_state)
+            # next_action = policy.actor.sample(next_state)
+            next_action = policy.actor.model(next_state, t, torch.randn_like(coords))
             next_state_q = policy.critic.q1(next_state, next_action)
             next_state_q_as_numpy = next_state_q.cpu().detach().numpy().reshape(50, 50)
             real_msbe_error = ((compute_gaussian_density(next_state.cpu().detach().numpy()).reshape(-1) + policy.discount * next_state_q.cpu().detach().numpy().reshape(-1)) - v.reshape(-1)).reshape(50, 50)

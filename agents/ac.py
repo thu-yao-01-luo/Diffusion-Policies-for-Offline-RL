@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from utils.logger import logger
 import utils.logger_zhiao as logger_zhiao
 
-from agents.diffusion import Diffusion
+from agents.diffusion_ import Diffusion
 from agents.model_ import MLP
 import time
 from agents.helpers import EMA, SinusoidalPosEmb
@@ -217,7 +217,11 @@ class Diffusion_AC(object):
             # denoised_noisy_action=self.actor.model(noisy_action, t, state) # (b, a)
             # denoised_noisy_action=self.actor.model(state) # (b, a)
             noise = torch.randn_like(action, device=action.device)
-            denoised_noisy_action=self.actor.model(state, noise) # (b, a)
+            # denoised_noisy_action=self.actor.model(state, noise) # (b, a)
+            t = torch.randint(0, self.actor.n_timesteps,
+                              (batch_size,), device=self.device).long()
+            # denoised_noisy_action = self.actor.p_sample(state, t, noise)
+            denoised_noisy_action = self.actor.model(state, t, noise)
             # q_loss = - torch.min(self.critic.q_network1(state, denoised_noisy_action), self.critic.q_network2(state, denoised_noisy_action)).mean()
             q_loss = - self.critic.qmin(state, denoised_noisy_action, 0).mean()
 
@@ -254,10 +258,15 @@ class Diffusion_AC(object):
         return metric
 
     def sample_action(self, state, noise_scale=0.0):
-        state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+        # state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+        if state.ndim==1:
+            state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
+        state = torch.tensor(state, dtype=torch.float).to(self.device)
         # action = self.actor.model(state, torch.randn_like(state, device=state.device) * noise_scale)
-        action = self.actor.model(state, torch.randn([state.shape[0], self.action_dim], device=state.device))
+        # action = self.actor.model(state, torch.randn([state.shape[0], self.action_dim], device=state.device))
         # action = self.actor.model(state)
+        # action = self.actor.sample(state=state)
+        action = self.actor.model(state, torch.randint(0, self.actor.n_timesteps, (state.shape[0],), device=state.device).long(), torch.randn([state.shape[0], self.action_dim], device=state.device))
         return action.cpu().data.numpy().flatten()
 
     def save_model(self, dir, id=None):

@@ -20,23 +20,32 @@ class MLP(nn.Module):
                  state_dim,
                  action_dim,
                  device,
+                 t_dim=16,
                  activation=nn.ReLU,
                 ):
         super(MLP, self).__init__()
         self.device = device
 
-        input_dim = state_dim + action_dim
+        input_dim = state_dim + action_dim + t_dim
         self.mid_layer = nn.Sequential(nn.Linear(input_dim, 256),
-                                       activation(),
-                                       nn.Linear(256, 256),
-                                       activation(),
-                                       nn.Linear(256, 256),
-                                       activation(),
-                                       )
+                                        activation(),
+                                        nn.Linear(256, 256),
+                                        activation(),
+                                        nn.Linear(256, 256),
+                                        activation(),
+                                        )
+        self.time_mlp = nn.Sequential(
+            SinusoidalPosEmb(t_dim),
+            nn.Linear(t_dim, t_dim * 2),
+            activation(),
+            nn.Linear(t_dim * 2, t_dim),
+        )
         self.final_layer = nn.Linear(256, action_dim)
         self.apply(weights_init_)
 
-    def forward(self, state, noisy_action):
-        x = torch.cat([state, noisy_action], dim=1)
+    def forward(self, state, t, noisy_action):
+        t = t.to(self.device).to(torch.float32) # (b, )
+        t = self.time_mlp(t) # (b, t_dim)
+        x = torch.cat([state, t, noisy_action], dim=1)
         x = self.mid_layer(x)
         return torch.tanh(self.final_layer(x))

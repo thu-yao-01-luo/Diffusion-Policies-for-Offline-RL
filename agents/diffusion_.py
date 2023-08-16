@@ -158,7 +158,6 @@ class Diffusion(nn.Module):
         action = self.p_sample_loop(state, shape, *args, **kwargs)
         assert action is torch.Tensor
         return torch.clamp(action, -self.max_action, self.max_action)  # important
-        # return torch.tanh(action) * self.max_action
 
     # ------------------------------------------ training ------------------------------------------#
 
