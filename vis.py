@@ -44,7 +44,7 @@ def value_figure(
         for state in state_list:
             ax.scatter(state[0], state[1], c='gold', marker='*', s=100) # type: ignore
         if with_action:
-            ax.quiver(X, Y, u, v, scale=25) 
+            ax.quiver(X, Y, u, v, scale=28) 
         im = ax.imshow(value, extent=[-10, 10, -10, 10], cmap=cmap, origin='lower', norm=norm)
         fig.colorbar(im)
         # Render the figure to an array
