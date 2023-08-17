@@ -102,14 +102,13 @@ class Diffusion(nn.Module):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def p_mean_variance(self, x, t, s):
+        noise=self.model(x, t, s)
         x_recon = self.predict_start_from_noise(
-            x, t=t, noise=self.model(x, t, s))
-
+            x, t, noise)
         if self.clip_denoised:
             x_recon = torch.clamp(x_recon, -self.max_action, self.max_action)
         else:
             assert RuntimeError()
-
         model_mean, posterior_variance, posterior_log_variance = self.q_posterior(
             x_start=x_recon, x_t=x, t=t)
         return model_mean, posterior_variance, posterior_log_variance
@@ -156,7 +155,7 @@ class Diffusion(nn.Module):
         batch_size = state.shape[0]
         shape = (batch_size, self.action_dim)
         action = self.p_sample_loop(state, shape, *args, **kwargs)
-        assert action is torch.Tensor
+        assert torch.is_tensor(action)
         return torch.clamp(action, -self.max_action, self.max_action)  # important
 
     # ------------------------------------------ training ------------------------------------------#

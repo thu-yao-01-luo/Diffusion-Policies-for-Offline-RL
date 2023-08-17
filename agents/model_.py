@@ -43,7 +43,7 @@ class MLP(nn.Module):
         self.final_layer = nn.Linear(256, action_dim)
         self.apply(weights_init_)
 
-    def forward(self, state, t, noisy_action):
+    def forward(self, noisy_action, t, state):
         t = t.to(self.device).to(torch.float32) # (b, )
         t = self.time_mlp(t) # (b, t_dim)
         x = torch.cat([state, t, noisy_action], dim=1)

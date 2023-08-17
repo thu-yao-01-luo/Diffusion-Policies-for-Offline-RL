@@ -221,7 +221,8 @@ class Diffusion_AC(object):
             t = torch.randint(0, self.actor.n_timesteps,
                               (batch_size,), device=self.device).long()
             # denoised_noisy_action = self.actor.p_sample(state, t, noise)
-            denoised_noisy_action = self.actor.model(state, t, noise)
+            denoised_noisy_action = self.actor.p_sample(noise, t, state)
+            # denoised_noisy_action = self.actor.model(state, t, noise)
             # q_loss = - torch.min(self.critic.q_network1(state, denoised_noisy_action), self.critic.q_network2(state, denoised_noisy_action)).mean()
             q_loss = - self.critic.qmin(state, denoised_noisy_action, 0).mean()
 
@@ -266,7 +267,7 @@ class Diffusion_AC(object):
         # action = self.actor.model(state, torch.randn([state.shape[0], self.action_dim], device=state.device))
         # action = self.actor.model(state)
         # action = self.actor.sample(state=state)
-        action = self.actor.model(state, torch.randint(0, self.actor.n_timesteps, (state.shape[0],), device=state.device).long(), torch.randn([state.shape[0], self.action_dim], device=state.device))
+        action = self.actor.sample(state)
         return action.cpu().data.numpy().flatten()
 
     def save_model(self, dir, id=None):
