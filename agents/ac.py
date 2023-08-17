@@ -226,10 +226,8 @@ class Diffusion_AC(object):
             with torch.no_grad():
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
-                t_item = int(t[0].item())
-                target_v = self.critic.qmin(state, noisy_action, t_item).detach() # (b, 1)->(b,)
-            noise = torch.randn_like(action, device=action.device)
-            v_loss = F.mse_loss(self.critic.qmin(state, noise, t_item+1), target_v)
+                target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
+            v_loss = F.mse_loss(self.critic.qmin(state, noisy_action, t_scalar+1), target_v)
             self.critic_optimizer.zero_grad()
             v_loss.backward()
             self.critic_optimizer.step()
