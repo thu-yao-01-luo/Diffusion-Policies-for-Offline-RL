@@ -201,12 +201,9 @@ class Diffusion_AC(object):
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
             with torch.no_grad():
-                # target_v = self.critic_target.v_network(next_state)
-                # target_v = self.critic_target.v(next_state)
                 noise = torch.randn_like(action, device=action.device)
-                target_v = self.critic_target.qmin(next_state, noise, 1)
+                target_v = self.critic_target.qmin(next_state, noise, self.actor.n_timesteps)
                 target_q = (reward + not_done * self.discount * target_v).detach() # (b,)
-            # q1, q2 = self.critic.q_network1(state, action), self.critic.q_network2(state, action) # (b, 1)
             q1, q2 = self.critic.q(state, action, 0) # (b, 1)
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
 
@@ -214,27 +211,20 @@ class Diffusion_AC(object):
             MSBE_loss.backward()
             self.critic_optimizer.step()
 
-            # denoised_noisy_action=self.actor.model(noisy_action, t, state) # (b, a)
-            # denoised_noisy_action=self.actor.model(state) # (b, a)
             noise = torch.randn_like(action, device=action.device)
-            # denoised_noisy_action=self.actor.model(state, noise) # (b, a)
             t = torch.randint(0, self.actor.n_timesteps,
                               (batch_size,), device=self.device).long()
-            # denoised_noisy_action = self.actor.p_sample(state, t, noise)
-            denoised_noisy_action = self.actor.p_sample(noise, t, state)
-            # denoised_noisy_action = self.actor.model(state, t, noise)
-            # q_loss = - torch.min(self.critic.q_network1(state, denoised_noisy_action), self.critic.q_network2(state, denoised_noisy_action)).mean()
-            q_loss = - self.critic.qmin(state, denoised_noisy_action, 0).mean()
+            noisy_action = self.actor.q_sample(action, t, noise)
+            denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
+            t_scalar = int(t[0].item()) # float to int
+            q_loss = - self.critic.qmin(state, denoised_noisy_action, t_scalar).mean()
 
             self.actor_optimizer.zero_grad()
             q_loss.backward()
             self.actor_optimizer.step()
             
             with torch.no_grad():
-                # target_v = torch.min(self.critic.q_network1(state, denoised_noisy_action).detach(), self.critic.q_network2(state, denoised_noisy_action).detach()) # (b, 1)->(b,)
                 target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
-            # v_loss = F.mse_loss(self.critic.v_network(state), target_v)
-            # v_loss = F.mse_loss(self.critic.v(state), target_v)
             noise = torch.randn_like(action, device=action.device)
             v_loss = F.mse_loss(self.critic.qmin(state, noise, 0), target_v)
             self.critic_optimizer.zero_grad()

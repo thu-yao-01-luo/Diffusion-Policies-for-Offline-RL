@@ -156,7 +156,7 @@ class Diffusion(nn.Module):
         shape = (batch_size, self.action_dim)
         action = self.p_sample_loop(state, shape, *args, **kwargs)
         assert torch.is_tensor(action)
-        return torch.clamp(action, -self.max_action, self.max_action)  # important
+        return torch.clamp(action, -self.max_action, self.max_action)  # important # type: ignore
 
     # ------------------------------------------ training ------------------------------------------#
 
