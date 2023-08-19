@@ -17,6 +17,8 @@ class MLP(nn.Module):
                  state_dim,
                  action_dim,
                  device,
+                 t_dim=16,
+                 activation=nn.Mish,
                  ):
 
         super(MLP, self).__init__()
@@ -41,9 +43,9 @@ class MLP(nn.Module):
                                     #    nn.Mish()
                                        activation(),
                                        )
+
         self.final_layer = nn.Linear(256, action_dim)
         torch.nn.init.normal_(self.final_layer.weight, std=0.1) # output layer init  
-        pass
 
     def forward(self, x, time, state):
 
