@@ -1798,13 +1798,13 @@ def aug19_dac():
             file_name = job_id + ".yaml"
             config = {
                 "algo": "dac", 
-                "T": 1, 
+                "T": T, 
                 "update_ema_every": 1, 
                 "name": job_id, 
                 "id": job_id, 
                 "predict_epsilon": False, 
                 "format": ['stdout', "wandb"],
-                "env_name": env, 
+                "env_name": env_name, 
                 "d4rl": True,            
                 "need_animation": True, 
                 }
