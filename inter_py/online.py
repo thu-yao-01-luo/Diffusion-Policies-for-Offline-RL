@@ -68,7 +68,6 @@ def mlp(sizes, activation, output_activation=nn.Identity):
     for j in range(len(sizes)-1):
         act = activation if j < len(sizes)-2 else output_activation
         layers += [nn.Linear(sizes[j], sizes[j+1]), act()]
-    # torch.nn.init.normal_(layers[-1][0].weight, std=0.1) # output layer init 
     return nn.Sequential(*layers)
 
 def count_vars(module):
@@ -381,9 +380,8 @@ class Config:
     # online_env: str = 'HalfCheetah-v2'
     dir: str = 'results'
     seed: int = 0
-    seed: int = 0
-    format: list = field(default_factory=lambda: ['stdout', "wandb"])
-    # format: list = field(default_factory=lambda: ['stdout'])
+    # format: list = field(default_factory=lambda: ['stdout', "wandb"])
+    format: list = field(default_factory=lambda: ['stdout'])
     # optimization
     batch_size: int = 100
     lr_decay: bool = False

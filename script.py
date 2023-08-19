@@ -194,8 +194,8 @@ algo = ['bc', 'ql', ]
 #     os.system(command)
 
 
-def run_python_file(job, filename):
-    command = f"python launch/remote_run.py --job_name {job} main.py --config {filename} --run"
+def run_python_file(job, filename, main="main.py"):
+    command = f"python launch/remote_run.py --job_name {job} {main} --config {filename} --run"
     os.system("git add .")
     os.system(f"git commit -m '{command}''")
     os.system("git pull origin master")
@@ -1785,6 +1785,37 @@ def jul18_bc_sample():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind])
 
+def aug19_dac():
+    file_paths = []
+    job_list = []
+    env = ["halfcheetah-medium-v2"]
+    Ts = [1, 2, 4, 8]
+    config_dir = "configs/dac-d4rl-online/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for T in Ts:
+            job_id = f"dac-{env_name[:6]}-online-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "algo": "dac", 
+                "T": 1, 
+                "update_ema_every": 1, 
+                "name": job_id, 
+                "id": job_id, 
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb"],
+                "env_name": env, 
+                "d4rl": True,            
+                "need_animation": True, 
+                }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind], main="experiment.py")
+    
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -1822,4 +1853,5 @@ if __name__ == "__main__":
     # jul11_dac_walker_hopper()
     # jul11_dac_reg()
     # jul18_bc()
-    jul18_bc_sample()
+    # jul18_bc_sample()
+    aug19_dac()

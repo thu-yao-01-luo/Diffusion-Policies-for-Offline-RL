@@ -1,0 +1,9 @@
+algo: "sac"
+env_name: "Demo-v0"
+update_ema_every: 1 
+name: "sac-ani" 
+id: "sac-ani" 
+# format: ['stdout', "wandb"]
+need_animation: True
+d4rl: False
+vis_q: True

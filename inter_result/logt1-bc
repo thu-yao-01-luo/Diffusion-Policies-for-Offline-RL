@@ -1,0 +1,650 @@
+exp: exp_1
+device: cuda:0
+output_dir: results
+env_name: Demo-v0
+dir: results
+seed: 0
+format:
+- stdout
+batch_size: 100
+lr_decay: false
+early_stop: false
+save_best_model: true
+discount: 0.99
+discount2: 1.0
+tau: 0.005
+target_noise: 0.2
+noise_clip: 0.5
+T: 1
+beta_schedule: vp
+algo: dac
+ms: offline
+coef: 0.2
+MSBE_coef: 1.0
+eta: 1.0
+compute_consistency: true
+iql_style: discount
+expectile: 0.7
+quantile: 0.6
+temperature: 1.0
+bc_weight: 1.0
+name: dac2td3-bc
+id: dac2td3-bc
+tune_bc_weight: false
+std_threshold: 0.0001
+bc_lower_bound: 0.01
+bc_decay: 0.995
+bc_upper_bound: 100.0
+value_threshold: 0.00025
+consistency: true
+scale: 1.0
+predict_epsilon: false
+debug: false
+fast: false
+num_steps_per_epoch: 4000
+replay_size: 1000000
+start_steps: 10000
+update_after: 1000
+update_every: 50
+num_envs: 8
+max_ep_len: 1000
+hid: 256
+l: 2
+init: random
+policy_delay: 2
+act_noise: 0.1
+g_mdp: false
+norm_q: false
+consistency_coef: 0.0
+add_noise: true
+update_ema_every: 1
+need_animation: true
+num_epochs: 1000
+eval_freq: 50
+eval_episodes: 10
+lr: 0.0003
+max_q_backup: false
+reward_tune: 'no'
+gn: 9.0
+top_k: 1
+d4rl: false
+vis_q: true
+test_critic: true
+alpha: 0.2
+automatic_entropy_tuning: false
+
+------------------------------------------------------------
+Saving location: /home/kairong/Diffusion-Policies-for-Offline-RL/results/Demo-v0|exp_1|diffusion-dac|T-1|ms-offline|k-1|0
+------------------------------------------------------------
+obs_dim 2
+act_dim 2
+scores [4.0366006448015, 1.90084794839895e-49, 5.713205799511912e-22, 1.1815742675118323e-18, 16.006108769686122]
+------------------------------------------------------------
+Evaluation over 5 episodes: 4.01 0.00
+------------------------------------------------------------
+max value: 4.1002836
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -0.11921782003482803
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.093255 |
+| EpLen            | 20       |
+| EpRet            | 0.49919  |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 4.0085   |
+| eval_reward_std  | 6.1992   |
+| ql_loss          | -0.11922 |
+| ql_loss_std      | 0.071664 |
+| StdAction        | 0.096241 |
+| time             | 83.48    |
+-------------------------------
+scores [3.785299473580625e-26, 12.148324627325838, 8.16490884598157e-29, 7.05549837393475e-20, 15.672130782422125]
+------------------------------------------------------------
+Evaluation over 5 episodes: 5.56 0.00
+------------------------------------------------------------
+max value: 9.214852
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -1.6406246948242187
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.087064 |
+| EpLen            | 20       |
+| EpRet            | 0.66673  |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 5.5641   |
+| eval_reward_std  | 6.9051   |
+| ql_loss          | -1.6406  |
+| ql_loss_std      | 0.23998  |
+| StdAction        | 0.12657  |
+| time             | 175.9    |
+-------------------------------
+scores [29.421310524226072, 6.639949406859345, 2.3698732497258623, 15.798674421959374, 27.792601402348264]
+------------------------------------------------------------
+Evaluation over 5 episodes: 16.40 0.00
+------------------------------------------------------------
+max value: 15.586527
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -5.2746248531341555
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.19552  |
+| EpLen            | 20       |
+| EpRet            | 9.4387   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 16.404   |
+| eval_reward_std  | 10.879   |
+| ql_loss          | -5.2746  |
+| ql_loss_std      | 0.49202  |
+| StdAction        | 0.21968  |
+| time             | 270.65   |
+-------------------------------
+scores [22.35854970637581, 28.561536853728672, 23.87282942208947, 12.597324667727968, 21.992760152056526]
+------------------------------------------------------------
+Evaluation over 5 episodes: 21.88 0.00
+------------------------------------------------------------
+max value: 20.728846
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -10.740570373535157
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.29831  |
+| EpLen            | 20       |
+| EpRet            | 21.033   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 21.877   |
+| eval_reward_std  | 5.1966   |
+| ql_loss          | -10.741  |
+| ql_loss_std      | 0.64991  |
+| StdAction        | 0.2837   |
+| time             | 368.58   |
+-------------------------------
+scores [13.721615017746538, 19.555310646678834, 19.825547237558332, 6.62130276857212, 16.744829399867214]
+------------------------------------------------------------
+Evaluation over 5 episodes: 15.29 0.00
+------------------------------------------------------------
+max value: 23.202276
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -15.198220672607421
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.43829  |
+| EpLen            | 20       |
+| EpRet            | 22.074   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 15.294   |
+| eval_reward_std  | 4.868    |
+| ql_loss          | -15.198  |
+| ql_loss_std      | 0.747    |
+| StdAction        | 0.22983  |
+| time             | 468.41   |
+-------------------------------
+scores [25.596127859432087, 30.406512868573643, 9.873451828340077, 17.96576298307949, 29.399332231922184]
+------------------------------------------------------------
+Evaluation over 5 episodes: 22.65 0.00
+------------------------------------------------------------
+max value: 23.667004
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -17.42428560256958
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.3925   |
+| EpLen            | 20       |
+| EpRet            | 22.064   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 22.648   |
+| eval_reward_std  | 7.7405   |
+| ql_loss          | -17.424  |
+| ql_loss_std      | 0.55745  |
+| StdAction        | 0.25988  |
+| time             | 567.11   |
+-------------------------------
+scores [19.857124017008562, 29.868075715755005, 20.098493184148648, 32.28619866085636, 29.229585885323814]
+------------------------------------------------------------
+Evaluation over 5 episodes: 26.27 0.00
+------------------------------------------------------------
+max value: 23.29909
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.52608428955078
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.31151  |
+| EpLen            | 20       |
+| EpRet            | 21.455   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 26.268   |
+| eval_reward_std  | 5.2366   |
+| ql_loss          | -18.526  |
+| ql_loss_std      | 0.48859  |
+| StdAction        | 0.29954  |
+| time             | 665.15   |
+-------------------------------
+scores [26.95418328599706, 16.514214782628276, 8.528516809890466, 19.029186573008346, 18.879541763471707]
+------------------------------------------------------------
+Evaluation over 5 episodes: 17.98 0.00
+------------------------------------------------------------
+max value: 22.540062
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.64714645385742
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.48182  |
+| EpLen            | 20       |
+| EpRet            | 20.562   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 17.981   |
+| eval_reward_std  | 5.8979   |
+| ql_loss          | -18.647  |
+| ql_loss_std      | 0.3612   |
+| StdAction        | 0.24531  |
+| time             | 759.85   |
+-------------------------------
+scores [13.586949285791711, 23.309143110816663, 11.332810699803968, 25.785840365409033, 4.68301016822031]
+------------------------------------------------------------
+Evaluation over 5 episodes: 15.74 0.00
+------------------------------------------------------------
+max value: 22.669785
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.892027435302733
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.51563  |
+| EpLen            | 20       |
+| EpRet            | 20.206   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 15.74    |
+| eval_reward_std  | 7.8042   |
+| ql_loss          | -18.892  |
+| ql_loss_std      | 0.40006  |
+| StdAction        | 0.23492  |
+| time             | 855.26   |
+-------------------------------
+scores [10.240446237068083, 18.243880686442917, 8.740306642532543, 14.753053115892977, 25.055204464901248]
+------------------------------------------------------------
+Evaluation over 5 episodes: 15.41 0.00
+------------------------------------------------------------
+max value: 21.277205
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.76056251525879
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.49288  |
+| EpLen            | 20       |
+| EpRet            | 20.559   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 15.407   |
+| eval_reward_std  | 5.8771   |
+| ql_loss          | -18.761  |
+| ql_loss_std      | 0.38114  |
+| StdAction        | 0.24704  |
+| time             | 952.66   |
+-------------------------------
+scores [11.065953129606548, 28.582293376420473, 19.567975369549504, 21.982304845131306, 32.39187404552266]
+------------------------------------------------------------
+Evaluation over 5 episodes: 22.72 0.00
+------------------------------------------------------------
+max value: 21.747421
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.769749565124513
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.22504  |
+| EpLen            | 20       |
+| EpRet            | 20.063   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 22.718   |
+| eval_reward_std  | 7.4055   |
+| ql_loss          | -18.77   |
+| ql_loss_std      | 0.30387  |
+| StdAction        | 0.27205  |
+| time             | 1054.1   |
+-------------------------------
+scores [27.658693646642487, 21.61049170204206, 21.747225515567017, 13.573100580045882, 22.02921990466621]
+------------------------------------------------------------
+Evaluation over 5 episodes: 21.32 0.00
+------------------------------------------------------------
+max value: 22.190569
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.70451385498047
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.45246  |
+| EpLen            | 20       |
+| EpRet            | 21.233   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 21.324   |
+| eval_reward_std  | 4.4936   |
+| ql_loss          | -18.705  |
+| ql_loss_std      | 0.39968  |
+| StdAction        | 0.2903   |
+| time             | 1158.8   |
+-------------------------------
+scores [11.40258704878785, 21.404696065440355, 28.348581019743364, 3.1598455251376545, 10.886534879994304]
+------------------------------------------------------------
+Evaluation over 5 episodes: 15.04 0.00
+------------------------------------------------------------
+max value: 21.125038
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.419110374450682
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.52523  |
+| EpLen            | 20       |
+| EpRet            | 19.8     |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 15.04    |
+| eval_reward_std  | 8.8232   |
+| ql_loss          | -18.419  |
+| ql_loss_std      | 0.34495  |
+| StdAction        | 0.31806  |
+| time             | 1265.1   |
+-------------------------------
+scores [23.49624821493105, 30.065550969545065, 13.547633790261555, 24.31545917838688, 32.54019498616769]
+------------------------------------------------------------
+Evaluation over 5 episodes: 24.79 0.00
+------------------------------------------------------------
+max value: 21.485579
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.422225456237793
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.36006  |
+| EpLen            | 20       |
+| EpRet            | 20.538   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 24.793   |
+| eval_reward_std  | 6.5755   |
+| ql_loss          | -18.422  |
+| ql_loss_std      | 0.30567  |
+| StdAction        | 0.29894  |
+| time             | 1366.4   |
+-------------------------------
+scores [13.490083888677574, 29.531459836350027, 13.86317663932643, 16.75452593690399, 18.93830326249888]
+------------------------------------------------------------
+Evaluation over 5 episodes: 18.52 0.00
+------------------------------------------------------------
+max value: 20.914606
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.00419849395752
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.5175   |
+| EpLen            | 20       |
+| EpRet            | 21.371   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 18.516   |
+| eval_reward_std  | 5.8571   |
+| ql_loss          | -18.004  |
+| ql_loss_std      | 0.25732  |
+| StdAction        | 0.24867  |
+| time             | 1466.1   |
+-------------------------------
+scores [31.53198249516335, 35.17811712338434, 29.850588309028122, 12.237201686083349, 29.693877625412874]
+------------------------------------------------------------
+Evaluation over 5 episodes: 27.70 0.00
+------------------------------------------------------------
+max value: 20.448984
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -17.737519340515135
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.29549  |
+| EpLen            | 20       |
+| EpRet            | 20.62    |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 27.698   |
+| eval_reward_std  | 7.9788   |
+| ql_loss          | -17.738  |
+| ql_loss_std      | 0.33421  |
+| StdAction        | 0.28643  |
+| time             | 1564.2   |
+-------------------------------
+scores [32.264148391353885, 25.58916528261107, 21.87140762871333, 8.812793231882358, 22.38526719786105]
+------------------------------------------------------------
+Evaluation over 5 episodes: 22.18 0.00
+------------------------------------------------------------
+max value: 20.257994
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -17.860873527526856
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.38761  |
+| EpLen            | 20       |
+| EpRet            | 21.461   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 22.185   |
+| eval_reward_std  | 7.6437   |
+| ql_loss          | -17.861  |
+| ql_loss_std      | 0.28823  |
+| StdAction        | 0.33067  |
+| time             | 1662     |
+-------------------------------
+scores [21.629138206265733, 17.98691057595029, 22.59545541066947, 31.641567439860026, 20.085902949972713]
+------------------------------------------------------------
+Evaluation over 5 episodes: 22.79 0.00
+------------------------------------------------------------
+max value: 20.754137
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -17.925388870239257
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.46232  |
+| EpLen            | 20       |
+| EpRet            | 20.764   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 22.788   |
+| eval_reward_std  | 4.6929   |
+| ql_loss          | -17.925  |
+| ql_loss_std      | 0.21954  |
+| StdAction        | 0.28903  |
+| time             | 1760.4   |
+-------------------------------
+scores [25.004020955700454, 24.099139092271923, 19.094670415101778, 25.70935872963416, 24.01919654717894]
+------------------------------------------------------------
+Evaluation over 5 episodes: 23.59 0.00
+------------------------------------------------------------
+max value: 20.51319
+animating logs/dac_1_Demo-v0_bcw1.0.mp4
+Moviepy - Building video logs/dac_1_Demo-v0_bcw1.0.mp4.
+Moviepy - Writing video logs/dac_1_Demo-v0_bcw1.0.mp4
+
+Moviepy - Done !
+Moviepy - video ready logs/dac_1_Demo-v0_bcw1.0.mp4
+bc_loss nan
+ql_loss -18.092404289245607
+actor_loss nan
+critic_loss nan
+-------------------------------
+| AvgAction        | 0.30141  |
+| EpLen            | 20       |
+| EpRet            | 20.721   |
+| eval_len         | 20       |
+| eval_len_std     | 0        |
+| eval_nreward     | 0        |
+| eval_nreward_std | 0        |
+| eval_reward      | 23.585   |
+| eval_reward_std  | 2.3299   |
+| ql_loss          | -18.092  |
+| ql_loss_std      | 0.22463  |
+| StdAction        | 0.3464   |
+| time             | 1858.7   |
+-------------------------------

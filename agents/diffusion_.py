@@ -102,16 +102,13 @@ class Diffusion(nn.Module):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def p_mean_variance(self, x, t, s):
+        noise=self.model(x, t, s)
         x_recon = self.predict_start_from_noise(
-            x, t=t, noise=self.model(x, t, s))
-
+            x, t, noise)
         if self.clip_denoised:
-            # x_recon.clamp_(-self.max_action, self.max_action)
             x_recon = torch.clamp(x_recon, -self.max_action, self.max_action)
-            # x_recon = torch.tanh(x_recon) * self.max_action
         else:
             assert RuntimeError()
-
         model_mean, posterior_variance, posterior_log_variance = self.q_posterior(
             x_start=x_recon, x_t=x, t=t)
         return model_mean, posterior_variance, posterior_log_variance
@@ -128,8 +125,7 @@ class Diffusion(nn.Module):
 
     # @torch.no_grad()
     def p_sample_loop(self, state, shape, verbose=False, return_diffusion=False):
-        device = self.betas.device
-
+        device = state.device
         batch_size = shape[0]
         x = torch.randn(shape, device=device) * self.scale
 
@@ -145,12 +141,12 @@ class Diffusion(nn.Module):
             progress.update({'t': i})
 
             if return_diffusion:
-                diffusion.append(x)
+                diffusion.append(x) # type: ignore
 
         progress.close()
 
         if return_diffusion:
-            return x, torch.stack(diffusion, dim=1)
+            return x, torch.stack(diffusion, dim=1) # type: ignore
         else:
             return x
 
@@ -159,8 +155,8 @@ class Diffusion(nn.Module):
         batch_size = state.shape[0]
         shape = (batch_size, self.action_dim)
         action = self.p_sample_loop(state, shape, *args, **kwargs)
-        return action.clamp_(-self.max_action, self.max_action)  # important
-        # return torch.tanh(action) * self.max_action
+        assert torch.is_tensor(action)
+        return torch.clamp(action, -self.max_action, self.max_action)  # important # type: ignore
 
     # ------------------------------------------ training ------------------------------------------#
 
@@ -200,30 +196,3 @@ class Diffusion(nn.Module):
 
     def forward(self, state, *args, **kwargs):
         return self.sample(state, *args, **kwargs)
-
-    def loss_to_verify(self, x, state, weights=1.0):
-        batch_size = len(x)
-        t = torch.randint(0, self.n_timesteps, (batch_size,),
-                          device=x.device).long()
-        noise = torch.randn_like(x) * self.scale
-
-        x_noisy = self.q_sample(x_start=x, t=t, noise=noise)
-
-        x_recon = self.model(x_noisy, t, state)
-
-        assert noise.shape == x_recon.shape
-
-        if self.predict_epsilon:
-            # loss = self.loss_fn(x_recon, noise, weights)
-            loss_vec = ((x_recon - noise) ** 2).mean(dim=-1)
-            loss = loss_vec * (1.0 - extract(self.alphas_cumprod, t, loss_vec.shape)) / extract(
-                self.alphas_cumprod, t, loss_vec.shape)
-            loss = loss.mean()
-        else:
-            # loss = self.loss_fn(x_recon, x, weights)
-            loss_vec = ((x_recon - x) ** 2).mean(dim=-1)
-            loss = loss_vec * (1.0 - extract(self.alphas_cumprod, t, loss_vec.shape)) / extract(
-                self.alphas_cumprod, t, loss_vec.shape)
-            loss = loss.mean()
-
-        return loss
