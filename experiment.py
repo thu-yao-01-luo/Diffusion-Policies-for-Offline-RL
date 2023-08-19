@@ -261,131 +261,131 @@ def online_train(args, env_fn):
                         agent.save_model(output_dir, t // update_every)
                 logger_zhiao.dumpkvs()
 
-def offline_train(args, env_fn):
-    # parameters
-    num_envs = args.num_envs
-    seed = args.seed
-    num_steps_per_epoch = args.num_steps_per_epoch
-    replay_size = args.replay_size
-    start_steps = args.start_steps
-    update_after = args.update_after
-    update_every = args.update_every
-    max_ep_len = args.max_ep_len
-    output_dir = args.output_dir
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+# def offline_train(args, env_fn):
+#     # parameters
+#     num_envs = args.num_envs
+#     seed = args.seed
+#     num_steps_per_epoch = args.num_steps_per_epoch
+#     replay_size = args.replay_size
+#     start_steps = args.start_steps
+#     update_after = args.update_after
+#     update_every = args.update_every
+#     max_ep_len = args.max_ep_len
+#     output_dir = args.output_dir
+#     torch.manual_seed(seed)
+#     np.random.seed(seed)
 
-    # environment
-    test_env = env_fn()
-    # observation and action dimension
-    obs_dim = test_env.observation_space.shape[-1] # type:ignore
-    act_dim = test_env.action_space.shape[-1] # type:ignore
-    print("obs_dim", obs_dim) 
-    print("act_dim", act_dim)
-    # Action limit for clamping: critically, assumes all dimensions share the same bound!
-    act_limit = float(env.action_space.high[0]) # type:ignore
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     # environment
+#     test_env = env_fn()
+#     # observation and action dimension
+#     obs_dim = test_env.observation_space.shape[-1] # type:ignore
+#     act_dim = test_env.action_space.shape[-1] # type:ignore
+#     print("obs_dim", obs_dim) 
+#     print("act_dim", act_dim)
+#     # Action limit for clamping: critically, assumes all dimensions share the same bound!
+#     act_limit = float(env.action_space.high[0]) # type:ignore
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    writer = None  # SummaryWriter(output_dir)
-    # buffer and evaluation
-    evaluations = []
-    max_timesteps = args.num_epochs * args.num_steps_per_epoch
-    buffer_size = replay_size
-    best_nreward = -np.inf
-    # dataset = d4rl.qlearning_dataset(test_env)
-    # dataset = build_dataset() # TODO: build dataset 
-    if args.algo == 'dac':
-        from agents.ac import Diffusion_AC as Agent
-        agent = Agent(state_dim=obs_dim,
-            action_dim=act_dim,
-            max_action=act_limit,
-            device=device,
-            discount=args.discount,
-            tau=args.tau,
-            max_q_backup=args.max_q_backup,
-            beta_schedule=args.beta_schedule,
-            n_timesteps=args.T,
-            eta=args.eta,
-            lr=args.lr,
-            lr_decay=args.lr_decay,
-            lr_maxt=args.num_epochs,
-            grad_norm=args.gn,
-            MSBE_coef=args.MSBE_coef,
-            discount2=args.discount2,
-            compute_consistency=args.compute_consistency,
-            iql_style=args.iql_style,
-            expectile=args.expectile,
-            quantile=args.quantile,
-            temperature=args.temperature,
-            bc_weight=args.bc_weight,
-            tune_bc_weight=args.tune_bc_weight,
-            std_threshold=args.std_threshold,
-            bc_lower_bound=args.bc_lower_bound,
-            bc_decay=args.bc_decay,
-            bc_upper_bound=args.bc_upper_bound,
-            value_threshold=args.value_threshold,
-            consistency=args.consistency,
-            scale=args.scale,
-            predict_epsilon=args.predict_epsilon,
-            debug=args.debug,
-            g_mdp=args.g_mdp,
-            policy_freq=args.policy_delay,
-            norm_q=args.norm_q,
-            consistency_coef=args.consistency_coef,
-            target_noise=args.target_noise, 
-            noise_clip=args.noise_clip,
-            add_noise=args.add_noise,
-            update_ema_every=args.update_ema_every,
-            test_critic=args.test_critic,
-            )
-    else:
-        raise NotImplementedError
+#     writer = None  # SummaryWriter(output_dir)
+#     # buffer and evaluation
+#     evaluations = []
+#     max_timesteps = args.num_epochs * args.num_steps_per_epoch
+#     buffer_size = replay_size
+#     best_nreward = -np.inf
+#     # dataset = d4rl.qlearning_dataset(test_env)
+#     # dataset = build_dataset() # TODO: build dataset 
+#     if args.algo == 'dac':
+#         from agents.ac import Diffusion_AC as Agent
+#         agent = Agent(state_dim=obs_dim,
+#             action_dim=act_dim,
+#             max_action=act_limit,
+#             device=device,
+#             discount=args.discount,
+#             tau=args.tau,
+#             max_q_backup=args.max_q_backup,
+#             beta_schedule=args.beta_schedule,
+#             n_timesteps=args.T,
+#             eta=args.eta,
+#             lr=args.lr,
+#             lr_decay=args.lr_decay,
+#             lr_maxt=args.num_epochs,
+#             grad_norm=args.gn,
+#             MSBE_coef=args.MSBE_coef,
+#             discount2=args.discount2,
+#             compute_consistency=args.compute_consistency,
+#             iql_style=args.iql_style,
+#             expectile=args.expectile,
+#             quantile=args.quantile,
+#             temperature=args.temperature,
+#             bc_weight=args.bc_weight,
+#             tune_bc_weight=args.tune_bc_weight,
+#             std_threshold=args.std_threshold,
+#             bc_lower_bound=args.bc_lower_bound,
+#             bc_decay=args.bc_decay,
+#             bc_upper_bound=args.bc_upper_bound,
+#             value_threshold=args.value_threshold,
+#             consistency=args.consistency,
+#             scale=args.scale,
+#             predict_epsilon=args.predict_epsilon,
+#             debug=args.debug,
+#             g_mdp=args.g_mdp,
+#             policy_freq=args.policy_delay,
+#             norm_q=args.norm_q,
+#             consistency_coef=args.consistency_coef,
+#             target_noise=args.target_noise, 
+#             noise_clip=args.noise_clip,
+#             add_noise=args.add_noise,
+#             update_ema_every=args.update_ema_every,
+#             test_critic=args.test_critic,
+#             )
+#     else:
+#         raise NotImplementedError
 
-    starting_time = time.time()
-    for t in range(max_timesteps):
-        # Step the env
-        # data_sampler = BufferNotDone(buffer, device)
-        # TODO: data sampler
-                loss_metric = agent.train(
-                                replay_buffer=data_sampler,
-                                iterations=update_every,
-                                batch_size=args.batch_size,
-                                log_writer=writer)
-                for k, v in loss_metric.items():
-                    if v == []:
-                        continue    
-                    try:
-                        logger_zhiao.logkv(k, np.mean(v))
-                        logger_zhiao.logkv(k + '_std', np.std(v))
-                    except:
-                        print("problem", k, v)
-                        raise NotImplementedError
-            else: 
-                raise NotImplementedError
-            if t % args.num_steps_per_epoch == 0:
-                eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt = eval_policy(agent, test_env, algo=args.algo, 
-                eval_episodes=args.eval_episodes, need_animation=args.need_animation, d4rl=args.d4rl, vis_q=args.vis_q)
-                current_time = time.time()
-                time_span = current_time - starting_time
-                logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
-                                    'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std,
-                                    'eval_len': eval_len, 'eval_len_std': eval_len_std, "time": time_span, "local_opt": local_opt})
-                if args.algo == 'dac':
-                    print("bc_loss", np.mean(loss_metric['bc_loss']))
-                    print("ql_loss", np.mean(loss_metric['ql_loss']))
-                    print("actor_loss", np.mean(loss_metric['actor_loss']))
-                    print("critic_loss", np.mean(loss_metric['critic_loss']))
-                    evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
-                                        np.mean(loss_metric['bc_loss']), np.mean(
-                                            loss_metric['ql_loss']),
-                                        np.mean(loss_metric['actor_loss']), np.mean(
-                                            loss_metric['critic_loss']),
-                                        t // update_every])
+#     starting_time = time.time()
+#     for t in range(max_timesteps):
+#         # Step the env
+#         # data_sampler = BufferNotDone(buffer, device)
+#         # TODO: data sampler
+#                 loss_metric = agent.train(
+#                                 replay_buffer=data_sampler,
+#                                 iterations=update_every,
+#                                 batch_size=args.batch_size,
+#                                 log_writer=writer)
+#                 for k, v in loss_metric.items():
+#                     if v == []:
+#                         continue    
+#                     try:
+#                         logger_zhiao.logkv(k, np.mean(v))
+#                         logger_zhiao.logkv(k + '_std', np.std(v))
+#                     except:
+#                         print("problem", k, v)
+#                         raise NotImplementedError
+#             else: 
+#                 raise NotImplementedError
+#             if t % args.num_steps_per_epoch == 0:
+#                 eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt = eval_policy(agent, test_env, algo=args.algo, 
+#                 eval_episodes=args.eval_episodes, need_animation=args.need_animation, d4rl=args.d4rl, vis_q=args.vis_q)
+#                 current_time = time.time()
+#                 time_span = current_time - starting_time
+#                 logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
+#                                     'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std,
+#                                     'eval_len': eval_len, 'eval_len_std': eval_len_std, "time": time_span, "local_opt": local_opt})
+#                 if args.algo == 'dac':
+#                     print("bc_loss", np.mean(loss_metric['bc_loss']))
+#                     print("ql_loss", np.mean(loss_metric['ql_loss']))
+#                     print("actor_loss", np.mean(loss_metric['actor_loss']))
+#                     print("critic_loss", np.mean(loss_metric['critic_loss']))
+#                     evaluations.append([eval_res, eval_res_std, eval_norm_res, eval_norm_res_std,
+#                                         np.mean(loss_metric['bc_loss']), np.mean(
+#                                             loss_metric['ql_loss']),
+#                                         np.mean(loss_metric['actor_loss']), np.mean(
+#                                             loss_metric['critic_loss']),
+#                                         t // update_every])
 
-                    if args.save_best_model and eval_norm_res > best_nreward:
-                        best_nreward = eval_norm_res
-                        agent.save_model(output_dir, t // update_every)
-                logger_zhiao.dumpkvs()
+#                     if args.save_best_model and eval_norm_res > best_nreward:
+#                         best_nreward = eval_norm_res
+#                         agent.save_model(output_dir, t // update_every)
+#                 logger_zhiao.dumpkvs()
 
 if __name__ == '__main__':
     args = load_config(Config)
