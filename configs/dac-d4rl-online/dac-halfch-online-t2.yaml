@@ -1,8 +1,7 @@
-T: 1
+T: 2
 algo: dac
 d4rl: true
-env_name:
-- halfcheetah-medium-v2
+env_name: halfcheetah-medium-v2
 format:
 - stdout
 - wandb
