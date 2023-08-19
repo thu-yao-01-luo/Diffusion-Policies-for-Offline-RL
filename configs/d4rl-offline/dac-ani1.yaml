@@ -1,0 +1,13 @@
+algo: "dac" 
+T: 1 
+update_ema_every: 1 
+name: "dac-halfch-offline-t1" 
+id: "dac-halfch-offline-t1" 
+predict_epsilon: False 
+# format: ['stdout', "wandb"]
+# env_name: "Demo-v0"
+env_name: "halfcheetah-medium-v2"
+need_animation: True
+d4rl: True
+online: False
+update_every: 2
