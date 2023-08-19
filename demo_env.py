@@ -46,6 +46,12 @@ class CustomEnvironment(gym.Env):
         info = {}  # Additional information, if any
         return self.state, reward, done, info
 
+    def set_state(self, state):
+        self.state = state
+
+    def get_state(self):
+        return self.state
+
     def render(self, mode='human', **kwargs):
         # Generate grid points within the range [-10, 10]
         x = np.linspace(-10, 10, 100)

@@ -21,6 +21,10 @@ def weights_init_(m):
         torch.nn.init.xavier_uniform_(m.weight, gain=1)
         torch.nn.init.constant_(m.bias, 0)
 
+def expectile_loss(q, target_q, expectile=0.7):
+    diff = q - target_q
+    return torch.mean(torch.where(diff > 0, expectile * diff ** 2, (1 - expectile) * diff ** 2))
+
 class QNetwork(nn.Module):
     def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
         super(QNetwork, self).__init__()
@@ -218,16 +222,21 @@ class Diffusion_AC(object):
             denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
             t_scalar = int(t[0].item()) # float to int
             q_loss = - self.critic.qmin(state, denoised_noisy_action, t_scalar).mean()
+            bc_loss = self.actor.p_losses(action, state, t).mean()
+            actor_loss = q_loss + self.bc_weight * bc_loss
 
             self.actor_optimizer.zero_grad()
-            q_loss.backward()
+            # q_loss.backward()
+            actor_loss.backward()
             self.actor_optimizer.step()
             
             with torch.no_grad():
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
-                # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
-                target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
-            v_loss = F.mse_loss(self.critic.qmin(state, noisy_action, t_scalar+1), target_v)
+                target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
+                # target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
+            # v_loss = F.mse_loss(self.critic.qmin(state, noisy_action, t_scalar+1), target_v)
+            current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
+            v_loss = expectile_loss(current_v, target_v, self.expectile)
             self.critic_optimizer.zero_grad()
             v_loss.backward()
             self.critic_optimizer.step()
