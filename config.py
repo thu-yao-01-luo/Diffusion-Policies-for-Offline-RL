@@ -66,6 +66,7 @@ class Config:
     policy_delay: int = 2
     act_noise: float = 0.1
     g_mdp: bool = True # only used in the debug phase with T=1
+    online: bool = True    
     norm_q: bool = True
     consistency_coef: float = 1.0
     target_noise: float = 0.2
