@@ -1798,13 +1798,13 @@ def aug19_dac():
             file_name = job_id + ".yaml"
             config = {
                 "algo": "dac", 
-                "T": 1, 
+                "T": T, 
                 "update_ema_every": 1, 
                 "name": job_id, 
                 "id": job_id, 
                 "predict_epsilon": False, 
                 "format": ['stdout', "wandb"],
-                "env_name": env, 
+                "env_name": env_name, 
                 "d4rl": True,            
                 "need_animation": True, 
                 }
@@ -1816,6 +1816,37 @@ def aug19_dac():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind], main="experiment.py")
     
+def aug19_dac_d4rl():
+    file_paths = []
+    job_list = []
+    env = ["hopper-medium-v2", "walker2d-medium-v2",]
+    Ts = [1, 2, 4, 8]
+    config_dir = "configs/dac-d4rl-online/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for T in Ts:
+            job_id = f"dac-{env_name[:6]}-online-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "algo": "dac", 
+                "T": T, 
+                "update_ema_every": 1, 
+                "name": job_id, 
+                "id": job_id, 
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb"],
+                "env_name": env_name, 
+                "d4rl": True,            
+                "need_animation": True, 
+                }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind], main="experiment.py")
+ 
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -1854,4 +1885,5 @@ if __name__ == "__main__":
     # jul11_dac_reg()
     # jul18_bc()
     # jul18_bc_sample()
-    aug19_dac()
+    # aug19_dac()
+    aug19_dac_d4rl()

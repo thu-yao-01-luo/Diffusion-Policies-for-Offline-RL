@@ -24,7 +24,11 @@ class MLP1(nn.Module):
                  device,
                  t_dim=16,
                  activation=nn.Mish,
+<<<<<<< HEAD
+                 ):
+=======
                 ):
+>>>>>>> 44f4c7254729b8170cf3b3aec80374a3d09c7de3
 
         super(MLP, self).__init__()
         self.device = device
@@ -48,12 +52,17 @@ class MLP1(nn.Module):
                                     #    nn.Mish()
                                        activation(),
                                        )
+
         self.final_layer = nn.Linear(256, action_dim)
+<<<<<<< HEAD
+        torch.nn.init.normal_(self.final_layer.weight, std=0.1) # output layer init  
+=======
         # self.layer_norm = nn.LayerNorm(action_dim)
         # torch.nn.init.normal_(self.final_layer.weight, mean=0.0, std=0.5) # output layer init  
         # torch.nn.init.normal_(self.final_layer.bias, mean=0.0, std=0.0)
         # pass
         self.apply(weights_init_)
+>>>>>>> 44f4c7254729b8170cf3b3aec80374a3d09c7de3
 
     def forward(self, x, time, state):
         t = self.time_mlp(time)

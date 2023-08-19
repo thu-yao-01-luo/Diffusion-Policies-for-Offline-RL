@@ -10,7 +10,6 @@ from torch.optim import Adam
 import gym
 import numpy as np
 import torch
-from stable_baselines3.common.vec_env import SubprocVecEnv
 from utils import utils
 from utils.data_sampler import Data_Sampler
 from utils.utils_zhiao import load_config
@@ -371,10 +370,10 @@ def offline_train(args, env_fn):
                                         loss_metric['critic_loss']),
                                     t // update_every])
 
-                if args.save_best_model and eval_norm_res > best_nreward:
-                    best_nreward = eval_norm_res
-                    agent.save_model(output_dir, t // update_every)
-            logger_zhiao.dumpkvs()
+#                     if args.save_best_model and eval_norm_res > best_nreward:
+#                         best_nreward = eval_norm_res
+#                         agent.save_model(output_dir, t // update_every)
+#                 logger_zhiao.dumpkvs()
 
 if __name__ == '__main__':
     args = load_config(Config)

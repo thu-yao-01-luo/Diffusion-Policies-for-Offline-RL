@@ -1,12 +1,12 @@
-T: 4
+T: 1
 algo: dac
 d4rl: true
-env_name: halfcheetah-medium-v2
+env_name: hopper-medium-v2
 format:
 - stdout
 - wandb
-id: dac-halfch-online-t4
-name: dac-halfch-online-t4
+id: dac-hopper-online-t1
+name: dac-hopper-online-t1
 need_animation: true
 predict_epsilon: false
 update_ema_every: 1
