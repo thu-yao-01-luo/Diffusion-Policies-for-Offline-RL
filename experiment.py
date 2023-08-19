@@ -337,20 +337,23 @@ def offline_train(args, env_fn):
 
     starting_time = time.time()
     for t in range(max_timesteps):
-        loss_metric = agent.train(
-                    replay_buffer=data_sampler,
-                    iterations=update_every,
-                    batch_size=args.batch_size,
-                    log_writer=writer)
-        for k, v in loss_metric.items():
-            if v == []:
-                continue    
-            try:
-                logger_zhiao.logkv(k, np.mean(v))
-                logger_zhiao.logkv(k + '_std', np.std(v))
-            except:
-                print("problem", k, v)
-                raise NotImplementedError
+        if args.algo == 'dac':
+            loss_metric = agent.train(
+                        replay_buffer=data_sampler,
+                        iterations=update_every,
+                        batch_size=args.batch_size,
+                        log_writer=writer)
+            for k, v in loss_metric.items():
+                if v == []:
+                    continue    
+                try:
+                    logger_zhiao.logkv(k, np.mean(v))
+                    logger_zhiao.logkv(k + '_std', np.std(v))
+                except:
+                    print("problem", k, v)
+                    raise NotImplementedError
+        else:
+            raise NotImplementedError
         if t % args.num_steps_per_epoch == 0:
             eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt = eval_policy(agent, test_env, algo=args.algo, 
             eval_episodes=args.eval_episodes, need_animation=args.need_animation, d4rl=args.d4rl, vis_q=args.vis_q)
