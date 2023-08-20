@@ -130,7 +130,7 @@ def animation(
         coords = np.stack((X, Y), axis=2).reshape(-1, 2)
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
         coords = torch.tensor(coords, dtype=torch.float32, requires_grad=True, device=device)
-        if algo == 'dac':
+        if algo == 'dac' or algo == "dql":
             # coords and actions are of the same shapes
             t = torch.zeros((coords.shape[0],), device=device).long()
             # new_action = policy.model(coords, torch.randn_like(coords))

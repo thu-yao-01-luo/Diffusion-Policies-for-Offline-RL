@@ -205,35 +205,34 @@ class Diffusion_QL(object):
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
             with torch.no_grad():
-                # noise = torch.randn_like(action, device=action.device)
-                # target_v = self.critic_target.qmin(next_state, noise, self.actor.n_timesteps)
                 target_v = self.critic_target.v(next_state) # (b, 1)
-                target_q = (reward + not_done * self.discount * target_v).detach() # (b, 1)
-            q1, q2 = self.critic.q(state, action, 0) # (b, 1)
+                target_q = (reward + not_done * self.discount * target_v).detach() # (b,)
+            q1, q2 = self.critic.q(state, action) # (b, 1)
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
 
             self.critic_optimizer.zero_grad()
             MSBE_loss.backward()
             self.critic_optimizer.step()
 
-            t = torch.randint(0, self.actor.n_timesteps,
-                              (batch_size,), device=self.device).long()
-            sampled_action = self.actor.sample(state)
-            q_loss = - self.critic.qmin(state, sampled_action).mean()
-            bc_loss = self.actor.p_losses(action, state, t).mean()
+            denoised_noisy_action = self.actor.sample(state)
+            q_loss = - self.critic.qmin(state, denoised_noisy_action).mean()
+            # bc_loss = self.actor.p_losses(action, state, t).mean()
+            bc_loss = self.actor.loss(action, state).mean()
             actor_loss = q_loss + self.bc_weight * bc_loss
 
             self.actor_optimizer.zero_grad()
+            # q_loss.backward()
             actor_loss.backward()
             self.actor_optimizer.step()
             
             with torch.no_grad():
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
-                target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
+                # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
-            # v_loss = F.mse_loss(self.critic.qmin(state, noisy_action, t_scalar+1), target_v)
-            current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
-            v_loss = expectile_loss(current_v, target_v, self.expectile)
+                target_v = self.critic.qmin(state, denoised_noisy_action).detach() # (b, 1)->(b,)
+            v_loss = F.mse_loss(self.critic.v(state), target_v)
+            # current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
+            # v_loss = expectile_loss(current_v, target_v, self.expectile)
             self.critic_optimizer.zero_grad()
             v_loss.backward()
             self.critic_optimizer.step()

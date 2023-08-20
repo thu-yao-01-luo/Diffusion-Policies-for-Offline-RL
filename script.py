@@ -1846,6 +1846,85 @@ def aug19_dac_d4rl():
             make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind], main="experiment.py")
+
+def run_multi_py(job, filename, main="main.py"):
+    command = f"nohup python -u {main} --config {filename} id={job} name={job} > inter_result/log-{job} &"
+    # os.system("git add .")
+    # os.system(f"git commit -m '{command}''")
+    # os.system("git pull origin master")
+    # os.system("git push origin master'")
+    os.system(command)
+
+def test_multi_py():
+    job_list = ["test1", "test2"]
+    name_list = ["test1", "test2"]
+    age = [20, 21]    
+    file_paths = []
+    config_dir = "configs/dac-d4rl-online/"
+    os.makedirs(config_dir, exist_ok=True)
+    for i in range(2):
+        job_id = job_list[i]
+        file_name = job_id + ".yaml"
+        config = {
+            'name': name_list[i],
+            'age': age[i],
+            'id': job_id,
+            }
+        filename = os.path.join(config_dir, file_name)
+        file_paths.append(filename)
+        make_config_file(filename, config)
+    print(job_list)
+    print(file_paths)
+    for ind, job in enumerate(job_list):
+        # run_python_file(job, file_paths[ind], main="experiment.py")
+        run_multi_py(job, file_paths[ind], main="run_test.py")
+
+def aug20_demo_dac_dql():
+    """
+    compare dac and dql
+    online setting
+    t=1, 2, 4, 8, 16
+    git commit code:
+    commit 393fef5893939093b95a33fb8b425f38a3c74213 (HEAD -> master)
+    Author: lkr <2793158317@qq.com>
+    Date:   Sat Aug 19 06:15:29 2023 -0700
+    config_dir = "configs/dac-dql-demo-online/"
+    """
+    file_paths = []
+    job_list = []
+    # env = ["hopper-medium-v2", "walker2d-medium-v2",]
+    # env = ["Demo-v0"]
+    env_name = "Demo-v0"
+    Ts = [1, 2, 4, 8, 16]
+    algos = ["dac", "dql"]
+    config_dir = "configs/dac-dql-demo-online/"
+    os.makedirs(config_dir, exist_ok=True)
+    # for env_name in env:
+    for algo in algos:
+        for T in Ts:
+            job_id = f"{algo}-demo-online-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "algo": algo, 
+                "T": T, 
+                "update_ema_every": 1, 
+                "name": job_id, 
+                "id": job_id, 
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb"],
+                "env_name": env_name, 
+                "d4rl": False,
+                "need_animation": True, 
+                "vis_q": True,
+                }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        # run_python_file(job, file_paths[ind], main="experiment.py")
+        run_multi_py(job, file_paths[ind], main="experiment.py")
  
 if __name__ == "__main__":
     # jun22_all_env()
@@ -1886,4 +1965,6 @@ if __name__ == "__main__":
     # jul18_bc()
     # jul18_bc_sample()
     # aug19_dac()
-    aug19_dac_d4rl()
+    # aug19_dac_d4rl()
+    # test_multi_py()
+    aug20_demo_dac_dql()
