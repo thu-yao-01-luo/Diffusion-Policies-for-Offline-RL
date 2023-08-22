@@ -1975,7 +1975,7 @@ def aug20_demo_dac_dql():
 def aug22_demo_dac_dql():
     """
     compare dac and dql
-    online setting
+    offline setting
     t=1, 2, 4, 8, 16
     git commit code:
     commit 393fef5893939093b95a33fb8b425f38a3c74213 (HEAD -> master)
@@ -1990,7 +1990,7 @@ def aug22_demo_dac_dql():
     env_name = "Demo-v0"
     Ts = [1, 2, 4, 8, 16]
     algos = ["dac", "dql"]
-    config_dir = "configs/dac-dql-demo-offline/"
+    config_dir = "configs/dac-dql/demo-offline/"
     os.makedirs(config_dir, exist_ok=True)
     for algo in algos:
         for T in Ts:
@@ -2000,6 +2000,7 @@ def aug22_demo_dac_dql():
                 "algo": algo, 
                 "T": T, 
                 "update_ema_every": 1, 
+                "online": False,
                 "name": job_id, 
                 "id": job_id, 
                 "predict_epsilon": False, 
@@ -2024,12 +2025,15 @@ def aug22_demo_dac_dql_scheduler():
     """
     compare different schedulers, linear, vp, cosine
     lack exploration in the online setting 
+    online env
     t=4
     git commit code:
-    commit 393fef5893939093b95a33fb8b425f38a3c74213 (HEAD -> master)
+    commit d8f5fafe4ecb9bc7016a32d4d20f847810faf808 (HEAD -> master, origin/master, origin/HEAD)
     Author: lkr <2793158317@qq.com>
-    Date:   Sat Aug 19 06:15:29 2023 -0700
-    config_dir = "configs/dac-dql-demo-online/"
+    Date:   Mon Aug 21 22:33:23 2023 -0700
+
+        offline dac and dql comparison
+    config_dir = "configs/dac-dql/demo-offline-scheduler/"
     """
     file_paths = []
     job_list = []
@@ -2037,7 +2041,7 @@ def aug22_demo_dac_dql_scheduler():
     env_name = "Demo-v0"
     T = 4
     algos = ["dac", "dql"]
-    config_dir = "configs/dac-dql/demo-offline-scheduler/"
+    config_dir = "configs/dac-dql/demo-online-scheduler/"
     os.makedirs(config_dir, exist_ok=True)
     for algo in algos:
         for beta_schedule in beta_schedules:
@@ -2056,8 +2060,6 @@ def aug22_demo_dac_dql_scheduler():
                 "d4rl": False,
                 "need_animation": True, 
                 "vis_q": True,
-                "num_steps_per_epoch": 1,
-                "bc_weight": 1.0,
                 }
             job_list.append(
                 job_id)
@@ -2111,3 +2113,4 @@ if __name__ == "__main__":
     # test_multi_py()
     # aug20_demo_dac_dql()
     aug22_demo_dac_dql()
+    # aug22_demo_dac_dql_scheduler()    

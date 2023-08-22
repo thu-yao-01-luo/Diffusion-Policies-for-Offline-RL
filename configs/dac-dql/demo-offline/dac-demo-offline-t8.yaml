@@ -1,0 +1,16 @@
+T: 8
+algo: dac
+bc_weight: 1.0
+d4rl: false
+env_name: Demo-v0
+format:
+- stdout
+- wandb
+id: dac-demo-offline-t8
+name: dac-demo-offline-t8
+need_animation: true
+num_steps_per_epoch: 1
+online: false
+predict_epsilon: false
+update_ema_every: 1
+vis_q: true
