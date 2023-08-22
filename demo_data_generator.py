@@ -95,4 +95,3 @@ if __name__ == "__main__":
                                 repeat_delay=1000)
     ani.save('data/demoenv.mp4')
     # save_animation(images, "data/demoenv.mp4")
-

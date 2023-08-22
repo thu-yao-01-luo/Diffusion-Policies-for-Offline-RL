@@ -84,7 +84,7 @@ def eval_policy(policy, eval_env, algo, eval_episodes=10, need_animation=False, 
         f"Evaluation over {eval_episodes} episodes: {avg_reward:.2f} {avg_norm_score:.2f}")
     if need_animation:
         ims = animation(eval_env, vis_q, policy, algo)
-        logger_zhiao.animate(ims, f'{args.algo}_{args.T}_{args.env_name}_bcw{args.bc_weight}.mp4')
+    logger_zhiao.animate(ims, f'{args.algo}_{args.T}_{args.env_name}_bcw{args.bc_weight}.mp4')
     return avg_reward, std_reward, avg_norm_score, std_norm_score, avg_length, std_length, local_opt
 
 class sac_args_type:
@@ -331,7 +331,7 @@ def offline_train(args, env_fn):
     best_nreward = -np.inf
     dataset = build_dataset(env_name=args.env_name, is_d4rl=args.d4rl) # TODO: build dataset 
     data_sampler = DatasetSampler(dataset, device)
-    if args.algo == 'dac':
+    if args.algo == 'dac' or args.algo == 'dql':
         from agents.ac import Diffusion_AC as Agent
         agent = Agent(state_dim=obs_dim,
             action_dim=act_dim,
@@ -380,7 +380,7 @@ def offline_train(args, env_fn):
 
     starting_time = time.time()
     for t in range(max_timesteps):
-        if args.algo == 'dac':
+        if args.algo == 'dac' or args.algo == 'dql':
             loss_metric = agent.train(
                         replay_buffer=data_sampler,
                         iterations=update_every,

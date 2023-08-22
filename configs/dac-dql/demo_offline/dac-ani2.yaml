@@ -1,0 +1,16 @@
+algo: "dac" 
+T: 2 
+update_ema_every: 1 
+name: "dac-demo-offline-t2" 
+id: "dac-demo-offline-t2" 
+predict_epsilon: False 
+format: ['stdout', "wandb"]
+env_name: "Demo-v0"
+need_animation: True
+# d4rl: True
+d4rl: False
+online: False
+update_every: 10
+vis_q: True
+num_steps_per_epoch: 1
+bc_weight: 1.0

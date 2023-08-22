@@ -1926,6 +1926,148 @@ def aug20_demo_dac_dql():
         # run_python_file(job, file_paths[ind], main="experiment.py")
         run_multi_py(job, file_paths[ind], main="experiment.py")
  
+def aug20_demo_dac_dql():
+    """
+    compare dac and dql
+    online setting
+    t=1, 2, 4, 8, 16
+    git commit code:
+    commit 393fef5893939093b95a33fb8b425f38a3c74213 (HEAD -> master)
+    Author: lkr <2793158317@qq.com>
+    Date:   Sat Aug 19 06:15:29 2023 -0700
+    config_dir = "configs/dac-dql-demo-online/"
+    """
+    file_paths = []
+    job_list = []
+    # env = ["hopper-medium-v2", "walker2d-medium-v2",]
+    # env = ["Demo-v0"]
+    env_name = "Demo-v0"
+    Ts = [1, 2, 4, 8, 16]
+    algos = ["dac", "dql"]
+    config_dir = "configs/dac-dql-demo-offline/"
+    os.makedirs(config_dir, exist_ok=True)
+    for algo in algos:
+        for T in Ts:
+            job_id = f"{algo}-demo-offline-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "algo": algo, 
+                "T": T, 
+                "update_ema_every": 1, 
+                "name": job_id, 
+                "id": job_id, 
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb"],
+                "env_name": env_name, 
+                "d4rl": False,
+                "need_animation": True, 
+                "vis_q": True,
+                }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        # run_python_file(job, file_paths[ind], main="experiment.py")
+        run_multi_py(job, file_paths[ind], main="experiment.py")
+
+def aug22_demo_dac_dql():
+    """
+    compare dac and dql
+    online setting
+    t=1, 2, 4, 8, 16
+    git commit code:
+    commit 393fef5893939093b95a33fb8b425f38a3c74213 (HEAD -> master)
+    Author: lkr <2793158317@qq.com>
+    Date:   Sat Aug 19 06:15:29 2023 -0700
+    config_dir = "configs/dac-dql-demo-online/"
+    """
+    file_paths = []
+    job_list = []
+    # env = ["hopper-medium-v2", "walker2d-medium-v2",]
+    # env = ["Demo-v0"]
+    env_name = "Demo-v0"
+    Ts = [1, 2, 4, 8, 16]
+    algos = ["dac", "dql"]
+    config_dir = "configs/dac-dql-demo-offline/"
+    os.makedirs(config_dir, exist_ok=True)
+    for algo in algos:
+        for T in Ts:
+            job_id = f"{algo}-demo-offline-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "algo": algo, 
+                "T": T, 
+                "update_ema_every": 1, 
+                "name": job_id, 
+                "id": job_id, 
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb"],
+                "env_name": env_name, 
+                "d4rl": False,
+                "need_animation": True, 
+                "vis_q": True,
+                "num_steps_per_epoch": 1,
+                "bc_weight": 1.0,
+                }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        # run_python_file(job, file_paths[ind], main="experiment.py")
+        run_multi_py(job, file_paths[ind], main="experiment.py")
+
+def aug22_demo_dac_dql_scheduler():
+    """
+    compare different schedulers, linear, vp, cosine
+    lack exploration in the online setting 
+    t=4
+    git commit code:
+    commit 393fef5893939093b95a33fb8b425f38a3c74213 (HEAD -> master)
+    Author: lkr <2793158317@qq.com>
+    Date:   Sat Aug 19 06:15:29 2023 -0700
+    config_dir = "configs/dac-dql-demo-online/"
+    """
+    file_paths = []
+    job_list = []
+    beta_schedules = ["linear", "vp", "cosine"]
+    env_name = "Demo-v0"
+    T = 4
+    algos = ["dac", "dql"]
+    config_dir = "configs/dac-dql/demo-offline-scheduler/"
+    os.makedirs(config_dir, exist_ok=True)
+    for algo in algos:
+        for beta_schedule in beta_schedules:
+            job_id = f"{algo}-demo-offline-t{T}"
+            file_name = job_id + ".yaml"
+            config = {
+                "algo": algo, 
+                "beta_schedule": beta_schedule,
+                "T": T, 
+                "update_ema_every": 1, 
+                "name": job_id, 
+                "id": job_id, 
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb"],
+                "env_name": env_name, 
+                "d4rl": False,
+                "need_animation": True, 
+                "vis_q": True,
+                "num_steps_per_epoch": 1,
+                "bc_weight": 1.0,
+                }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        # run_python_file(job, file_paths[ind], main="experiment.py")
+        run_multi_py(job, file_paths[ind], main="experiment.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -1967,4 +2109,5 @@ if __name__ == "__main__":
     # aug19_dac()
     # aug19_dac_d4rl()
     # test_multi_py()
-    aug20_demo_dac_dql()
+    # aug20_demo_dac_dql()
+    aug22_demo_dac_dql()

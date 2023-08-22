@@ -2,11 +2,15 @@ import d4rl
 import gym
 import torch 
 import numpy as np
+from demo_data_generator import data_generation
 
 def build_dataset(env_name, is_d4rl):
     if is_d4rl:
         env = gym.make(env_name)
         dataset = d4rl.qlearning_dataset(env)
+        return dataset
+    elif env_name == "Demo-v0":
+        dataset = data_generation(action_type="medium", save_path="data/Demo-v0.hdf5")
         return dataset
     else:
         raise NotImplementedError
