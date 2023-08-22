@@ -2070,6 +2070,58 @@ def aug22_demo_dac_dql_scheduler():
         # run_python_file(job, file_paths[ind], main="experiment.py")
         run_multi_py(job, file_paths[ind], main="experiment.py")
 
+def aug22_demo_dac_dql_d4rl():
+    """
+    compare different schedulers, linear, vp, cosine
+    lack exploration in the online setting 
+    online env
+    t=4
+    git commit code:
+    commit d8f5fafe4ecb9bc7016a32d4d20f847810faf808 (HEAD -> master, origin/master, origin/HEAD)
+    Author: lkr <2793158317@qq.com>
+    Date:   Mon Aug 21 22:33:23 2023 -0700
+
+        offline dac and dql comparison
+    config_dir = "configs/dac-dql/demo-offline-scheduler/"
+    """
+    file_paths = []
+    job_list = []
+    # beta_schedules = ["linear", "vp", "cosine"]
+    # env_name = "Demo-v0"
+    envs = ["hopper-medium-v2", "walker2d-medium-v2", "halfcheetah-medium-v2"]
+    Ts = [4, 8]
+    algos = ["dac", "dql"]
+    config_dir = "configs/dac-dql/d4rl-offline/"
+    os.makedirs(config_dir, exist_ok=True)
+    for algo in algos:
+        for env_name in envs:
+            for T in Ts:
+                job_id = f"{algo}-d4rl-offline-t{T}"
+                file_name = job_id + ".yaml"
+                config = {
+                    "algo": algo, 
+                    "T": T, 
+                    "update_ema_every": 1, 
+                    "name": job_id, 
+                    "id": job_id, 
+                    "predict_epsilon": False, 
+                    "format": ['stdout', "wandb"],
+                    "env_name": env_name, 
+                    "d4rl": True,
+                    "need_animation": True, 
+                    "online": False,
+                    "num_steps_per_epoch": 1,
+                    "bc_weight": 1.0,
+                    }
+                job_list.append(
+                    job_id)
+                filename = os.path.join(config_dir, file_name)
+                file_paths.append(filename)
+                make_config_file(filename, config)
+        for ind, job in enumerate(job_list):
+            run_python_file(job, file_paths[ind], main="experiment.py")
+            # run_multi_py(job, file_paths[ind], main="experiment.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -2112,5 +2164,6 @@ if __name__ == "__main__":
     # aug19_dac_d4rl()
     # test_multi_py()
     # aug20_demo_dac_dql()
-    aug22_demo_dac_dql()
+    # aug22_demo_dac_dql()
     # aug22_demo_dac_dql_scheduler()    
+    aug22_demo_dac_dql_d4rl()
