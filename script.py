@@ -2096,7 +2096,7 @@ def aug22_demo_dac_dql_d4rl():
     for algo in algos:
         for env_name in envs:
             for T in Ts:
-                job_id = f"{algo}-d4rl-offline-t{T}"
+                job_id = f"{algo}-{env_name[:6]}-d4rl-offline-t{T}"
                 file_name = job_id + ".yaml"
                 config = {
                     "algo": algo, 

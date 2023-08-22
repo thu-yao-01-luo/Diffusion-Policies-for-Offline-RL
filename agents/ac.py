@@ -253,6 +253,7 @@ class Diffusion_AC(object):
                 log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
                 log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
             metric['ql_loss'].append(q_loss.item())
+            metric["bc_loss"].append(bc_loss.item())
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
