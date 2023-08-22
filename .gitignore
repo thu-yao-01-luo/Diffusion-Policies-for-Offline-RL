@@ -136,3 +136,4 @@ test/*
 data/*
 inter_result/*
 figures/*
+*.hdf5
