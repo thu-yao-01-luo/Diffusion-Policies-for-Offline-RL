@@ -2106,7 +2106,7 @@ def aug23_dac_dql_d4rl():
     for env_name in env:
         for T in Ts:
             for algo in algos:
-                job_id = f"{algo}-{env_name[:6]}-norm_q-online-t{T}"
+                job_id = f"{algo}-{env_name[:6]}-nq-online-t{T}"
                 file_name = job_id + ".yaml"
                 config = {
                     "algo": algo, 
