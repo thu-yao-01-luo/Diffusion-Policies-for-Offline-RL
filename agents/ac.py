@@ -269,6 +269,8 @@ class Diffusion_AC(object):
         # action = self.actor.model(state)
         # action = self.actor.sample(state=state)
         action = self.actor.sample(state)
+        action += noise_scale * torch.randn_like(action)
+        action = action.clamp(-self.max_action, self.max_action)
         return action.cpu().data.numpy().flatten()
 
     def save_model(self, dir, id=None):
