@@ -19,7 +19,7 @@ def generate_action(state, type="random"):
         if type == "expert":
             return np.where(norm > 1, normalized_opt, optimal)
         elif type == "medium":
-            noise = np.random.normal(loc=0, scale=0.2, size=(batch_size, 2)) # batch_size, 2
+            noise = np.random.normal(loc=0, scale=0.4, size=(batch_size, 2)) # batch_size, 2
             noisy_scalar = np.random.uniform(low=0.5, high=1.5, size=(batch_size, 1)) # batch_size, 1
             noisy_action = noisy_scalar * normalized_opt + noise # batch_size, 2
             return np.clip(noisy_action, -1, 1)

@@ -2093,7 +2093,80 @@ def sanity_check():
         job_list.append(job_id)
     for ind, job in enumerate(job_list):
         run_multi_py(job, file_paths[ind], main="experiment.py")
+
+def aug23_dac_dql_d4rl():
+    file_paths = []
+    job_list = []
+    env = ["hopper-medium-v2", "walker2d-medium-v2", "halfcheetah-medium-v2"]
+    Ts = [4, 8]
+    algos = ["dac", "dql"]
+    config_dir = "configs/dac-dql/d4rl-online/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for T in Ts:
+            for algo in algos:
+                job_id = f"{algo}-{env_name[:6]}-norm_q-online-t{T}"
+                file_name = job_id + ".yaml"
+                config = {
+                    "algo": algo, 
+                    "T": T, 
+                    "update_ema_every": 1, 
+                    "name": job_id, 
+                    "id": job_id, 
+                    "predict_epsilon": False, 
+                    "format": ['stdout', "wandb", "csv"],
+                    "env_name": env_name, 
+                    "d4rl": True,            
+                    "need_animation": True, 
+                    "discount2": 0.999,
+                    "need_entropy_test": True,
+                    }
+                job_list.append(
+                    job_id)
+                filename = os.path.join(config_dir, file_name)
+                file_paths.append(filename)
+                make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        run_python_file(job, file_paths[ind], main="experiment.py")
     
+def aug23_dac_dql_d4rl_offline():
+    file_paths = []
+    job_list = []
+    env = ["hopper-medium-v2", "walker2d-medium-v2", "halfcheetah-medium-v2"]
+    Ts = [4, 8]
+    algos = ["dac", "dql"]
+    config_dir = "configs/dac-dql/d4rl-offline/"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for T in Ts:
+            for algo in algos:
+                job_id = f"{algo}-{env_name[:6]}-discount2-offline-t{T}"
+                file_name = job_id + ".yaml"
+                config = {
+                    "algo": algo, 
+                    "T": T, 
+                    "update_ema_every": 1, 
+                    "name": job_id, 
+                    "id": job_id, 
+                    "predict_epsilon": False, 
+                    "format": ['stdout', "wandb", "csv"],
+                    "env_name": env_name, 
+                    "d4rl": True,            
+                    "need_animation": True, 
+                    "discount2": 0.999,
+                    "need_entropy_test": True,
+                    "num_steps_per_epoch": 1,
+                    "bc_weight": 1.0,
+                    }
+                job_list.append(
+                    job_id)
+                filename = os.path.join(config_dir, file_name)
+                file_paths.append(filename)
+                make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        # run_python_file(job, file_paths[ind], main="experiment.py")
+        run_multi_py(job, file_paths[ind], main="experiment.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -2138,4 +2211,6 @@ if __name__ == "__main__":
     # aug20_demo_dac_dql()
     # aug22_demo_dac_dql()
     # aug22_demo_dac_dql_scheduler()    
-    sanity_check()
+    # sanity_check()
+    aug23_dac_dql_d4rl()
+    aug23_dac_dql_d4rl_offline()
