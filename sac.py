@@ -16,7 +16,6 @@ def weights_init_(m):
         torch.nn.init.xavier_uniform_(m.weight, gain=1)
         torch.nn.init.constant_(m.bias, 0)
 
-
 class ValueNetwork(nn.Module):
     def __init__(self, num_inputs, hidden_dim):
         super(ValueNetwork, self).__init__()
@@ -169,9 +168,11 @@ class SAC(object):
         self.value_target = ValueNetwork(num_inputs, args.hidden_size).to(self.device)
         self.value_optim = Adam(self.value.parameters(), lr=args.lr)
         hard_update(self.value_target, self.value)
-
-        # self.policy = GaussianPolicy(num_inputs, action_space.shape[0], args.hidden_size).to(self.device)
-        self.policy = DeterministicPolicy(num_inputs, action_space.shape[0], args.hidden_size).to(self.device)
+        self.determine = args.determine
+        if args.determine == False:
+            self.policy = GaussianPolicy(num_inputs, action_space.shape[0], args.hidden_size).to(self.device)
+        else:
+            self.policy = DeterministicPolicy(num_inputs, action_space.shape[0], args.hidden_size).to(self.device)
         self.policy_optim = Adam(self.policy.parameters(), lr=args.lr)
 
     def select_action(self, state, eval=False):
@@ -221,16 +222,21 @@ class SAC(object):
         qf_loss.backward()
         self.critic_optim.step()
 
-        # pi, log_pi, mean, log_std = self.policy.sample(state_batch)
-        pi, log_pi, mean = self.policy.sample(state_batch)
+        if self.determine == False:
+            # assert self.policy is GaussianPolicy, "not guassian"
+            pi, log_pi, mean, log_std = self.policy.sample(state_batch) # type: ignore
+        else:
+            pi, log_pi, mean, = self.policy.sample(state_batch)[:3]
 
         qf1_pi, qf2_pi = self.critic(state_batch, pi)
         min_qf_pi = torch.min(qf1_pi, qf2_pi)
 
         policy_loss = ((self.alpha * log_pi) - min_qf_pi).mean() # Jπ = 𝔼st∼D,εt∼N[α * logπ(f(εt;st)|st) − Q(st,f(εt;st))]
         # Regularization Loss
-        # reg_loss = 0.001 * (mean.pow(2).mean() + log_std.pow(2).mean())
-        reg_loss = 0.001 * (mean.pow(2).mean())
+        if self.determine == False:
+            reg_loss = 0.001 * (mean.pow(2).mean() + log_std.pow(2).mean()) # type: ignore
+        else:
+            reg_loss = 0.001 * (mean.pow(2).mean())
         policy_loss += reg_loss
 
         self.policy_optim.zero_grad()
@@ -240,8 +246,8 @@ class SAC(object):
         vf = self.value(state_batch)
         
         with torch.no_grad():
-            # vf_target = min_qf_pi - (self.alpha * log_pi)
-            vf_target = min_qf_pi.detach() 
+            vf_target = min_qf_pi - (self.alpha * log_pi)
+            # vf_target = min_qf_pi.detach() 
 
         vf_loss = F.mse_loss(vf, vf_target) # JV = 𝔼(st)~D[0.5(V(st) - (𝔼at~π[Q(st,at) - α * logπ(at|st)]))^2]
 
@@ -295,4 +301,5 @@ class SAC(object):
         if critic_path is not None:
             self.critic.load_state_dict(torch.load(critic_path))
         if value_path is not None:
-            self.value.load_state.dict(torch.load(value_path))
+            # TODO: fix this
+            self.value.load_state.dict(torch.load(value_path)) # type: ignore

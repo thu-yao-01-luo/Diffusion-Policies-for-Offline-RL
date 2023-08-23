@@ -215,7 +215,8 @@ class Diffusion_QL(object):
             self.critic_optimizer.step()
 
             denoised_noisy_action = self.actor.sample(state)
-            q_loss = - self.critic.qmin(state, denoised_noisy_action).mean()
+            q_value = self.critic.qmin(state, denoised_noisy_action)
+            q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()
             # bc_loss = self.actor.p_losses(action, state, t).mean()
             bc_loss = self.actor.loss(action, state).mean()
             actor_loss = q_loss + self.bc_weight * bc_loss
@@ -248,7 +249,7 @@ class Diffusion_QL(object):
             if log_writer is not None:
                 log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
                 log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
-            metric['ql_loss'].append(q_loss.item())
+            metric['ql_loss'].append(q_value.mean().item())
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()

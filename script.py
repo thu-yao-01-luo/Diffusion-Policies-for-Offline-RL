@@ -1848,7 +1848,7 @@ def aug19_dac_d4rl():
         run_python_file(job, file_paths[ind], main="experiment.py")
 
 def run_multi_py(job, filename, main="main.py"):
-    command = f"nohup python -u {main} --config {filename} id={job} name={job} > inter_result/log-{job} &"
+    command = f"nohup python -u {main} --config {filename} id={job} name={job} > inter_result/sanity/log-{job} &"
     # os.system("git add .")
     # os.system(f"git commit -m '{command}''")
     # os.system("git pull origin master")
@@ -1879,7 +1879,7 @@ def test_multi_py():
         # run_python_file(job, file_paths[ind], main="experiment.py")
         run_multi_py(job, file_paths[ind], main="run_test.py")
 
-def aug20_demo_dac_dql():
+def aug20_demo_dac_dql_():
     """
     compare dac and dql
     online setting
@@ -2070,6 +2070,30 @@ def aug22_demo_dac_dql_scheduler():
         # run_python_file(job, file_paths[ind], main="experiment.py")
         run_multi_py(job, file_paths[ind], main="experiment.py")
 
+def sanity_check():
+    """
+    compare different schedulers, linear, vp, cosine
+    lack exploration in the online setting 
+    online env
+    t=4
+    git commit code:
+    commit d8f5fafe4ecb9bc7016a32d4d20f847810faf808 (HEAD -> master, origin/master, origin/HEAD)
+    Author: lkr <2793158317@qq.com>
+    Date:   Mon Aug 21 22:33:23 2023 -0700
+
+        offline dac and dql comparison
+    config_dir = "configs/dac-dql/demo-offline-scheduler/"
+    """
+    file_paths = []
+    job_list = []
+    config_dir = "configs/dac-dql/sanity/"
+    for config_file in os.listdir(config_dir):
+        job_id = config_file[:-5]
+        file_paths.append(os.path.join(config_dir, config_file))
+        job_list.append(job_id)
+    for ind, job in enumerate(job_list):
+        run_multi_py(job, file_paths[ind], main="experiment.py")
+    
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -2112,5 +2136,6 @@ if __name__ == "__main__":
     # aug19_dac_d4rl()
     # test_multi_py()
     # aug20_demo_dac_dql()
-    aug22_demo_dac_dql()
+    # aug22_demo_dac_dql()
     # aug22_demo_dac_dql_scheduler()    
+    sanity_check()

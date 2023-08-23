@@ -69,8 +69,6 @@ class Config:
     online: bool = True    
     norm_q: bool = True
     consistency_coef: float = 1.0
-    target_noise: float = 0.2
-    noise_clip: float = 0.5
     add_noise: bool = False
     update_ema_every: int = 5
     need_animation: bool = False
@@ -88,3 +86,6 @@ class Config:
     test_critic: bool = False
     alpha: float = 0.2
     automatic_entropy_tuning: bool = False
+    determine: bool = True
+    need_entropy_test: bool = False
+    num_entropy_samples: int = 100
