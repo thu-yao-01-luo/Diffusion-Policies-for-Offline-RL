@@ -1,0 +1,15 @@
+T: 8
+algo: dac
+bc_weight: 1.0
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+id: dac-d4rl-offline-t8
+name: dac-d4rl-offline-t8
+need_animation: true
+num_steps_per_epoch: 1
+online: false
+predict_epsilon: false
+update_ema_every: 1
