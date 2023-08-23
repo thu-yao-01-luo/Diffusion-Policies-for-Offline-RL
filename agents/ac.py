@@ -209,6 +209,7 @@ class Diffusion_AC(object):
                 target_v = self.critic_target.qmin(next_state, noise, self.actor.n_timesteps)
                 target_q = (reward + not_done * self.discount * target_v).detach() # (b,)
             q1, q2 = self.critic.q(state, action, 0) # (b, 1)
+            assert q1.shape == target_q.shape, "q1.shape != target_q.shape"
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
 
             self.critic_optimizer.zero_grad()
@@ -221,7 +222,8 @@ class Diffusion_AC(object):
             noisy_action = self.actor.q_sample(action, t, noise)
             denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
             t_scalar = int(t[0].item()) # float to int
-            q_loss = - self.critic.qmin(state, denoised_noisy_action, t_scalar).mean()
+            q_value = self.critic.qmin(state, denoised_noisy_action, t_scalar)
+            q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()     
             bc_loss = self.actor.p_losses(action, state, t).mean()
             actor_loss = q_loss + self.bc_weight * bc_loss
 
@@ -234,7 +236,10 @@ class Diffusion_AC(object):
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
                 target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
-            v_loss = F.mse_loss(self.critic.qmin(state, noisy_action, t_scalar+1), target_v)
+            q_cur = self.critic.qmin(state, noisy_action, t_scalar+1)
+            q_tar = target_v * self.discount2
+            assert q_cur.shape == q_tar.shape, "q_cur.shape != q_tar.shape"
+            v_loss = F.mse_loss(q_cur, q_tar) # (b, 1)->(1,)
             # current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
             # v_loss = expectile_loss(current_v, target_v, self.expectile)
             self.critic_optimizer.zero_grad()
@@ -252,7 +257,7 @@ class Diffusion_AC(object):
             if log_writer is not None:
                 log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
                 log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
-            metric['ql_loss'].append(q_loss.item())
+            metric['ql_loss'].append(q_value.mean().item())
             metric["bc_loss"].append(bc_loss.item())
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
@@ -261,9 +266,12 @@ class Diffusion_AC(object):
 
     def sample_action(self, state, noise_scale=0.0):
         # state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
-        if state.ndim==1:
+        if state.ndim==1 and torch.is_tensor(state)==False:
             state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
-        state = torch.tensor(state, dtype=torch.float).to(self.device)
+        elif state.ndim==1 and torch.is_tensor(state)==True:
+            state = state.float().unsqueeze(0)
+        # state = torch.tensor(state, dtype=torch.float).to(self.device)
+        state = state.to(self.device)
         # action = self.actor.model(state, torch.randn_like(state, device=state.device) * noise_scale)
         # action = self.actor.model(state, torch.randn([state.shape[0], self.action_dim], device=state.device))
         # action = self.actor.model(state)

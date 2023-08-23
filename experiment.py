@@ -27,11 +27,16 @@ import gym
 from demo_env import CustomEnvironment, compute_gaussian_density
 # from visualize import animation
 from vis import animation
-from helpers import BufferNotDone, ReplayBuffer, Buffer, SACBufferNotDone   
+from helpers import BufferNotDone, ReplayBuffer, Buffer, SACBufferNotDone, compute_entropy, sac_args_type     
 from config import Config
 from dataset import build_dataset, DatasetSampler
 
-def eval_policy(policy, eval_env, algo, eval_episodes=10, need_animation=False, d4rl=False, vis_q=False, env_name="Demo-v0"):
+def eval_policy(args, policy, eval_env, algo, eval_episodes=10,):
+    d4rl: bool = args.d4rl
+    need_animation: bool = args.need_animation
+    vis_q: bool = args.vis_q 
+    env_name: str = args.env_name
+    need_entropy_test: bool = args.need_entropy_test
     scores = []
     lengths = []
     actions_abs = []
@@ -51,7 +56,7 @@ def eval_policy(policy, eval_env, algo, eval_episodes=10, need_animation=False, 
         lengths.append(traj_length)
     # check the local optimality
     local_opt = True
-    if args.env_name == 'Demo-v0':
+    if env_name == 'Demo-v0':
         state, done = eval_env.reset(), False
         eval_env.set_state(np.array([-5, 0]))
         while not done:
@@ -84,20 +89,24 @@ def eval_policy(policy, eval_env, algo, eval_episodes=10, need_animation=False, 
         f"Evaluation over {eval_episodes} episodes: {avg_reward:.2f} {avg_norm_score:.2f}")
     if need_animation:
         ims = animation(eval_env, vis_q, policy, algo)
-    logger_zhiao.animate(ims, f'{args.algo}_{args.T}_{args.env_name}_bcw{args.bc_weight}.mp4')
-    return avg_reward, std_reward, avg_norm_score, std_norm_score, avg_length, std_length, local_opt
+        logger_zhiao.animate(ims, f'{args.algo}_{args.T}_{args.env_name}_bcw{args.bc_weight}.mp4')
+    entropy = 0
+    if need_entropy_test:
+        # the state is the last state of test(for mujoco, it is suitable)
+        if args.env_name == 'Demo-v0':
+            state = eval_env.reset()
+        elif args.d4rl == True:
+            pass
+        else:
+            raise NotImplementedError
+        action_list = []
+        for i in range(args.num_entropy_samples):
+            # TODO: state is not the last state of test(for mujoco, it is not suitable)
+            action = policy.sample_action(np.array(state), noise_scale=args.act_noise) # type:ignore
+            action_list.append(action)
+            entropy = compute_entropy(action_list)
+    return avg_reward, std_reward, avg_norm_score, std_norm_score, avg_length, std_length, local_opt, entropy
 
-class sac_args_type:
-    def __init__(self, args):
-        self.gamma = args.discount
-        self.tau = args.tau
-        self.alpha = args.alpha
-        self.target_update_interval = args.update_ema_every
-        self.automatic_entropy_tuning = args.automatic_entropy_tuning
-        self.hidden_size = 256
-        self.lr = args.lr
-        self.cuda = torch.cuda.is_available()
-  
 def online_train(args, env_fn):
     # parameters
     num_envs = args.num_envs
@@ -222,6 +231,14 @@ def online_train(args, env_fn):
             update_ema_every=args.update_ema_every,
             test_critic=args.test_critic,
             )
+    elif args.algo == "sac": 
+        from sac import SAC
+        sac_args = sac_args_type(args)
+        agent = SAC(
+            num_inputs=obs_dim,
+            action_space=action_space,
+            args=sac_args,
+        )
     else:
         raise NotImplementedError
 
@@ -269,7 +286,7 @@ def online_train(args, env_fn):
                                 replay_buffer=data_sampler,
                                 iterations=update_every,
                                 batch_size=args.batch_size,
-                                log_writer=writer)
+                                log_writer=writer) # type:ignore
                 for k, v in loss_metric.items():
                     if v == []:
                         continue    
@@ -279,16 +296,30 @@ def online_train(args, env_fn):
                     except:
                         print("problem", k, v)
                         raise NotImplementedError
+            elif args.algo == 'sac':
+                data_sampler = SACBufferNotDone(buffer, device)
+                loss_metric = agent.train(
+                    replay_buffer=data_sampler,
+                    iterations=update_every,
+                    batch_size=args.batch_size,
+                    log_writer=writer,
+                    t=t,) # type:ignore
+                for k, v in loss_metric.items():
+                    if v == []:
+                        continue    
+                    logger_zhiao.logkv(k, np.mean(v))
+                    logger_zhiao.logkv(k + '_std', np.std(v))
             else: 
                 raise NotImplementedError
             if t % args.num_steps_per_epoch == 0:
-                eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt = eval_policy(agent, test_env, algo=args.algo, 
-                eval_episodes=args.eval_episodes, need_animation=args.need_animation, d4rl=args.d4rl, vis_q=args.vis_q)
+                eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt, entropy = \
+                eval_policy(args, agent, test_env, algo=args.algo, eval_episodes=args.eval_episodes)
                 current_time = time.time()
                 time_span = current_time - starting_time
                 logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
                                     'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std,
-                                    'eval_len': eval_len, 'eval_len_std': eval_len_std, "time": time_span, "local_opt": local_opt})
+                                    'eval_len': eval_len, 'eval_len_std': eval_len_std, "time": time_span, 
+                                    "local_opt": local_opt, "entropy": entropy})
                 if args.algo == 'dac':
                     print("bc_loss", np.mean(loss_metric['bc_loss']))
                     print("ql_loss", np.mean(loss_metric['ql_loss']))
@@ -398,13 +429,14 @@ def offline_train(args, env_fn):
         else:
             raise NotImplementedError
         if t % args.num_steps_per_epoch == 0:
-            eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt = eval_policy(agent, test_env, algo=args.algo, 
-            eval_episodes=args.eval_episodes, need_animation=args.need_animation, d4rl=args.d4rl, vis_q=args.vis_q)
+            eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt, entropy = eval_policy(args, agent, test_env, algo=args.algo, 
+            eval_episodes=args.eval_episodes)
             current_time = time.time()
             time_span = current_time - starting_time
             logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
                                 'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std,
-                                'eval_len': eval_len, 'eval_len_std': eval_len_std, "time": time_span, "local_opt": local_opt})
+                                'eval_len': eval_len, 'eval_len_std': eval_len_std, "time": time_span, 
+                                "local_opt": local_opt, "entropy": entropy})
             if args.algo == 'dac':
                 print("bc_loss", np.mean(loss_metric['bc_loss']))
                 print("ql_loss", np.mean(loss_metric['ql_loss']))

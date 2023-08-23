@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 from torch import nn
+import numpy as np
+from sklearn.neighbors import KernelDensity
 
 class ReplayBuffer:
     """
@@ -105,4 +107,30 @@ class SACBufferNotDone:
         rew = sample['rew'].to(self.device).unsqueeze(1)
         return obs, act, rew, obs2, 1-done
 
+def compute_entropy(samples):
+    # samples: list of numpy array
+    # Convert samples to a numpy array
+    samples_array = np.array(samples)
+    # print(samples_array)
+    # Fit a kernel density estimator to the samples
+    kde = KernelDensity(kernel='gaussian', bandwidth=1.0)  # You can adjust the kernel and bandwidth
+    kde.fit(samples_array)
 
+    # Estimate the log probability of the given sample
+    assert samples_array.ndim == 2, "samples shape must be (n, f)!"
+    log_prob = kde.score_samples(samples_array)
+
+    # Convert log probability to actual probability
+    return -np.mean(log_prob)
+
+class sac_args_type:
+    def __init__(self, args):
+        self.gamma = args.discount
+        self.tau = args.tau
+        self.alpha = args.alpha
+        self.target_update_interval = args.update_ema_every
+        self.automatic_entropy_tuning = args.automatic_entropy_tuning
+        self.hidden_size = 256
+        self.lr = args.lr
+        self.cuda = torch.cuda.is_available()
+        self.determine = args.determine

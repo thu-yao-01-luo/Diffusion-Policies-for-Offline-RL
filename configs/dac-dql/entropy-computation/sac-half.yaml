@@ -1,0 +1,15 @@
+T: 4
+algo: sac
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: entropy-sac-halfch-online-t4
+name: entropy-sac-halfch-online-t4
+need_animation: true
+predict_epsilon: false
+update_ema_every: 1
+need_entropy_test: True
+determine: False
