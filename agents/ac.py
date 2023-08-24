@@ -233,9 +233,10 @@ class Diffusion_AC(object):
             self.actor_optimizer.step()
             
             with torch.no_grad():
+                denoised_noisy_action_ema = self.ema_model.p_sample(noisy_action, t, state)
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
-                target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
+                target_v = self.critic.qmin(state, denoised_noisy_action_ema, t_scalar).detach() # (b, 1)->(b,)
             q_cur = self.critic.qmin(state, noisy_action, t_scalar+1)
             q_tar = target_v * self.discount2
             assert q_cur.shape == q_tar.shape, "q_cur.shape != q_tar.shape"
@@ -247,7 +248,8 @@ class Diffusion_AC(object):
             self.critic_optimizer.step()
 
             """ Step Target network """
-            # self.step_ema()
+            if self.step % self.update_ema_every == 0:
+                self.step_ema()
             if self.step % 2 == 0:
                 for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                     target_param.data.copy_(
