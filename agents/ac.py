@@ -232,6 +232,13 @@ class Diffusion_AC(object):
                 self.actor_optimizer.zero_grad()
                 # q_loss.backward()
                 actor_loss.backward()
+                if self.grad_norm > 0:
+                    actor_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
+                        self.actor.parameters(), max_norm=self.grad_norm, norm_type=2) 
+                    if log_writer is not None:
+                        log_writer.add_scalar(
+                            'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
+
                 self.actor_optimizer.step()
 
                 if log_writer is not None:
@@ -255,9 +262,12 @@ class Diffusion_AC(object):
             self.critic_optimizer.zero_grad()
             # v_loss.backward()
             critic_loss.backward()
-            # if self.grad_norm > 0:
-            #     critic_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
-            #         self.critic.parameters(), max_norm=self.grad_norm, norm_type=2) 
+            if self.grad_norm > 0:
+                critic_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
+                    self.critic.parameters(), max_norm=self.grad_norm, norm_type=2) 
+                if log_writer is not None:
+                    log_writer.add_scalar(
+                        'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
             self.critic_optimizer.step()
 
             """ Step Target network """
@@ -272,11 +282,6 @@ class Diffusion_AC(object):
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
-
-        # log_writer.add_scalar(
-        #             'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
-        #         log_writer.add_scalar(
-        #                 'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
         return metric
 
     def sample_action(self, state, noise_scale=0.0):
