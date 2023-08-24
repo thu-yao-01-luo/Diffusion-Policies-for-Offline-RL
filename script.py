@@ -2,6 +2,7 @@ from multiprocessing import Process
 import yaml
 import os
 import random
+import time
 
 index_range = range(1, 11)
 config_dir = "configs/"
@@ -2071,7 +2072,7 @@ def aug22_demo_dac_dql_scheduler():
         # run_python_file(job, file_paths[ind], main="experiment.py")
         run_multi_py(job, file_paths[ind], main="experiment.py")
 
-def sanity_check():
+def sanity_check(with_time=False):
     """
     compare different schedulers, linear, vp, cosine
     lack exploration in the online setting 
@@ -2089,7 +2090,7 @@ def sanity_check():
     job_list = []
     config_dir = "configs/dac-dql/sanity/"
     for config_file in os.listdir(config_dir):
-        job_id = config_file[:-5]
+        job_id = config_file[:-5] + time.strftime("%D:%H:%M:%S")
         file_paths.append(os.path.join(config_dir, config_file))
         job_list.append(job_id)
     for ind, job in enumerate(job_list):
@@ -2212,6 +2213,6 @@ if __name__ == "__main__":
     # aug20_demo_dac_dql()
     # aug22_demo_dac_dql()
     # aug22_demo_dac_dql_scheduler()    
-    sanity_check()
+    sanity_check(with_time=True)
     # aug23_dac_dql_d4rl()
     # aug23_dac_dql_d4rl_offline()

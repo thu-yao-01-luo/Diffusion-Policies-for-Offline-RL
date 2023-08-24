@@ -215,23 +215,34 @@ class Diffusion_AC(object):
             self.critic_optimizer.zero_grad()
             MSBE_loss.backward()
             self.critic_optimizer.step()
+            if log_writer is not None:
+                log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
+            metric['MSBE_loss'].append(MSBE_loss.item())
 
             noise = torch.randn_like(action, device=action.device)
             t = torch.randint(0, self.actor.n_timesteps,
-                              (batch_size,), device=self.device).long()
+                            (batch_size,), device=self.device).long()
             noisy_action = self.actor.q_sample(action, t, noise)
-            denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
             t_scalar = int(t[0].item()) # float to int
-            q_value = self.critic.qmin(state, denoised_noisy_action, t_scalar)
-            q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()     
-            bc_loss = self.actor.p_losses(action, state, t).mean()
-            actor_loss = q_loss + self.bc_weight * bc_loss
 
-            self.actor_optimizer.zero_grad()
-            # q_loss.backward()
-            actor_loss.backward()
-            self.actor_optimizer.step()
-            
+            if self.step % self.policy_freq == 0:
+                denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
+                q_value = self.critic.qmin(state, denoised_noisy_action, t_scalar)
+                q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()     
+                bc_loss = self.actor.p_losses(action, state, t).mean()
+                actor_loss = q_loss + self.bc_weight * bc_loss
+
+                self.actor_optimizer.zero_grad()
+                # q_loss.backward()
+                actor_loss.backward()
+                self.actor_optimizer.step()
+
+                if log_writer is not None:
+                    log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
+                    log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
+                metric['ql_loss'].append(q_value.mean().item())
+                metric["bc_loss"].append(bc_loss.item())
+                
             with torch.no_grad():
                 denoised_noisy_action_ema = self.ema_model.p_sample(noisy_action, t, state)
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
@@ -256,11 +267,6 @@ class Diffusion_AC(object):
                         self.tau * param.data + (1 - self.tau) * target_param.data)
             self.step += 1
             """ Log """
-            if log_writer is not None:
-                log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
-                log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
-            metric['ql_loss'].append(q_value.mean().item())
-            metric["bc_loss"].append(bc_loss.item())
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
