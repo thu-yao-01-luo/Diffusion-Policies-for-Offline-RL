@@ -2090,7 +2090,7 @@ def sanity_check(with_time=False):
     job_list = []
     config_dir = "configs/dac-dql/sanity/"
     for config_file in os.listdir(config_dir):
-        job_id = config_file[:-5] + time.strftime("%D:%H:%M:%S")
+        job_id = config_file[:-5] + time.strftime("%H:%M:%S")
         file_paths.append(os.path.join(config_dir, config_file))
         job_list.append(job_id)
     for ind, job in enumerate(job_list):
