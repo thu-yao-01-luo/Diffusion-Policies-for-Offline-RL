@@ -1847,8 +1847,9 @@ def aug19_dac_d4rl():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind], main="experiment.py")
 
-def run_multi_py(job, filename, main="main.py"):
-    command = f"nohup python -u {main} --config {filename} id={job} name={job} > inter_result/sanity/log-{job} &"
+def run_multi_py(job, filename, main="main.py", total_gpu=8):
+    i = random.randint(0, total_gpu - 1)
+    command = f"CUDA_VISIBLE_DEVICES={i} nohup python -u {main} --config {filename} id={job} name={job} > inter_result/sanity/log-{job} &"
     # os.system("git add .")
     # os.system(f"git commit -m '{command}''")
     # os.system("git pull origin master")
@@ -2105,7 +2106,7 @@ def aug23_dac_dql_d4rl():
     for env_name in env:
         for T in Ts:
             for algo in algos:
-                job_id = f"{algo}-{env_name[:6]}-norm_q-online-t{T}"
+                job_id = f"{algo}-{env_name[:6]}-nq-online-t{T}"
                 file_name = job_id + ".yaml"
                 config = {
                     "algo": algo, 
