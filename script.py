@@ -2156,6 +2156,7 @@ def aug23_dac_dql_d4rl_offline():
                     "need_animation": True, 
                     "discount2": 0.999,
                     "need_entropy_test": True,
+                    "online": False,
                     "num_steps_per_epoch": 1,
                     "bc_weight": 1.0,
                     }
@@ -2213,5 +2214,5 @@ if __name__ == "__main__":
     # aug22_demo_dac_dql()
     # aug22_demo_dac_dql_scheduler()    
     # sanity_check()
-    aug23_dac_dql_d4rl()
+    # aug23_dac_dql_d4rl()
     aug23_dac_dql_d4rl_offline()
