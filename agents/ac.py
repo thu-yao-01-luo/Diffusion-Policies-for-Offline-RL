@@ -252,10 +252,12 @@ class Diffusion_AC(object):
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
                 target_v = self.critic.qmin(state, denoised_noisy_action_ema, t_scalar).detach() # (b, 1)->(b,)
-            q_cur = self.critic.qmin(state, noisy_action, t_scalar+1)
+            # q_cur = self.critic.qmin(state, noisy_action, t_scalar+1)
+            q_cur1, q_cur2 = self.critic.q(state, noisy_action, t_scalar+1)
             q_tar = target_v * self.discount2
-            assert q_cur.shape == q_tar.shape, "q_cur.shape != q_tar.shape"
-            v_loss = F.mse_loss(q_cur, q_tar) # (b, 1)->(1,)
+            # assert q_cur.shape == q_tar.shape, "q_cur.shape != q_tar.shape"
+            # v_loss = F.mse_loss(q_cur, q_tar) # (b, 1)->(1,)
+            v_loss = F.mse_loss(q_cur1, q_tar) + F.mse_loss(q_cur2, q_tar) # (b, 1)->(1,)
             # current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
             # v_loss = expectile_loss(current_v, target_v, self.expectile)
             critic_loss = v_loss + MSBE_loss * self.MSBE_coef

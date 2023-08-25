@@ -220,7 +220,7 @@ class Diffusion_QL(object):
             # bc_loss = self.actor.p_losses(action, state, t).mean()
             bc_loss = self.actor.loss(action, state).mean()
             actor_loss = q_loss + self.bc_weight * bc_loss
-
+            
             self.actor_optimizer.zero_grad()
             # q_loss.backward()
             actor_loss.backward()
