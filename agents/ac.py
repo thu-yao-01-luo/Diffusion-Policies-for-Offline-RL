@@ -212,53 +212,73 @@ class Diffusion_AC(object):
             assert q1.shape == target_q.shape, "q1.shape != target_q.shape"
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
 
-            self.critic_optimizer.zero_grad()
-            MSBE_loss.backward()
-            self.critic_optimizer.step()
+            if log_writer is not None:
+                log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
+            metric['MSBE_loss'].append(MSBE_loss.item())
 
             noise = torch.randn_like(action, device=action.device)
             t = torch.randint(0, self.actor.n_timesteps,
-                              (batch_size,), device=self.device).long()
+                            (batch_size,), device=self.device).long()
             noisy_action = self.actor.q_sample(action, t, noise)
-            denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
             t_scalar = int(t[0].item()) # float to int
-            q_value = self.critic.qmin(state, denoised_noisy_action, t_scalar)
-            q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()     
-            bc_loss = self.actor.p_losses(action, state, t).mean()
-            actor_loss = q_loss + self.bc_weight * bc_loss
 
-            self.actor_optimizer.zero_grad()
-            # q_loss.backward()
-            actor_loss.backward()
-            self.actor_optimizer.step()
-            
+            if self.step % self.policy_freq == 0:
+                denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
+                q_value = self.critic.qmin(state, denoised_noisy_action, t_scalar)
+                q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()     
+                bc_loss = self.actor.p_losses(action, state, t).mean()
+                actor_loss = q_loss + self.bc_weight * bc_loss
+
+                self.actor_optimizer.zero_grad()
+                # q_loss.backward()
+                actor_loss.backward()
+                if self.grad_norm > 0:
+                    actor_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
+                        self.actor.parameters(), max_norm=self.grad_norm, norm_type=2) 
+                    if log_writer is not None:
+                        log_writer.add_scalar(
+                            'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
+
+                self.actor_optimizer.step()
+
+                if log_writer is not None:
+                    log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
+                    log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
+                metric['ql_loss'].append(q_value.mean().item())
+                metric["bc_loss"].append(bc_loss.item())
+                
             with torch.no_grad():
+                denoised_noisy_action_ema = self.ema_model.p_sample(noisy_action, t, state)
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
-                target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
+                target_v = self.critic.qmin(state, denoised_noisy_action_ema, t_scalar).detach() # (b, 1)->(b,)
             q_cur = self.critic.qmin(state, noisy_action, t_scalar+1)
             q_tar = target_v * self.discount2
             assert q_cur.shape == q_tar.shape, "q_cur.shape != q_tar.shape"
             v_loss = F.mse_loss(q_cur, q_tar) # (b, 1)->(1,)
             # current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
             # v_loss = expectile_loss(current_v, target_v, self.expectile)
+            critic_loss = v_loss + MSBE_loss * self.MSBE_coef
             self.critic_optimizer.zero_grad()
-            v_loss.backward()
+            # v_loss.backward()
+            critic_loss.backward()
+            if self.grad_norm > 0:
+                critic_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
+                    self.critic.parameters(), max_norm=self.grad_norm, norm_type=2) 
+                if log_writer is not None:
+                    log_writer.add_scalar(
+                        'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
             self.critic_optimizer.step()
 
             """ Step Target network """
-            # self.step_ema()
+            if self.step % self.update_ema_every == 0:
+                self.step_ema()
             if self.step % 2 == 0:
                 for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                     target_param.data.copy_(
                         self.tau * param.data + (1 - self.tau) * target_param.data)
             self.step += 1
             """ Log """
-            if log_writer is not None:
-                log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
-                log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
-            metric['ql_loss'].append(q_value.mean().item())
-            metric["bc_loss"].append(bc_loss.item())
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
                 self.critic_lr_scheduler.step()
