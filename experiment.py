@@ -362,8 +362,52 @@ def offline_train(args, env_fn):
     best_nreward = -np.inf
     dataset = build_dataset(env_name=args.env_name, is_d4rl=args.d4rl) # TODO: build dataset 
     data_sampler = DatasetSampler(dataset, device)
-    if args.algo == 'dac' or args.algo == 'dql':
+    if args.algo == 'dac':
         from agents.ac import Diffusion_AC as Agent
+        agent = Agent(state_dim=obs_dim,
+            action_dim=act_dim,
+            max_action=act_limit,
+            device=device,
+            discount=args.discount,
+            tau=args.tau,
+            max_q_backup=args.max_q_backup,
+            beta_schedule=args.beta_schedule,
+            n_timesteps=args.T,
+            eta=args.eta,
+            lr=args.lr,
+            lr_decay=args.lr_decay,
+            lr_maxt=args.num_epochs,
+            grad_norm=args.gn,
+            MSBE_coef=args.MSBE_coef,
+            discount2=args.discount2,
+            compute_consistency=args.compute_consistency,
+            iql_style=args.iql_style,
+            expectile=args.expectile,
+            quantile=args.quantile,
+            temperature=args.temperature,
+            bc_weight=args.bc_weight,
+            tune_bc_weight=args.tune_bc_weight,
+            std_threshold=args.std_threshold,
+            bc_lower_bound=args.bc_lower_bound,
+            bc_decay=args.bc_decay,
+            bc_upper_bound=args.bc_upper_bound,
+            value_threshold=args.value_threshold,
+            consistency=args.consistency,
+            scale=args.scale,
+            predict_epsilon=args.predict_epsilon,
+            debug=args.debug,
+            g_mdp=args.g_mdp,
+            policy_freq=args.policy_delay,
+            norm_q=args.norm_q,
+            consistency_coef=args.consistency_coef,
+            target_noise=args.target_noise, 
+            noise_clip=args.noise_clip,
+            add_noise=args.add_noise,
+            update_ema_every=args.update_ema_every,
+            test_critic=args.test_critic,
+            )
+    elif args.algo == 'dql':
+        from agents.ql import Diffusion_QL as Agent
         agent = Agent(state_dim=obs_dim,
             action_dim=act_dim,
             max_action=act_limit,
@@ -428,7 +472,7 @@ def offline_train(args, env_fn):
                     raise NotImplementedError
         else:
             raise NotImplementedError
-        if t % args.num_steps_per_epoch == 0:
+        if t % args.num_steps_per_epoch == 0 and args.with_eval:
             eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt, entropy = eval_policy(args, agent, test_env, algo=args.algo, 
             eval_episodes=args.eval_episodes)
             current_time = time.time()
