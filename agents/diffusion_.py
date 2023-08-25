@@ -15,11 +15,11 @@ from agents.helpers import (cosine_beta_schedule,
                             Losses)
 from utils.utils import Progress, Silent
 
-class Diffusion(nn.Module):
+class Diffusion_prime(nn.Module):
     def __init__(self, state_dim, action_dim, model, max_action,
                  beta_schedule='linear', n_timesteps=100,
                  loss_type='l2', clip_denoised=True, predict_epsilon=True, scale=1.0):
-        super(Diffusion, self).__init__()
+        super(Diffusion_prime, self).__init__()
 
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -196,3 +196,7 @@ class Diffusion(nn.Module):
 
     def forward(self, state, *args, **kwargs):
         return self.sample(state, *args, **kwargs)
+
+class Diffusion(Diffusion_prime):
+    def p_sample(self, x, t, s):
+        return torch.clamp(super().p_sample(x, t, s), -self.max_action, self.max_action)
