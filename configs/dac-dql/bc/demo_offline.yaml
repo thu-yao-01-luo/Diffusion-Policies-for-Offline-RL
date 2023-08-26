@@ -1,0 +1,17 @@
+T: 4
+algo: bc
+bc_weight: 1.0
+d4rl: false
+env_name: Demo-v0
+format:
+  - stdout
+  - csv
+  - wandb
+id: bc-demo-offline-t4
+name: bc-demo-offline-t4
+need_animation: true
+num_steps_per_epoch: 1
+online: false
+predict_epsilon: false
+update_ema_every: 1
+vis_q: true

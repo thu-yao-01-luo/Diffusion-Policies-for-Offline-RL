@@ -450,12 +450,57 @@ def offline_train(args, env_fn):
             update_ema_every=args.update_ema_every,
             test_critic=args.test_critic,
             )
+    elif args.algo == "bc":
+        from agents.bc import Diffusion_BC as Agent
+        agent = Agent(state_dim=obs_dim,
+            action_dim=act_dim,
+            max_action=act_limit,
+            device=device,
+            discount=args.discount,
+            tau=args.tau,
+            max_q_backup=args.max_q_backup,
+            beta_schedule=args.beta_schedule,
+            n_timesteps=args.T,
+            eta=args.eta,
+            lr=args.lr,
+            lr_decay=args.lr_decay,
+            lr_maxt=args.num_epochs,
+            grad_norm=args.gn,
+            MSBE_coef=args.MSBE_coef,
+            discount2=args.discount2,
+            compute_consistency=args.compute_consistency,
+            iql_style=args.iql_style,
+            expectile=args.expectile,
+            quantile=args.quantile,
+            temperature=args.temperature,
+            bc_weight=args.bc_weight,
+            tune_bc_weight=args.tune_bc_weight,
+            std_threshold=args.std_threshold,
+            bc_lower_bound=args.bc_lower_bound,
+            bc_decay=args.bc_decay,
+            bc_upper_bound=args.bc_upper_bound,
+            value_threshold=args.value_threshold,
+            consistency=args.consistency,
+            scale=args.scale,
+            predict_epsilon=args.predict_epsilon,
+            debug=args.debug,
+            g_mdp=args.g_mdp,
+            policy_freq=args.policy_delay,
+            norm_q=args.norm_q,
+            consistency_coef=args.consistency_coef,
+            target_noise=args.target_noise, 
+            noise_clip=args.noise_clip,
+            add_noise=args.add_noise,
+            update_ema_every=args.update_ema_every,
+            test_critic=args.test_critic,
+            )
     else:
         raise NotImplementedError
 
     starting_time = time.time()
+    last_eval_time = starting_time  
     for t in range(max_timesteps):
-        if args.algo == 'dac' or args.algo == 'dql':
+        if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc':
             loss_metric = agent.train(
                         replay_buffer=data_sampler,
                         iterations=update_every,
@@ -472,15 +517,18 @@ def offline_train(args, env_fn):
                     raise NotImplementedError
         else:
             raise NotImplementedError
+        train_time = time.time() - last_eval_time 
         if t % args.num_steps_per_epoch == 0 and args.with_eval:
+            infer_begin = time.time()
             eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt, entropy = eval_policy(args, agent, test_env, algo=args.algo, 
             eval_episodes=args.eval_episodes)
             current_time = time.time()
             time_span = current_time - starting_time
+            infer_time = time.time() - infer_begin
             logger_zhiao.logkvs({'eval_reward': eval_res, 'eval_nreward': eval_norm_res,
                                 'eval_reward_std': eval_res_std, 'eval_nreward_std': eval_norm_res_std,
                                 'eval_len': eval_len, 'eval_len_std': eval_len_std, "time": time_span, 
-                                "local_opt": local_opt, "entropy": entropy})
+                                "local_opt": local_opt, "entropy": entropy, "train_time": train_time, "infer_time": infer_time})
             if args.algo == 'dac':
                 print("bc_loss", np.mean(loss_metric['bc_loss']))
                 print("ql_loss", np.mean(loss_metric['ql_loss']))
@@ -497,6 +545,7 @@ def offline_train(args, env_fn):
                     best_nreward = eval_norm_res
                     agent.save_model(output_dir, t // update_every)
             logger_zhiao.dumpkvs()
+            last_eval_time = time.time()
 
 if __name__ == '__main__':
     args = load_config(Config)
