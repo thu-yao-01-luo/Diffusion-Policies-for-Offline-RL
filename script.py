@@ -1849,7 +1849,7 @@ def aug19_dac_d4rl():
 
 def run_multi_py(job, filename, main="main.py", total_gpu=8):
     i = random.randint(0, total_gpu - 1)
-    command = f"CUDA_VISIBLE_DEVICES={i} nohup python -u {main} --config {filename} id={job} name={job} > inter_result/sanity/log-{job} &"
+    command = f"CUDA_VISIBLE_DEVICES={i} nohup python -u {main} --config {filename} id={job} name={job} > inter_result/new_sanity/log-{job} &"
     # os.system("git add .")
     # os.system(f"git commit -m '{command}''")
     # os.system("git pull origin master")
@@ -2377,7 +2377,7 @@ def aug30_dac_dql_d4rl_offline():
     file_paths = []
     job_list = []
     env = ["halfcheetah-medium-v2"]
-    Ts = [4, 8]
+    Ts = [1, 4, 8, 32]
     algos = ["dac", "dql"]
     bcws = [1.0, 0.2]
     config_dir = "configs/dac-dql/d4rl-offline-no-bug/"
@@ -2475,7 +2475,7 @@ if __name__ == "__main__":
     # sanity_check(with_time=False)
     # aug23_dac_dql_d4rl()
     # aug23_dac_dql_d4rl_offline()
-    sanity_check(with_time=True)
+    # sanity_check(with_time=True)
     # aug23_dac_dql_d4rl()
     # aug23_dac_dql_d4rl_offline()
     # aug25_dac_dql_d4rl_offline()
@@ -2485,5 +2485,5 @@ if __name__ == "__main__":
     # aug26_dac_dql_d4rl_offline()
     # aug30_time_computation()
     # aug30_time_computation2()
-    # aug30_dac_dql_d4rl_offline()
+    aug30_dac_dql_d4rl_offline()
     # aug30_check_correct()
