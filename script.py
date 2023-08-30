@@ -2386,7 +2386,7 @@ def aug30_dac_dql_d4rl_offline():
         for T in Ts:
             for algo in algos:
                 for bcw in bcws:
-                    job_id = f"{algo}-{env_name[:6]}-t-vec-offline-t{T}"
+                    job_id = f"{algo}-{env_name[:6]}-t{T}-bcw{bcw}-tvec-offline"
                     file_name = job_id + ".yaml"
                     config = {
                         "algo": algo, 
