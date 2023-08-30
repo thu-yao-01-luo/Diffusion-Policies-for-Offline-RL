@@ -2090,6 +2090,7 @@ def sanity_check(with_time=False):
     config_dir = "configs/dac-dql/sanity/"
     for config_file in os.listdir(config_dir):
         job_id = config_file[:-5] + time.strftime("%H:%M:%S")
+        # job_id = config_file[:-5]
         file_paths.append(os.path.join(config_dir, config_file))
         job_list.append(job_id)
     for ind, job in enumerate(job_list):
@@ -2345,6 +2346,30 @@ def aug26_dac_dql_d4rl_offline():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind], main="experiment.py")
 
+def aug30_time_computation():
+    file_paths = []
+    job_list = []
+    config_dir = "configs/time-memory/"
+    for config_file in os.listdir(config_dir):
+        # job_id = "time-" + config_file[:-5] + time.strftime("%H:%M:%S")
+        job_id = "time-" + config_file[:-5]
+        file_paths.append(os.path.join(config_dir, config_file))
+        job_list.append(job_id)
+    for ind, job in enumerate(job_list):
+        run_multi_py(job, file_paths[ind], main="experiment.py")
+
+def aug30_time_computation2():
+    file_paths = []
+    job_list = []
+    config_dir = "configs/time-memory/time5000/"
+    for config_file in os.listdir(config_dir):
+        # job_id = "time-" + config_file[:-5] + time.strftime("%H:%M:%S")
+        job_id = "time5000-" + config_file[:-5]
+        file_paths.append(os.path.join(config_dir, config_file))
+        job_list.append(job_id)
+    for ind, job in enumerate(job_list):
+        run_multi_py(job, file_paths[ind], main="experiment.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -2399,4 +2424,6 @@ if __name__ == "__main__":
     # aug25_dac_dql_d4rl()
     # aug25_dac_dql_d4rl_offline2()
     # bc_sanity_check()
-    aug26_dac_dql_d4rl_offline()
+    # aug26_dac_dql_d4rl_offline()
+    # aug30_time_computation()
+    aug30_time_computation2()

@@ -196,7 +196,9 @@ class Diffusion_AC(object):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
                   'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
                   "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": [], 
-                  "action_norm": [], "new_action_max": [], "new_action_mean": []}
+                  "action_norm": [], "new_action_max": [], "new_action_mean": [], "critic_forward": [], 
+                  "critic_backward": [], "actor_forward": [], "actor_backward": [], "MSBE_time": [], 
+                  "consistency_time": [], "q_time": [], "bc_time": []}
         for ind in range(iterations):
             # Sample replay buffer / batch
             state, action, next_state, reward, not_done = replay_buffer.sample(
@@ -204,6 +206,7 @@ class Diffusion_AC(object):
             """ Q Training """
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
+            start_time = time.time()
             with torch.no_grad():
                 noise = torch.randn_like(action, device=action.device)
                 target_v = self.critic_target.qmin(next_state, noise, self.actor.n_timesteps)
@@ -211,11 +214,12 @@ class Diffusion_AC(object):
             q1, q2 = self.critic.q(state, action, 0) # (b, 1)
             # assert q1.shape == target_q.shape, "q1.shape != target_q.shape"
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
+            msbe_time = time.time() - start_time
 
             if log_writer is not None:
                 log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
             metric['MSBE_loss'].append(MSBE_loss.item())
-
+            start_time = time.time()
             noise = torch.randn_like(action, device=action.device)
             t = torch.randint(0, self.actor.n_timesteps,
                             (batch_size,), device=self.device).long()
@@ -233,11 +237,14 @@ class Diffusion_AC(object):
             # assert q_cur.shape == q_tar.shape, "q_cur.shape != q_tar.shape"
             # v_loss = F.mse_loss(q_cur, q_tar) # (b, 1)->(1,)
             v_loss = F.mse_loss(q_cur1, q_tar) + F.mse_loss(q_cur2, q_tar) # (b, 1)->(1,)
+            consistency_time = time.time() - start_time
             # current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
             # v_loss = expectile_loss(current_v, target_v, self.expectile)
             critic_loss = v_loss + MSBE_loss * self.MSBE_coef
+            critic_forward = msbe_time + consistency_time
             self.critic_optimizer.zero_grad()
             # v_loss.backward()
+            start_time = time.time()
             critic_loss.backward()
             if self.grad_norm > 0:
                 critic_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
@@ -246,16 +253,29 @@ class Diffusion_AC(object):
                     log_writer.add_scalar(
                         'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
             self.critic_optimizer.step()
-
+            critic_backward = time.time() - start_time
+            # metric append and completion
+            metric["critic_loss"].append(critic_loss.item())
+            metric["critic_forward"].append(critic_forward)
+            metric["critic_backward"].append(critic_backward)
+            metric["MSBE_time"].append(msbe_time)
+            metric["consistency_time"].append(consistency_time)
+            
             if self.step % self.policy_freq == 0:
+                actor_start_time = time.time()
                 denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
+                start_time = time.time()
                 q_value = self.critic.qmin(state, denoised_noisy_action, t_scalar)
                 q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()     
+                q_time = time.time() - start_time
+                start_time = time.time()
                 bc_loss = self.actor.p_losses(action, state, t).mean()
+                bc_time = time.time() - start_time
                 actor_loss = q_loss + self.bc_weight * bc_loss
-
+                actor_forward = time.time() - actor_start_time
                 self.actor_optimizer.zero_grad()
                 # q_loss.backward()
+                start_time = time.time()
                 actor_loss.backward()
                 if self.grad_norm > 0:
                     actor_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
@@ -263,15 +283,17 @@ class Diffusion_AC(object):
                     if log_writer is not None:
                         log_writer.add_scalar(
                             'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
-
                 self.actor_optimizer.step()
-
+                actor_backward = time.time() - start_time
                 if log_writer is not None:
                     log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
                     log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
                 metric['ql_loss'].append(q_value.mean().item())
                 metric["bc_loss"].append(bc_loss.item())
-                
+                metric["q_time"].append(q_time)
+                metric["bc_time"].append(bc_time)
+                metric["actor_forward"].append(actor_forward)
+                metric["actor_backward"].append(actor_backward)
             """ Step Target network """
             if self.step % self.update_ema_every == 0:
                 self.step_ema()

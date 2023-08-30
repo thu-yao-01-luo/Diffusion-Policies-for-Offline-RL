@@ -196,20 +196,25 @@ class Diffusion_QL(object):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [], 'v_loss': [],
                 'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
                 "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": [], 
-                "action_norm": [], "new_action_max": [], "new_action_mean": [], "critic_norm": [], "actor_norm": [],}
+                "action_norm": [], "new_action_max": [], "new_action_mean": [], "critic_norm": [], "actor_norm": [],
+                "critic_forward": [], "critic_backward": [], "actor_forward": [], "actor_backward": [], "MSBE_time": [], 
+                "consistency_time": [], "q_time": [], "bc_time": []}
         for ind in range(iterations):
             # Sample replay buffer / batch
+            # add time computation for critic loss, actor loss, q loss, bc loss, and append to the metric
             state, action, next_state, reward, not_done = replay_buffer.sample(
                 batch_size)
             """ Q Training """
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
+            start_time = time.time()
             with torch.no_grad():
                 target_v = self.critic_target.v(next_state) # (b, 1)
                 target_q = (reward + not_done * self.discount * target_v).detach() # (b,)
             q1, q2 = self.critic.q(state, action) # (b, 1)
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
-
+            msbe_time = time.time() - start_time
+            start_time = time.time()
             with torch.no_grad():
                 denoised_noisy_action = self.ema_model.sample(state)
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
@@ -217,10 +222,12 @@ class Diffusion_QL(object):
                 # target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
                 target_v = self.critic_target.qmin(state, denoised_noisy_action).detach() # (b, 1)->(b,)
             v_loss = F.mse_loss(self.critic.v(state), target_v)
+            consistency_time = time.time() - start_time
             # current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
             # v_loss = expectile_loss(current_v, target_v, self.expectile)
             critic_loss = MSBE_loss + self.MSBE_coef * v_loss
             self.critic_optimizer.zero_grad()
+            start_time = time.time()
             critic_loss.backward()
             if self.grad_norm > 0:
                 critic_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
@@ -230,16 +237,25 @@ class Diffusion_QL(object):
                             'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
                 metric['critic_norm'].append(critic_grad_norms.max().item()) 
             self.critic_optimizer.step()
-
+            critic_time = time.time() - start_time
+            metric['MSBE_time'].append(msbe_time)
+            metric['consistency_time'].append(consistency_time)
+            metric['critic_forward'].append(msbe_time + consistency_time)
+            metric['critic_backward'].append(critic_time)
             """ Actor Training """
             if self.step % self.policy_freq == 0:
+                start_time = time.time()
                 denoised_noisy_action = self.actor.sample(state)
                 q_value = self.critic.qmin(state, denoised_noisy_action)
                 q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()
+                q_time = time.time() - start_time
+                start_time = time.time()
                 # bc_loss = self.actor.p_losses(action, state, t).mean()
                 bc_loss = self.actor.loss(action, state).mean()
+                bc_time = time.time() - start_time
                 actor_loss = q_loss + self.bc_weight * bc_loss
                 self.actor_optimizer.zero_grad()
+                start_time = time.time()
                 actor_loss.backward()
                 if self.grad_norm > 0:
                     actor_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
@@ -248,12 +264,16 @@ class Diffusion_QL(object):
                         log_writer.add_scalar(
                             'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
                 self.actor_optimizer.step()
-                
+                actor_time = time.time() - start_time
                 if log_writer is not None:
                     log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
                     log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
                 metric['ql_loss'].append(q_value.mean().item())
                 metric['bc_loss'].append(bc_loss.item())
+                metric['q_time'].append(q_time)
+                metric['bc_time'].append(bc_time)
+                metric['actor_forward'].append(q_time + bc_time)
+                metric['actor_backward'].append(actor_time)
             
             """ Step Target network """
             # self.step_ema()
