@@ -25,6 +25,59 @@ def expectile_loss(q, target_q, expectile=0.7):
     diff = q - target_q
     return torch.mean(torch.where(diff > 0, expectile * diff ** 2, (1 - expectile) * diff ** 2))
 
+# class QNetwork(nn.Module):
+#     def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
+#         super(QNetwork, self).__init__()
+#         self.state_dim = state_dim
+#         self.action_dim = action_dim
+#         self.input_dim = state_dim + action_dim + t_dim
+
+#         self.q_network = nn.Sequential(
+#             nn.Linear(self.input_dim, hidden_dim),
+#             nn.ReLU(),
+#             nn.Linear(hidden_dim, hidden_dim),
+#             nn.ReLU(),
+#             nn.Linear(hidden_dim, 1)
+#         )
+        
+#         self.time_mlp = nn.Sequential(
+#             SinusoidalPosEmb(t_dim),
+#             nn.Linear(t_dim, t_dim * 2),
+#             nn.ReLU(),
+#             nn.Linear(t_dim * 2, t_dim),
+#         )
+#         self.apply(weights_init_)
+
+#     def forward(self, state, action, t=0):
+#         t = torch.tensor([t] * state.shape[0], dtype=torch.float32, device=state.device)
+#         t = self.time_mlp(t)
+#         x = torch.cat([state, action, t], dim=1)
+#         return self.q_network(x)
+
+# class TestCritic(nn.Module):
+#     def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256, max_time_step=1):
+#         super(TestCritic, self).__init__()
+#         self.state_dim = state_dim
+#         self.action_dim = action_dim
+#         self.t_dim = t_dim
+#         self.max_t = max_time_step
+
+#         self.q_network1 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
+#         self.q_network2 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
+
+#     def q(self, state, action, t=0):
+#         return self.q_network1(state, action, t), self.q_network2(state, action, t)
+    
+#     def v(self, state):
+#         action = torch.randn((state.shape[0], self.action_dim), device=state.device)
+#         return torch.min(self.q_network1(state, action, self.max_t), self.q_network2(state, action, self.max_t))
+    
+#     def q1(self, state, action, t=0):
+#         return self.q_network1(state, action, t)
+    
+#     def qmin(self, state, action, t=0):
+#         return torch.min(self.q_network1(state, action, t), self.q_network2(state, action, t))
+
 class QNetwork(nn.Module):
     def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
         super(QNetwork, self).__init__()
@@ -48,34 +101,42 @@ class QNetwork(nn.Module):
         )
         self.apply(weights_init_)
 
-    def forward(self, state, action, t=0):
-        t = torch.tensor([t] * state.shape[0], dtype=torch.float32, device=state.device)
+    def forward(self, state, action, t):
+        # t = torch.tensor([t] * state.shape[0], dtype=torch.float32, device=state.device)
         t = self.time_mlp(t)
         x = torch.cat([state, action, t], dim=1)
         return self.q_network(x)
 
 class TestCritic(nn.Module):
-    def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
+    def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256, max_time_step=1):
         super(TestCritic, self).__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.t_dim = t_dim
+        self.max_t = max_time_step
 
         self.q_network1 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
         self.q_network2 = QNetwork(state_dim, action_dim, t_dim, hidden_dim)
 
-    def q(self, state, action, t=0):
+    def q(self, state, action, t=None):
+        if t == None:
+            t = torch.zeros((state.shape[0],), device=state.device)
         return self.q_network1(state, action, t), self.q_network2(state, action, t)
     
     def v(self, state):
         action = torch.randn((state.shape[0], self.action_dim), device=state.device)
-        return torch.min(self.q_network1(state, action, 1), self.q_network2(state, action, 1))
+        t = torch.tensor([self.max_t] * state.shape[0], dtype=torch.float32, device=state.device)
+        return torch.min(self.q_network1(state, action, t), self.q_network2(state, action, t))
     
-    def q1(self, state, action, t=0):
-        return self.q_network1(state, action)
+    def q1(self, state, action, t=None):
+        if t == None: 
+            t = torch.zeros((state.shape[0],), device=state.device)
+        return self.q_network1(state, action, t)
     
-    def qmin(self, state, action, t=0):
-        return torch.min(self.q_network1(state, action), self.q_network2(state, action))
+    def qmin(self, state, action, t=None):
+        if t == None:
+            t = torch.zeros((state.shape[0],), device=state.device)
+        return torch.min(self.q_network1(state, action, t), self.q_network2(state, action, t))
 
 class Diffusion_QL(object):
     def __init__(self,
@@ -143,7 +204,7 @@ class Diffusion_QL(object):
         self.ema_model = copy.deepcopy(self.actor)
         self.update_ema_every = update_ema_every
         self.test_critic = test_critic
-        self.critic = TestCritic(state_dim, action_dim).to(device)
+        self.critic = TestCritic(state_dim, action_dim, max_time_step=n_timesteps).to(device)
         self.critic_target = copy.deepcopy(self.critic)
         self.critic_optimizer = torch.optim.Adam(
             self.critic.parameters(), lr=3e-4)
@@ -207,27 +268,17 @@ class Diffusion_QL(object):
             """ Q Training """
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
-            # start_time = time.time()
             with torch.no_grad():
                 target_v = self.critic_target.v(next_state) # (b, 1)
-                target_q = (reward + not_done * self.discount * target_v).detach() # (b,)
+                target_q = (reward + not_done * self.discount * target_v) # (b,)
             q1, q2 = self.critic.q(state, action) # (b, 1)
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
-            # msbe_time = time.time() - start_time
-            # start_time = time.time()
             with torch.no_grad():
                 denoised_noisy_action = self.ema_model.sample(state)
-                # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
-                # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
-                # target_v = self.critic.qmin(state, denoised_noisy_action, t_scalar).detach() # (b, 1)->(b,)
-                target_v = self.critic_target.qmin(state, denoised_noisy_action).detach() # (b, 1)->(b,)
+                target_v = self.critic_target.qmin(state, denoised_noisy_action) # (b, 1)->(b,)
             v_loss = F.mse_loss(self.critic.v(state), target_v)
-            # consistency_time = time.time() - start_time
-            # current_v = self.critic.qmin(state, noisy_action, t_scalar+1)
-            # v_loss = expectile_loss(current_v, target_v, self.expectile)
-            critic_loss = MSBE_loss + self.MSBE_coef * v_loss
+            critic_loss = self.MSBE_coef * MSBE_loss + v_loss
             self.critic_optimizer.zero_grad()
-            # start_time = time.time()
             critic_loss.backward()
             if self.grad_norm > 0:
                 critic_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
@@ -237,25 +288,14 @@ class Diffusion_QL(object):
                             'Critic Grad Norm', critic_grad_norms.max().item(), self.step)
                 metric['critic_norm'].append(critic_grad_norms.max().item()) 
             self.critic_optimizer.step()
-            # critic_time = time.time() - start_time
-            # metric['MSBE_time'].append(msbe_time)
-            # metric['consistency_time'].append(consistency_time)
-            # metric['critic_forward'].append(msbe_time + consistency_time)
-            # metric['critic_backward'].append(critic_time)
             """ Actor Training """
             if self.step % self.policy_freq == 0:
-                # start_time = time.time()
                 denoised_noisy_action = self.actor.sample(state)
                 q_value = self.critic.qmin(state, denoised_noisy_action)
-                q_loss = - q_value.mean() / q_value.abs().mean() if self.norm_q else - q_value.mean()
-                # q_time = time.time() - start_time
-                # start_time = time.time()
-                # bc_loss = self.actor.p_losses(action, state, t).mean()
+                q_loss = - q_value.mean() / q_value.detach().abs().mean() if self.norm_q else - q_value.mean()
                 bc_loss = self.actor.loss(action, state).mean()
-                # bc_time = time.time() - start_time
                 actor_loss = q_loss + self.bc_weight * bc_loss
                 self.actor_optimizer.zero_grad()
-                # start_time = time.time()
                 actor_loss.backward()
                 if self.grad_norm > 0:
                     actor_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
@@ -264,19 +304,12 @@ class Diffusion_QL(object):
                         log_writer.add_scalar(
                             'Actor Grad Norm', actor_grad_norms.max().item(), self.step)
                 self.actor_optimizer.step()
-                # actor_time = time.time() - start_time
                 if log_writer is not None:
                     log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
                     log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
                 metric['ql_loss'].append(q_value.mean().item())
                 metric['bc_loss'].append(bc_loss.item())
-                # metric['q_time'].append(q_time)
-                # metric['bc_time'].append(bc_time)
-                # metric['actor_forward'].append(q_time + bc_time)
-                # metric['actor_backward'].append(actor_time)
-            
             """ Step Target network """
-            # self.step_ema()
             if self.step % 2 == 0:
                 for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                     target_param.data.copy_(
@@ -294,7 +327,6 @@ class Diffusion_QL(object):
         return metric
 
     def sample_action(self, state, noise_scale=0.0):
-        # state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
         if state.ndim==1:
             state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
         state = torch.tensor(state, dtype=torch.float).to(self.device)
