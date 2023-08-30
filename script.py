@@ -2475,7 +2475,7 @@ if __name__ == "__main__":
     # sanity_check(with_time=False)
     # aug23_dac_dql_d4rl()
     # aug23_dac_dql_d4rl_offline()
-    # sanity_check(with_time=True)
+    sanity_check(with_time=True)
     # aug23_dac_dql_d4rl()
     # aug23_dac_dql_d4rl_offline()
     # aug25_dac_dql_d4rl_offline()
