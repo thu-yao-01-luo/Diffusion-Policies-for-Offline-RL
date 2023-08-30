@@ -544,7 +544,7 @@ def offline_train(args, env_fn):
                 if args.save_best_model and eval_norm_res > best_nreward:
                     best_nreward = eval_norm_res
                     agent.save_model(output_dir, t // update_every)
-        logger_zhiao.dumpkvs()
+            logger_zhiao.dumpkvs()
             # last_eval_time = time.time()
 
 if __name__ == '__main__':

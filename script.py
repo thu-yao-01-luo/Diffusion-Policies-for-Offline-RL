@@ -2416,6 +2416,18 @@ def aug30_dac_dql_d4rl_offline():
         run_python_file(job, file_paths[ind], main="experiment.py")
         # run_multi_py(job, file_paths[ind], main="experiment.py")
 
+def aug30_check_correct():
+    file_paths = []
+    job_list = []
+    config_dir = "configs/tvec-debug/"
+    for config_file in os.listdir(config_dir):
+        # job_id = "time-" + config_file[:-5] + time.strftime("%H:%M:%S")
+        job_id = "tvec-" + config_file[:-5]
+        file_paths.append(os.path.join(config_dir, config_file))
+        job_list.append(job_id)
+    for ind, job in enumerate(job_list):
+        run_multi_py(job, file_paths[ind], main="experiment.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -2473,4 +2485,5 @@ if __name__ == "__main__":
     # aug26_dac_dql_d4rl_offline()
     # aug30_time_computation()
     # aug30_time_computation2()
-    aug30_dac_dql_d4rl_offline()
+    # aug30_dac_dql_d4rl_offline()
+    aug30_check_correct()
