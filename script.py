@@ -2485,5 +2485,5 @@ if __name__ == "__main__":
     # aug26_dac_dql_d4rl_offline()
     # aug30_time_computation()
     # aug30_time_computation2()
-    # aug30_dac_dql_d4rl_offline()
-    aug30_check_correct()
+    aug30_dac_dql_d4rl_offline()
+    # aug30_check_correct()
