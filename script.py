@@ -2512,6 +2512,7 @@ def aug31_resample_eval():
     # os.makedirs(config_dir, exist_ok=True)
     # filename = os.path.join(config_dir, "git_log")
     config_dir = f"configs/resample-eval/"
+    os.makedirs(config_dir, exist_ok=True)
     # os.system("git log -1 -2 -3 -4 -5 > " + filename)
     for env_d4rl in env_d4rls:
         for T in Ts:
