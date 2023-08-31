@@ -242,6 +242,7 @@ class Diffusion_AC(object):
             critic_loss = v_loss + MSBE_loss * self.MSBE_coef
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
+            q_value = q1    
             if self.grad_norm > 0:
                 critic_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
                     self.critic.parameters(), max_norm=self.grad_norm, norm_type=2) 
@@ -252,8 +253,18 @@ class Diffusion_AC(object):
             metric["critic_loss"].append(critic_loss.item())
             if self.step % self.policy_freq == 0:
                 denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
-                q_value = self.critic.qmin(state, denoised_noisy_action, q_t)
-                q_loss = - q_value.mean() / q_value.detach().abs().mean() if self.norm_q else - q_value.mean()     
+                # q_value = self.critic.qmin(state, denoised_noisy_action, q_t)
+                q1, q2 = self.critic.q(state, denoised_noisy_action, q_t)
+                # q_value = q1 + q2
+                q_value = q1
+                if np.random.uniform() > 0.5:
+                    # q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
+                    q_loss = - q1.mean() / q2.abs().mean().detach()
+                else:
+                    # q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
+                    q_loss = - q2.mean() / q1.abs().mean().detach()
+                    q_value = q2
+                # q_loss = - q_value.mean() / q_value.detach().abs().mean() if self.norm_q else - q_value.mean()     
                 bc_loss = self.actor.p_losses(action, state, t).mean()
                 actor_loss = q_loss + self.bc_weight * bc_loss
                 self.actor_optimizer.zero_grad()

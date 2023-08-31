@@ -327,9 +327,12 @@ class Diffusion_QL(object):
         return metric
 
     def sample_action(self, state, noise_scale=0.0):
-        if state.ndim==1:
+        if state.ndim==1 and torch.is_tensor(state)==False:
             state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
-        state = torch.tensor(state, dtype=torch.float).to(self.device)
+        elif state.ndim==1 and torch.is_tensor(state)==True:
+            state = state.float().unsqueeze(0)
+        state = state.to(self.device)
+        # state = torch.tensor(state, dtype=torch.float).to(self.device)
         # action = self.actor.model(state, torch.randn_like(state, device=state.device) * noise_scale)
         # action = self.actor.model(state, torch.randn([state.shape[0], self.action_dim], device=state.device))
         # action = self.actor.model(state)

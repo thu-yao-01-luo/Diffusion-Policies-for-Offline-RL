@@ -1847,9 +1847,12 @@ def aug19_dac_d4rl():
     for ind, job in enumerate(job_list):
         run_python_file(job, file_paths[ind], main="experiment.py")
 
-def run_multi_py(job, filename, main="main.py", total_gpu=8):
+def run_multi_py(job, filename, main="main.py", total_gpu=8, directory="inter_result/new_sanity/"):
     i = random.randint(0, total_gpu - 1)
-    command = f"CUDA_VISIBLE_DEVICES={i} nohup python -u {main} --config {filename} id={job} name={job} > inter_result/new_sanity/log-{job} &"
+    if not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+    file_path = os.path.join(directory, job + ".log")
+    command = f"CUDA_VISIBLE_DEVICES={i} nohup python -u {main} --config {filename} id={job} name={job} > {file_path} &"
     # os.system("git add .")
     # os.system(f"git commit -m '{command}''")
     # os.system("git pull origin master")
@@ -2428,6 +2431,68 @@ def aug30_check_correct():
     for ind, job in enumerate(job_list):
         run_multi_py(job, file_paths[ind], main="experiment.py")
 
+def aug31_dql_sanity_check():
+    file_paths = []
+    job_list = []
+    # env = ["halfcheetah-medium-v2"]
+    env_d4rls = [("halfcheetah-medium-v2", True), ("Demo-v0", False)]
+    Ts = [1, 4, 16]
+    onlines = [True, False]
+    # config_dir = f"configs/dql-sanity/change{time.strftime('%H:%M:%S')}/"
+    task_id = f"dql-sanity/change{(time.strftime('%H:%M:%S'))}"
+    config_dir = os.path.join("configs", task_id)
+    os.makedirs(config_dir, exist_ok=True)
+    filename = os.path.join(config_dir, "git_log")
+    os.system("git log -1 -2 -3 -4 -5 > " + filename)
+    for env_d4rl in env_d4rls:
+        for T in Ts:
+            for online in onlines: 
+                job_id = f"dql-{env_d4rl[0][:6]}-t{T}-online{int(online)}"
+                file_name = job_id + ".yaml"
+                if online == False:
+                    config = {
+                        "algo": "dql", 
+                        "T": T, 
+                        "update_ema_every": 1, 
+                        "name": job_id, 
+                        "id": job_id, 
+                        "predict_epsilon": False, 
+                        "format": ['stdout', "wandb", "csv"],
+                        "env_name": env_d4rl[0], 
+                        "d4rl": env_d4rl[1],            
+                        "need_animation": True, 
+                        "discount2": 1.0,
+                        "need_entropy_test": True,
+                        "online": online,
+                        "num_steps_per_epoch": 1,
+                        "bc_weight": 1.0,
+                        }
+                else:
+                    config = {
+                        "algo": "dql", 
+                        "T": T, 
+                        "update_ema_every": 1, 
+                        "name": job_id, 
+                        "id": job_id, 
+                        "predict_epsilon": False, 
+                        "format": ['stdout', "wandb", "csv"],
+                        "env_name": env_d4rl[0], 
+                        "d4rl": env_d4rl[1],            
+                        "need_animation": True, 
+                        "discount2": 1.0,
+                        "need_entropy_test": True,
+                        "online": online,
+                        "bc_weight": 1.0,
+                        }
+                job_list.append(
+                    job_id)
+                filename = os.path.join(config_dir, file_name)
+                file_paths.append(filename)
+                make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        # run_python_file(job, file_paths[ind], main="experiment.py")
+        run_multi_py(job, file_paths[ind], main="experiment.py", directory=os.path.join("inter_result", task_id))
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -2485,5 +2550,6 @@ if __name__ == "__main__":
     # aug26_dac_dql_d4rl_offline()
     # aug30_time_computation()
     # aug30_time_computation2()
-    aug30_dac_dql_d4rl_offline()
+    # aug30_dac_dql_d4rl_offline()
     # aug30_check_correct()
+    aug31_dql_sanity_check()
