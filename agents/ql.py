@@ -27,6 +27,52 @@ def expectile_loss(q, target_q, expectile=0.7):
     diff = q - target_q
     return torch.mean(torch.where(diff > 0, expectile * diff ** 2, (1 - expectile) * diff ** 2))
 
+class Critic(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden_dim=256, activation=nn.ReLU):
+        super(Critic, self).__init__()
+        self.action_dim = action_dim
+        self.q1_model = nn.Sequential(nn.Linear(state_dim + action_dim, hidden_dim),
+                                    #   nn.Mish(),
+                                      activation(),
+                                      nn.Linear(hidden_dim, hidden_dim),
+                                    #   nn.Mish(),
+                                      activation(),
+                                      nn.Linear(hidden_dim, hidden_dim),
+                                    #   nn.Mish(),
+                                      activation(),
+                                      nn.Linear(hidden_dim, 1))
+
+        self.q2_model = nn.Sequential(nn.Linear(state_dim + action_dim, hidden_dim),
+                                    #   nn.Mish(),
+                                      activation(),
+                                      nn.Linear(hidden_dim, hidden_dim),
+                                    #   nn.Mish(),
+                                      activation(),
+                                      nn.Linear(hidden_dim, hidden_dim),
+                                    #   nn.Mish(),
+                                      activation(),
+                                      nn.Linear(hidden_dim, 1))
+
+    def forward(self, state, action):
+        x = torch.cat([state, action], dim=-1)
+        return self.q1_model(x), self.q2_model(x)
+
+    def q(self, state, action):
+        return self.forward(state, action)
+
+    def v(self, state):
+        action = torch.randn((state.shape[0], self.action_dim), device=state.device)
+        # return self.q_min(state, action)
+        return self.qmin(state, action)
+
+    def q1(self, state, action):
+        x = torch.cat([state, action], dim=-1)
+        return self.q1_model(x)
+
+    def qmin(self, state, action):
+        q1, q2 = self.forward(state, action)
+        return torch.min(q1, q2)
+
 # class QNetwork(nn.Module):
 #     def __init__(self, state_dim, action_dim, t_dim=16, hidden_dim=256):
 #         super(QNetwork, self).__init__()
@@ -206,7 +252,9 @@ class Diffusion_QL(object):
         self.ema_model = copy.deepcopy(self.actor)
         self.update_ema_every = update_ema_every
         self.test_critic = test_critic
-        self.critic = TestCritic(state_dim, action_dim, max_time_step=n_timesteps).to(device)
+        self.critic = Critic(state_dim, action_dim).to(device)
+        if self.test_critic:
+            self.critic = TestCritic(state_dim, action_dim, max_time_step=n_timesteps).to(device)
         self.critic_target = copy.deepcopy(self.critic)
         self.critic_optimizer = torch.optim.Adam(
             self.critic.parameters(), lr=3e-4)

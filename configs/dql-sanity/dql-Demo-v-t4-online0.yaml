@@ -1,0 +1,18 @@
+T: 4
+algo: dql
+bc_weight: 1.0
+d4rl: false
+discount2: 1.0
+env_name: Demo-v0
+format:
+- stdout
+- wandb
+- csv
+id: dql-Demo-v-t4-online0
+name: dql-Demo-v-t4-online0
+need_animation: true
+need_entropy_test: true
+num_steps_per_epoch: 1
+online: false
+predict_epsilon: false
+update_ema_every: 1

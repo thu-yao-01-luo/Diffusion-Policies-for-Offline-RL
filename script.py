@@ -2436,7 +2436,8 @@ def aug31_dql_sanity_check():
     job_list = []
     # env = ["halfcheetah-medium-v2"]
     env_d4rls = [("halfcheetah-medium-v2", True), ("Demo-v0", False)]
-    Ts = [1, 4, 16]
+    # Ts = [1, 4, 16]
+    Ts = [1, 4]
     onlines = [True, False]
     # config_dir = f"configs/dql-sanity/change{time.strftime('%H:%M:%S')}/"
     task_id = f"dql-sanity/change{(time.strftime('%H:%M:%S'))}"
