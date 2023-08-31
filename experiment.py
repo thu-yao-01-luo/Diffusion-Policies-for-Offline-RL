@@ -186,6 +186,7 @@ def online_train(args, env_fn):
             add_noise=args.add_noise,
             update_ema_every=args.update_ema_every,
             test_critic=args.test_critic,
+            resample=args.resample,
             )
     elif args.algo == 'dql':
         from agents.ql import Diffusion_QL as Agent
@@ -230,6 +231,7 @@ def online_train(args, env_fn):
             add_noise=args.add_noise,
             update_ema_every=args.update_ema_every,
             test_critic=args.test_critic,
+            resample=args.resample,
             )
     elif args.algo == "sac": 
         from sac import SAC
@@ -405,6 +407,7 @@ def offline_train(args, env_fn):
             add_noise=args.add_noise,
             update_ema_every=args.update_ema_every,
             test_critic=args.test_critic,
+            resample=args.resample,
             )
     elif args.algo == 'dql':
         from agents.ql import Diffusion_QL as Agent
@@ -449,6 +452,7 @@ def offline_train(args, env_fn):
             add_noise=args.add_noise,
             update_ema_every=args.update_ema_every,
             test_critic=args.test_critic,
+            resample=args.resample,
             )
     elif args.algo == "bc":
         from agents.bc import Diffusion_BC as Agent

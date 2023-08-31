@@ -1,4 +1,4 @@
-# Copyright 2022 Twitter, Inc and Zhendong Wang.
+# opyright 2022 Twitter, Inc and Zhendong Wang.
 # SPDX-License-Identifier: Apache-2.0
 import copy
 from tqdm import tqdm
@@ -131,6 +131,7 @@ class Diffusion_AC(object):
                  noise_clip=0.5,
                  add_noise=False,
                  test_critic=False,
+                 resample=False,
                 ):
         self.model = MLP(state_dim=state_dim,
                          action_dim=action_dim, device=device)
@@ -144,6 +145,7 @@ class Diffusion_AC(object):
         self.lr_decay = lr_decay
         self.grad_norm = grad_norm
         self.MSBE_coef = MSBE_coef
+        self.resample = resample
 
         self.step = 0
         self.step_start_ema = step_start_ema
@@ -301,10 +303,18 @@ class Diffusion_AC(object):
         elif state.ndim==1 and torch.is_tensor(state)==True:
             state = state.float().unsqueeze(0)
         state = state.to(self.device)
-        action = self.actor.sample(state)
-        action += noise_scale * torch.randn_like(action)
-        action = action.clamp(-self.max_action, self.max_action)
-        return action.cpu().data.numpy().flatten()
+        if self.resample:
+            state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
+            with torch.no_grad():
+                action = self.actor.sample(state_rpt)
+                q_value = self.critic_target.qmin(state_rpt, action).flatten()
+                idx = torch.multinomial(F.softmax(q_value), 1)
+            return action[idx].cpu().data.numpy().flatten()
+        else:
+            action = self.actor.sample(state)
+            action += noise_scale * torch.randn_like(action)
+            action = action.clamp(-self.max_action, self.max_action)
+            return action.cpu().data.numpy().flatten()
 
     def save_model(self, dir, id=None):
         if id is not None:

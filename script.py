@@ -1849,8 +1849,8 @@ def aug19_dac_d4rl():
 
 def run_multi_py(job, filename, main="main.py", total_gpu=8, directory="inter_result/new_sanity/"):
     i = random.randint(0, total_gpu - 1)
-    if not os.path.exists(directory):
-        os.makedirs(directory, exist_ok=True)
+    # if not os.path.exists(directory):
+    #     os.makedirs(directory, exist_ok=True)
     file_path = os.path.join(directory, job + ".log")
     command = f"CUDA_VISIBLE_DEVICES={i} nohup python -u {main} --config {filename} id={job} name={job} > {file_path} &"
     # os.system("git add .")
@@ -2449,7 +2449,7 @@ def aug31_dql_sanity_check():
     for env_d4rl in env_d4rls:
         for T in Ts:
             for online in onlines: 
-                job_id = f"dql-{env_d4rl[0][:6]}-t{T}-online{int(online)}"
+                job_id = f"dql-{env_d4rl[0][:6]}-t{T}-online{int(online)}-{time.strftime('%H-%M-%S')}"
                 file_name = job_id + ".yaml"
                 if online == False:
                     config = {
@@ -2494,6 +2494,8 @@ def aug31_dql_sanity_check():
     for ind, job in enumerate(job_list):
         # run_python_file(job, file_paths[ind], main="experiment.py")
         dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 -4 -5 > " + git_log)
         run_multi_py(job, file_paths[ind], main="experiment.py", directory=dir_path)

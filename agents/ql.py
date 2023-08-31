@@ -232,6 +232,7 @@ class Diffusion_QL(object):
                  noise_clip=0.5,
                  add_noise=False,
                  test_critic=False,
+                 resample=False,
                 ):
         self.model = MLP(state_dim=state_dim,
                          action_dim=action_dim, device=device)
@@ -245,6 +246,7 @@ class Diffusion_QL(object):
         self.lr_decay = lr_decay
         self.grad_norm = grad_norm
         self.MSBE_coef = MSBE_coef
+        self.resample = resample
 
         self.step = 0
         self.step_start_ema = step_start_ema
@@ -387,10 +389,18 @@ class Diffusion_QL(object):
         # action = self.actor.model(state, torch.randn([state.shape[0], self.action_dim], device=state.device))
         # action = self.actor.model(state)
         # action = self.actor.sample(state=state)
-        action = self.actor.sample(state)
-        action += noise_scale * torch.randn_like(action)
-        action = action.clamp(-self.max_action, self.max_action)
-        return action.cpu().data.numpy().flatten()
+        if self.resample:
+            state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
+            with torch.no_grad():
+                action = self.actor.sample(state_rpt)
+                q_value = self.critic_target.qmin(state_rpt, action).flatten()
+                idx = torch.multinomial(F.softmax(q_value), 1)
+            return action[idx].cpu().data.numpy().flatten()
+        else:
+            action = self.actor.sample(state)
+            action += noise_scale * torch.randn_like(action)
+            action = action.clamp(-self.max_action, self.max_action)
+            return action.cpu().data.numpy().flatten()
 
     def save_model(self, dir, id=None):
         if id is not None:
@@ -407,3 +417,12 @@ class Diffusion_QL(object):
         else:
             self.actor.load_state_dict(torch.load(f'{dir}/actor.pth'))
             self.critic.load_state_dict(torch.load(f'{dir}/critic.pth'))
+
+    # def sample_action(self, state, noise_scale=0.0):
+    #     state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+    #     state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
+    #     with torch.no_grad():
+    #         action = self.actor.sample(state_rpt)
+    #         q_value = self.critic_target.q_min(state_rpt, action).flatten()
+    #         idx = torch.multinomial(F.softmax(q_value), 1)
+    #     return action[idx].cpu().data.numpy().flatten()

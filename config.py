@@ -90,3 +90,4 @@ class Config:
     need_entropy_test: bool = False
     num_entropy_samples: int = 100
     with_eval: bool = True
+    resample: bool = False
