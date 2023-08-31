@@ -155,7 +155,6 @@ class Diffusion_prime(nn.Module):
         batch_size = state.shape[0]
         shape = (batch_size, self.action_dim)
         action = self.p_sample_loop(state, shape, *args, **kwargs)
-        assert torch.is_tensor(action)
         return torch.clamp(action, -self.max_action, self.max_action)  # important # type: ignore
 
     # ------------------------------------------ training ------------------------------------------#

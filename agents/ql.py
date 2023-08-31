@@ -10,8 +10,10 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from utils.logger import logger
 import utils.logger_zhiao as logger_zhiao
 
-from agents.diffusion_ import Diffusion
-from agents.model_ import MLP
+# from agents.diffusion_ import Diffusion
+# from agents.model_ import MLP
+from agents.diffusion_ import Diffusion_prime as Diffusion
+from agents.model_ import MLP_wo_tanh as MLP
 import time
 from agents.helpers import EMA, SinusoidalPosEmb
 

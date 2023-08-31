@@ -2440,10 +2440,11 @@ def aug31_dql_sanity_check():
     onlines = [True, False]
     # config_dir = f"configs/dql-sanity/change{time.strftime('%H:%M:%S')}/"
     task_id = f"dql-sanity/change{(time.strftime('%H:%M:%S'))}"
-    config_dir = os.path.join("configs", task_id)
-    os.makedirs(config_dir, exist_ok=True)
-    filename = os.path.join(config_dir, "git_log")
-    os.system("git log -1 -2 -3 -4 -5 > " + filename)
+    # config_dir = os.path.join("configs", task_id)
+    # os.makedirs(config_dir, exist_ok=True)
+    # filename = os.path.join(config_dir, "git_log")
+    config_dir = f"configs/dql-sanity/"
+    # os.system("git log -1 -2 -3 -4 -5 > " + filename)
     for env_d4rl in env_d4rls:
         for T in Ts:
             for online in onlines: 
@@ -2491,7 +2492,10 @@ def aug31_dql_sanity_check():
                 make_config_file(filename, config)
     for ind, job in enumerate(job_list):
         # run_python_file(job, file_paths[ind], main="experiment.py")
-        run_multi_py(job, file_paths[ind], main="experiment.py", directory=os.path.join("inter_result", task_id))
+        dir_path = os.path.join("inter_result", task_id)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 -4 -5 > " + git_log)
+        run_multi_py(job, file_paths[ind], main="experiment.py", directory=dir_path)
 
 if __name__ == "__main__":
     # jun22_all_env()

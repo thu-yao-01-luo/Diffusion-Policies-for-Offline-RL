@@ -13,7 +13,6 @@ def weights_init_(m):
         torch.nn.init.xavier_uniform_(m.weight, gain=1)
         torch.nn.init.constant_(m.bias, 0)
 
-# @DeprecationWarning
 class MLP1(nn.Module):
     """
     MLP Model
@@ -24,13 +23,8 @@ class MLP1(nn.Module):
                  device,
                  t_dim=16,
                  activation=nn.Mish,
-<<<<<<< HEAD
                  ):
-=======
-                ):
->>>>>>> 44f4c7254729b8170cf3b3aec80374a3d09c7de3
-
-        super(MLP, self).__init__()
+        super(MLP1, self).__init__()
         self.device = device
 
         self.time_mlp = nn.Sequential(
@@ -52,24 +46,55 @@ class MLP1(nn.Module):
                                     #    nn.Mish()
                                        activation(),
                                        )
-
         self.final_layer = nn.Linear(256, action_dim)
-<<<<<<< HEAD
-        torch.nn.init.normal_(self.final_layer.weight, std=0.1) # output layer init  
-=======
-        # self.layer_norm = nn.LayerNorm(action_dim)
-        # torch.nn.init.normal_(self.final_layer.weight, mean=0.0, std=0.5) # output layer init  
-        # torch.nn.init.normal_(self.final_layer.bias, mean=0.0, std=0.0)
-        # pass
-        self.apply(weights_init_)
->>>>>>> 44f4c7254729b8170cf3b3aec80374a3d09c7de3
+        # torch.nn.init.normal_(self.final_layer.weight, std=0.1) # output layer init  
 
     def forward(self, x, time, state):
         t = self.time_mlp(time)
         x = torch.cat([x, t, state], dim=1)
         x = self.mid_layer(x)
+        return self.final_layer(x)
         # return torch.tanh(self.layer_norm(self.final_layer(x)))
-        return torch.tanh(self.final_layer(x))
+        # return torch.tanh(self.final_layer(x))
+
+class MLP2(nn.Module):
+    """
+    MLP Model
+    """
+    def __init__(self,
+                 state_dim,
+                 action_dim,
+                 device,
+                 t_dim=16,
+                #  activation=nn.Mish,
+                 activation=nn.ReLU,
+                 ):
+        super(MLP2, self).__init__()
+        self.device = device
+
+        self.time_mlp = nn.Sequential(
+            SinusoidalPosEmb(t_dim),
+            nn.Linear(t_dim, t_dim * 2),
+            activation(),
+            nn.Linear(t_dim * 2, t_dim),
+        )
+
+        input_dim = state_dim + action_dim + t_dim
+        self.mid_layer = nn.Sequential(nn.Linear(input_dim, 256),
+                                       activation(),
+                                       nn.Linear(256, 256),
+                                       activation(),
+                                       nn.Linear(256, 256),
+                                       activation(),
+                                       )
+        self.final_layer = nn.Linear(256, action_dim)
+        # torch.nn.init.normal_(self.final_layer.weight, std=0.1) # output layer init  
+
+    def forward(self, x, time, state):
+        t = self.time_mlp(time)
+        x = torch.cat([x, t, state], dim=1)
+        x = self.mid_layer(x)
+        return self.final_layer(x)
 
 class MLP(nn.Module):
     """
