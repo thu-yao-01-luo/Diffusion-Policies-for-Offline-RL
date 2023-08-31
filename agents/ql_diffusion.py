@@ -46,7 +46,6 @@ class Critic(nn.Module):
     def q_min(self, state, action):
         q1, q2 = self.forward(state, action)
         return torch.min(q1, q2)
-m
 
 class Diffusion_QL(object):
     def __init__(self,
