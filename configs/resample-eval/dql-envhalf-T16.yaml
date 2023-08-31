@@ -1,0 +1,20 @@
+T: 16
+algo: dql
+bc_weight: 1.0
+d4rl: true
+discount2: 1.0
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: dql-envhalf-T16
+name: dql-envhalf-T16
+need_animation: true
+need_entropy_test: true
+num_epochs: 10000
+num_steps_per_epoch: 10000
+online: false
+predict_epsilon: false
+resample: false
+update_ema_every: 1
