@@ -2572,7 +2572,7 @@ def aug31_resample_eval2():
             # for online in onlines: 
             # for algo in algos:
                 # job_id = f"{env_d4rl[0][:6]}-t{T}-algo-{algo}-{(time.strftime('%H-%M-%S'))}"
-                job_id = f"dql-envhalf-t{T}"
+                job_id = f"dql-envhalf-t{T}-resample{int(resample)}"
                 file_name = job_id + ".yaml"
                 config = {
                     "algo": "dql", 

@@ -102,7 +102,7 @@ class Diffusion_prime(nn.Module):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def p_mean_variance(self, x, t, s):
-        noise=self.model(x, t, s)
+        noise=self.model(x, t, s) # TODO: check if this is correct
         x_recon = self.predict_start_from_noise(
             x, t, noise)
         if self.clip_denoised:
