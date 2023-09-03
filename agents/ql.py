@@ -151,7 +151,7 @@ class QNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(t_dim * 2, t_dim),
         )
-        self.apply(weights_init_)
+        # self.apply(weights_init_)
 
     def forward(self, state, action, t):
         # t = torch.tensor([t] * state.shape[0], dtype=torch.float32, device=state.device)
