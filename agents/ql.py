@@ -211,7 +211,7 @@ class Diffusion_QL(object):
         self.update_ema_every = args.update_ema_every
         self.test_critic = args.test_critic
         self.critic = Critic(state_dim, action_dim).to(device)
-        if self.test_critic:
+        if self.test_critic and self.ablation:
             print("Using Test Critic")
             self.critic = TestCritic(state_dim, action_dim, max_time_step=args.T).to(device)
         self.critic_target = copy.deepcopy(self.critic)
@@ -255,6 +255,7 @@ class Diffusion_QL(object):
         self.target_noise = args.target_noise
         self.noise_clip = args.noise_clip
         self.add_noise = args.add_noise
+        self.ablation = args.ablation
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -277,21 +278,21 @@ class Diffusion_QL(object):
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
             q1, q2 = self.critic.q(state, action) # (b, 1)
-
-            with torch.no_grad():
-                target_v = self.critic_target.v(next_state) # (b, 1)
-                target_q = (reward + not_done * self.discount * target_v) # (b,)
-            MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
-            with torch.no_grad():
-                denoised_noisy_action = self.ema_model.sample(state)
-                target_v = self.critic_target.qmin(state, denoised_noisy_action) # (b, 1)->(b,)
-            v_loss = F.mse_loss(self.critic.v(state), target_v)
-            critic_loss = self.MSBE_coef * MSBE_loss + v_loss
-
-            # with torch.no_grad():
-            #     target_q = self.critic_target.qmin(next_state, self.ema_model.sample(next_state)) # (b, 1)->(b,)
-            # target_q = reward + not_done * self.discount * target_q # (b,)
-            # critic_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
+            if self.ablation: 
+                with torch.no_grad():
+                    target_v = self.critic_target.v(next_state) # (b, 1)
+                    target_q = (reward + not_done * self.discount * target_v) # (b,)
+                MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
+                with torch.no_grad():
+                    denoised_noisy_action = self.ema_model.sample(state)
+                    target_v = self.critic_target.qmin(state, denoised_noisy_action) # (b, 1)->(b,)
+                v_loss = F.mse_loss(self.critic.v(state), target_v)
+                critic_loss = self.MSBE_coef * MSBE_loss + v_loss
+            else:
+                with torch.no_grad():
+                    target_q = self.critic_target.qmin(next_state, self.ema_model.sample(next_state)) # (b, 1)->(b,)
+                target_q = reward + not_done * self.discount * target_q # (b,)
+                critic_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
 
             self.critic_optimizer.zero_grad()
             critic_loss.backward()

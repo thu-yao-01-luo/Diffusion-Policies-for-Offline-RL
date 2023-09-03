@@ -1,12 +1,10 @@
 # Copyright 2022 Twitter, Inc and Zhendong Wang.
 # SPDX-License-Identifier: Apache-2.0
 import copy
-from tqdm import tqdm
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import CosineAnnealingLR
-import utils.logger_zhiao as logger_zhiao
+import torch.nn.functional as F
 
 from agents.diffusion_ import Diffusion
 from agents.model_ import MLP
@@ -82,7 +80,7 @@ class Diffusion_BC(object):
         self.ema.update_model_average(self.ema_model, self.actor)
 
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
-        metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [], 'v_loss': [],
+        metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [], 'v_loss': [], "forward_time": [], "backward_time": [],
                   'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
                   "max_next_ac": [], "td_error": [], "consistency_error": [], "actor_q": [], "true_bc_loss": [], 
                   "action_norm": [], "new_action_max": [], "new_action_mean": [], "critic_norm": [], "actor_norm": [],}
@@ -91,16 +89,22 @@ class Diffusion_BC(object):
             state, action, next_state, reward, not_done = replay_buffer.sample(
                 batch_size)
             """ Q Training """
-              # bc_loss = self.actor.p_losses(action, state, t).mean()
-            bc_loss = self.actor.loss(action, state).mean()
+            # bc_loss = self.actor.p_losses(action, state, t).mean()
+            # bc_loss = self.actor.loss(action, state).mean()
+            starting_time = time.time()
+            bc_loss = F.mse_loss(self.actor.sample(state=state), action)
+            ending_time = time.time()
             actor_loss = bc_loss
             self.actor_optimizer.zero_grad()
+            back_starting_time = time.time()
             actor_loss.backward()
-            self.actor_optimizer.step()
-            
+            back_ending_time = time.time()
+            self.actor_optimizer.step() 
             if log_writer is not None:
                 log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
             metric['bc_loss'].append(bc_loss.item())
+            metric["forward_time"].append(ending_time - starting_time)
+            metric["backward_time"].append(back_ending_time - back_starting_time)
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
         return metric

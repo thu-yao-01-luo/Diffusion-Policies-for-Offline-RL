@@ -56,14 +56,14 @@ def offline_train(args, env_fn):
     for t in range(max_timesteps):
         steps = args.num_steps_per_epoch
         if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc':
-            train_begin = time.time()
+            starting_time = time.time()
             loss_metric = agent.train(
                         replay_buffer=data_sampler,
                         iterations=steps,
                         batch_size=args.batch_size,
                         log_writer=writer)
-            train_end = time.time()
-            logger_zhiao.logkv('train_time', train_end - train_begin)
+            ending_time = time.time()
+            logger_zhiao.logkv('train_time', ending_time - starting_time)
             for k, v in loss_metric.items():
                 if v == []:
                     continue    
@@ -87,4 +87,3 @@ def offline_train(args, env_fn):
                     best_nreward = eval_ret["avg_norm_score"] 
                     agent.save_model(output_dir, t)
             logger_zhiao.dumpkvs()
-

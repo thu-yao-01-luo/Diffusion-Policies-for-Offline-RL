@@ -4,6 +4,7 @@ from helpers import compute_entropy
 import utils.logger_zhiao as logger_zhiao
 import utils.utils as utils   
 from vis import animation
+import time
 
 def eval_policy(args:Config, policy, eval_env, algo, eval_episodes=10,):
     # initialize
@@ -16,6 +17,7 @@ def eval_policy(args:Config, policy, eval_env, algo, eval_episodes=10,):
     lengths = []
     actions_abs = []
     actions = []
+    inference_time = []
     ret = {}
     # test scores and compute normalized scores
     for _ in range(eval_episodes):
@@ -23,7 +25,9 @@ def eval_policy(args:Config, policy, eval_env, algo, eval_episodes=10,):
         traj_length = 0
         state, done = eval_env.reset(), False
         while not done:
+            starting_time = time.time()
             action = policy.sample_action(np.array(state))
+            inference_time.append(time.time() - starting_time)
             actions_abs.append(np.mean(np.abs(action)))
             actions.append(action)
             state, reward, done, _ = eval_env.step(action)
@@ -37,10 +41,14 @@ def eval_policy(args:Config, policy, eval_env, algo, eval_episodes=10,):
     std_reward = np.std(scores)
     avg_length = np.mean(lengths)
     std_length = np.std(lengths)
+    avg_inference_time = np.mean(inference_time)
+    std_inference_time = np.std(inference_time)
     ret["avg_reward"] = avg_reward
     ret["std_reward"] = std_reward
     ret["avg_length"] = avg_length
     ret["std_length"] = std_length
+    ret["avg_inference_time"] = avg_inference_time
+    ret["std_inference_time"] = std_inference_time
     if len(actions) > 0:
         avg_action = np.mean(actions_abs)
         std_action = np.std(actions_abs)

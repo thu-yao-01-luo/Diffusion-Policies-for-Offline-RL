@@ -33,11 +33,9 @@ def online_train(args, env_fn):
 
     writer = None  # SummaryWriter(output_dir)
     # buffer and evaluation
-    evaluations = []
     max_timesteps = args.num_epochs * args.num_steps_per_epoch
     buffer_size = replay_size
     best_nreward = -np.inf
-    obs_space = env.observation_space
     action_space = env.action_space
     buffer = ReplayBuffer(obs_dim, act_dim, buffer_size)
 
@@ -67,8 +65,6 @@ def online_train(args, env_fn):
         raise NotImplementedError
 
     o, ep_ret, ep_len = env.reset(), 0, 0
-    # assert num_steps_per_epoch % update_every == 0, "num_steps_per_epoch must be a multiple of update_every"
-    starting_time = time.time()
     for t in range(max_timesteps):
         if t >= start_steps:
             a = np.array(agent.sample_action(o, noise_scale=args.act_noise))
@@ -101,16 +97,17 @@ def online_train(args, env_fn):
             logger_zhiao.logkv_mean('EpLen', ep_len)
             o, ep_ret, ep_len = env.reset(), 0, 0
 
-        # replay_buffer, iterations, batch_size=100, log_writer=None):
-        if t >= update_after and t % update_every == 0:
+        if t >= update_after and t % num_steps_per_epoch == 0:
             if args.algo == 'dac' or args.algo == 'dql':
                 data_sampler = BufferNotDone(buffer, device)
-                # torch.autograd.set_detect_anomaly(True)
+                starting_time = time.time()
                 loss_metric = agent.train(
                                 replay_buffer=data_sampler,
                                 iterations=update_every,
                                 batch_size=args.batch_size,
                                 log_writer=writer) # type:ignore
+                ending_time = time.time()
+                logger_zhiao.logkv('train_time', ending_time - starting_time)
                 for k, v in loss_metric.items():
                     if v == []:
                         continue    
@@ -136,7 +133,6 @@ def online_train(args, env_fn):
             else: 
                 raise NotImplementedError
             if t % args.num_steps_per_epoch == 0:
-                # eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt, entropy = \
                 eval_ret = eval_policy(args, agent, test_env, algo=args.algo, eval_episodes=args.eval_episodes)
                 logger_zhiao.logkvs(eval_ret)
                 if args.algo == 'dac':

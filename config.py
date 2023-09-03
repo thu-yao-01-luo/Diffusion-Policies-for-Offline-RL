@@ -94,3 +94,4 @@ class Config:
     with_eval: bool = True
     resample: bool = False
     grad_norm: float = 9.0
+    ablation: bool = False
