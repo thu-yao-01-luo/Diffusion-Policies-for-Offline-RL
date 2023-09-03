@@ -28,7 +28,7 @@ def expectile_loss(q, target_q, expectile=0.7):
     return torch.mean(torch.where(diff > 0, expectile * diff ** 2, (1 - expectile) * diff ** 2))
 
 class Critic(nn.Module):
-    def __init__(self, state_dim, action_dim, hidden_dim=256, activation=nn.ReLU):
+    def __init__(self, state_dim, action_dim, hidden_dim=256, activation=nn.Mish):
         super(Critic, self).__init__()
         self.action_dim = action_dim
         self.q1_model = nn.Sequential(nn.Linear(state_dim + action_dim, hidden_dim),
@@ -338,7 +338,7 @@ class Diffusion_QL(object):
             q1, q2 = self.critic.q(state, action) # (b, 1)
             with torch.no_grad():
                 target_q = self.critic_target.qmin(next_state, self.ema_model.sample(next_state)) # (b, 1)->(b,)
-                target_q = reward + not_done * self.discount * target_q # (b,)
+            target_q = reward + not_done * self.discount * target_q # (b,)
             critic_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
@@ -360,7 +360,7 @@ class Diffusion_QL(object):
                     q_loss = - q1.mean() / q1.abs().mean().detach() if self.norm_q else - q1.mean()
                 else:
                     q_loss = - q2.mean() / q2.abs().mean().detach() if self.norm_q else - q2.mean()
-                bc_loss = self.actor.loss(action, state).mean()
+                bc_loss = self.actor.loss(action, state)
                 actor_loss = q_loss + self.bc_weight * bc_loss
                 self.actor_optimizer.zero_grad()
                 actor_loss.backward()

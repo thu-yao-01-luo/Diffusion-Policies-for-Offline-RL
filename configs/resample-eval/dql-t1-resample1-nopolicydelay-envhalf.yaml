@@ -1,0 +1,18 @@
+T: 1
+algo: dql
+bc_weight: 1.0
+d4rl: true
+discount2: 1.0
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: dql-t1-resample1-nopolicydelay-envhalf
+name: dql-t1-resample1-nopolicydelay-envhalf
+num_epochs: 10000
+num_steps_per_epoch: 1
+online: false
+predict_epsilon: false
+resample: true
+update_ema_every: 1
