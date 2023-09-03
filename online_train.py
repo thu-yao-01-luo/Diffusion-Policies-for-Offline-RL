@@ -1,40 +1,13 @@
 from evaluation import eval_policy
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from copy import deepcopy
-import d4rl
-import os
-import numpy as np
 import torch
-from torch.optim import Adam
-import gym
-import numpy as np
-import torch
-from utils import utils
-from utils.data_sampler import Data_Sampler
-from utils.utils_zhiao import load_config
 import utils.logger_zhiao as logger_zhiao
-from utils.logger import logger
-from dataclasses import dataclass, field
-from torch import nn
-from copy import deepcopy
-import itertools
 import time
-import numpy as np
-import torch
-from torch.optim import Adam
-import gym
-from demo_env import CustomEnvironment, compute_gaussian_density
 # from visualize import animation
-from vis import animation
-from helpers import BufferNotDone, ReplayBuffer, Buffer, SACBufferNotDone, compute_entropy, sac_args_type     
-from config import Config
-from dataset import build_dataset, DatasetSampler
+from helpers import BufferNotDone, ReplayBuffer, SACBufferNotDone, sac_args_type     
 
 def online_train(args, env_fn):
     # parameters
-    num_envs = args.num_envs
     seed = args.seed
     num_steps_per_epoch = args.num_steps_per_epoch
     replay_size = args.replay_size

@@ -7,15 +7,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from utils.logger import logger
-import utils.logger_zhiao as logger_zhiao
-
-# from agents.diffusion_ import Diffusion
-# from agents.model_ import MLP
 from agents.diffusion_ import Diffusion_prime as Diffusion
 from agents.model_ import MLP_wo_tanh as MLP
-import time
 from agents.helpers import EMA, SinusoidalPosEmb
+from config import Config
 
 # Initialize Policy weights
 def weights_init_(m):
@@ -62,7 +57,6 @@ class Critic(nn.Module):
 
     def v(self, state):
         action = torch.randn((state.shape[0], self.action_dim), device=state.device)
-        # return self.q_min(state, action)
         return self.qmin(state, action)
 
     def q1(self, state, action):
@@ -151,10 +145,9 @@ class QNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(t_dim * 2, t_dim),
         )
-        # self.apply(weights_init_)
+        self.apply(weights_init_)
 
     def forward(self, state, action, t):
-        # t = torch.tensor([t] * state.shape[0], dtype=torch.float32, device=state.device)
         t = self.time_mlp(t)
         x = torch.cat([state, action, t], dim=1)
         return self.q_network(x)
@@ -185,13 +178,18 @@ class TestCritic(nn.Module):
             t = torch.zeros((state.shape[0],), device=state.device)
         return self.q_network1(state, action, t)
     
+    def q2(self, state, action, t=None):
+        if t == None: 
+            t = torch.zeros((state.shape[0],), device=state.device)
+        return self.q_network2(state, action, t)
+
     def qmin(self, state, action, t=None):
         if t == None:
             t = torch.zeros((state.shape[0],), device=state.device)
         return torch.min(self.q_network1(state, action, t), self.q_network2(state, action, t))
 
 class Diffusion_QL(object):
-    def __init__(self, state_dim, action_dim, max_action, device, args):
+    def __init__(self, state_dim, action_dim, max_action, device, args: Config):
         self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
 
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
@@ -208,7 +206,7 @@ class Diffusion_QL(object):
 
         self.step = 0
         self.step_start_ema = args.step_start_ema
-        self.ema = EMA(args.ema_decay)
+        self.ema = EMA(1-args.tau)
         self.ema_model = copy.deepcopy(self.actor)
         self.update_ema_every = args.update_ema_every
         self.test_critic = args.test_critic
@@ -278,21 +276,23 @@ class Diffusion_QL(object):
             """ Q Training """
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
-            # with torch.no_grad():
-            #     target_v = self.critic_target.v(next_state) # (b, 1)
-            #     target_q = (reward + not_done * self.discount * target_v) # (b,)
-            # q1, q2 = self.critic.q(state, action) # (b, 1)
-            # MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
-            # with torch.no_grad():
-            #     denoised_noisy_action = self.ema_model.sample(state)
-            #     target_v = self.critic_target.qmin(state, denoised_noisy_action) # (b, 1)->(b,)
-            # v_loss = F.mse_loss(self.critic.v(state), target_v)
-            # critic_loss = self.MSBE_coef * MSBE_loss + v_loss
             q1, q2 = self.critic.q(state, action) # (b, 1)
+
             with torch.no_grad():
-                target_q = self.critic_target.qmin(next_state, self.ema_model.sample(next_state)) # (b, 1)->(b,)
-            target_q = reward + not_done * self.discount * target_q # (b,)
-            critic_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
+                target_v = self.critic_target.v(next_state) # (b, 1)
+                target_q = (reward + not_done * self.discount * target_v) # (b,)
+            MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
+            with torch.no_grad():
+                denoised_noisy_action = self.ema_model.sample(state)
+                target_v = self.critic_target.qmin(state, denoised_noisy_action) # (b, 1)->(b,)
+            v_loss = F.mse_loss(self.critic.v(state), target_v)
+            critic_loss = self.MSBE_coef * MSBE_loss + v_loss
+
+            # with torch.no_grad():
+            #     target_q = self.critic_target.qmin(next_state, self.ema_model.sample(next_state)) # (b, 1)->(b,)
+            # target_q = reward + not_done * self.discount * target_q # (b,)
+            # critic_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
+
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
@@ -306,8 +306,6 @@ class Diffusion_QL(object):
             """ Actor Training """
             if self.step % self.policy_freq == 0:
                 denoised_noisy_action = self.actor.sample(state)
-                # q_value = self.critic.qmin(state, denoised_noisy_action)
-                # q_loss = - q_value.mean() / q_value.detach().abs().mean() if self.norm_q else - q_value.mean()
                 q1, q2 = self.critic.q(state, denoised_noisy_action)
                 if np.random.uniform() < 0.5:
                     q_loss = - q1.mean() / q1.abs().mean().detach() if self.norm_q else - q1.mean()
@@ -327,7 +325,6 @@ class Diffusion_QL(object):
                 if log_writer is not None:
                     log_writer.add_scalar('QL Loss', q_loss.item(), self.step)
                     log_writer.add_scalar('BC Loss', bc_loss.item(), self.step)
-                # metric['ql_loss'].append(q_value.mean().item())
                 metric['ql_loss'].append(q1.mean().item())
                 metric['bc_loss'].append(bc_loss.item())
             """ Step Target network """
@@ -340,11 +337,7 @@ class Diffusion_QL(object):
             self.step += 1
             """ Log """
             if log_writer is not None:
-                # log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
-                # log_writer.add_scalar('V Loss', v_loss.item(), self.step)   
                 log_writer.add_scalar('Critic Loss', critic_loss.item(), self.step)
-            # metric['MSBE_loss'].append(MSBE_loss.item())
-            # metric['v_loss'].append(v_loss.item())
             metric['critic_loss'].append(critic_loss.item())
             if self.lr_decay:
                 self.actor_lr_scheduler.step()
@@ -357,11 +350,6 @@ class Diffusion_QL(object):
         elif state.ndim==1 and torch.is_tensor(state)==True:
             state = state.float().unsqueeze(0)
         state = state.to(self.device)
-        # state = torch.tensor(state, dtype=torch.float).to(self.device)
-        # action = self.actor.model(state, torch.randn_like(state, device=state.device) * noise_scale)
-        # action = self.actor.model(state, torch.randn([state.shape[0], self.action_dim], device=state.device))
-        # action = self.actor.model(state)
-        # action = self.actor.sample(state=state)
         if self.resample:
             state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
             with torch.no_grad():

@@ -1,5 +1,9 @@
 import numpy as np
 from config import Config
+from helpers import compute_entropy
+import utils.logger_zhiao as logger_zhiao
+import utils.utils as utils   
+from vis import animation
 
 def eval_policy(args:Config, policy, eval_env, algo, eval_episodes=10,):
     # initialize

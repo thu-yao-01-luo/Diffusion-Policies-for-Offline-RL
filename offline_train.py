@@ -1,41 +1,14 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from copy import deepcopy
-import d4rl
-import os
-import numpy as np
 import torch
-from torch.optim import Adam
-import gym
-import numpy as np
-import torch
-from utils import utils
-from utils.data_sampler import Data_Sampler
-from utils.utils_zhiao import load_config
 import utils.logger_zhiao as logger_zhiao
-from utils.logger import logger
-from dataclasses import dataclass, field
-from torch import nn
-from copy import deepcopy
-import itertools
 import time
-import numpy as np
-import torch
-from torch.optim import Adam
-import gym
-from demo_env import CustomEnvironment, compute_gaussian_density
 # from visualize import animation
-from vis import animation
-from helpers import BufferNotDone, ReplayBuffer, Buffer, SACBufferNotDone, compute_entropy, sac_args_type     
-from config import Config
 from dataset import build_dataset, DatasetSampler
 from evaluation import eval_policy
 
 def offline_train(args, env_fn):
     # parameters
     seed = args.seed
-    update_every = args.update_every
     output_dir = args.output_dir
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -52,7 +25,6 @@ def offline_train(args, env_fn):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     writer = None  # SummaryWriter(output_dir)
-    evaluations = []
     # max_timesteps = args.num_epochs * args.num_steps_per_epoch
     max_timesteps = args.num_epochs // args.eval_freq
     best_nreward = -np.inf
@@ -81,17 +53,17 @@ def offline_train(args, env_fn):
               args=args)
     else:
         raise NotImplementedError
-
-    starting_time = time.time()
-    last_eval_time = starting_time  
     for t in range(max_timesteps):
-        steps = args.num_steps_per_epoch * args.eval_freq
+        steps = args.num_steps_per_epoch
         if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc':
+            train_begin = time.time()
             loss_metric = agent.train(
                         replay_buffer=data_sampler,
                         iterations=steps,
                         batch_size=args.batch_size,
                         log_writer=writer)
+            train_end = time.time()
+            logger_zhiao.logkv('train_time', train_end - train_begin)
             for k, v in loss_metric.items():
                 if v == []:
                     continue    
@@ -99,19 +71,13 @@ def offline_train(args, env_fn):
                     logger_zhiao.logkv(k, np.mean(v))
                     logger_zhiao.logkv(k + '_std', np.std(v))
                 except:
-                    print("problem", k, v)
+                    print("can not log", k, v)
                     raise NotImplementedError
         else:
             raise NotImplementedError
-        train_time = time.time() - last_eval_time 
-        # if t % args.num_steps_per_epoch == 0 and args.with_eval:
         if args.with_eval:
-            infer_begin = time.time()
             eval_ret = eval_policy(args, agent, test_env, algo=args.algo, eval_episodes=args.eval_episodes)
             logger_zhiao.logkvs(eval_ret)
-            current_time = time.time()
-            time_span = current_time - starting_time
-            infer_time = time.time() - infer_begin
             if args.algo == 'dac':
                 print("bc_loss", np.mean(loss_metric['bc_loss']))
                 print("ql_loss", np.mean(loss_metric['ql_loss']))

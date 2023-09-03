@@ -23,7 +23,7 @@ class Config:
     discount2: float = 1.0
     tau: float = 0.005
     # diffusion
-    target_nise: float = 0.2
+    target_noise: float = 0.2
     noise_clip: float = 0.5
     T: int = 100
     beta_schedule: str = 'vp'
@@ -53,7 +53,7 @@ class Config:
     debug: bool = False
     fast: bool = False
     seed: int =0
-    num_steps_per_epoch: int = 4000
+    num_steps_per_epoch: int = 5000
     replay_size: int = int(1e6)
     start_steps: int = 10000
     update_after: int = 1000
@@ -93,3 +93,4 @@ class Config:
     num_entropy_samples: int = 100
     with_eval: bool = True
     resample: bool = False
+    grad_norm: float = 9.0

@@ -5,15 +5,14 @@ from tqdm import tqdm
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from utils.logger import logger
 import utils.logger_zhiao as logger_zhiao
 
 from agents.diffusion_ import Diffusion
 from agents.model_ import MLP
 import time
-from agents.helpers import EMA, SinusoidalPosEmb
+from agents.helpers import EMA
+from config import Config
 
 # Initialize Policy weights
 def weights_init_(m):
@@ -22,7 +21,7 @@ def weights_init_(m):
         torch.nn.init.constant_(m.bias, 0)
 
 class Diffusion_BC(object):
-    def __init__(self, state_dim, action_dim, max_action, device, args):
+    def __init__(self, state_dim, action_dim, max_action, device, args: Config):
         self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
 
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
@@ -38,7 +37,7 @@ class Diffusion_BC(object):
 
         self.step = 0
         self.step_start_ema = args.step_start_ema
-        self.ema = EMA(args.ema_decay)
+        self.ema = EMA(1-args.tau)
         self.ema_model = copy.deepcopy(self.actor)
         self.update_ema_every = args.update_ema_every
         if args.lr_decay:

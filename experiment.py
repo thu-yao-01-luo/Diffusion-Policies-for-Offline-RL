@@ -1,7 +1,4 @@
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from copy import deepcopy
 import os
-import torch
 import gym
 import torch
 from utils import utils

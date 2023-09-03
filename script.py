@@ -2703,6 +2703,42 @@ def sept3_dql_param():
         run_python_file(job, file_paths[ind], main="experiment.py")
         # run_multi_py(job, file_paths[ind], main="experiment.py", directory=dir_path)
 
+def sept3_dql_param_with_v():
+    file_paths = []
+    job_list = []
+    Ts = [1, 4, 8, 16]
+    task_id = f"resample-eval/change{(time.strftime('%H:%M:%S'))}"
+    config_dir = f"configs/resample-eval/"
+    os.makedirs(config_dir, exist_ok=True)
+    for T in Ts:
+                job_id = f"dql-with-v-t{T}-oldparam"
+                file_name = job_id + ".yaml"
+                config = {
+                    "algo": "dql", 
+                    "T": T, 
+                    "name": job_id, 
+                    "id": job_id, 
+                    "predict_epsilon": False, 
+                    "format": ['stdout', "wandb", "csv"],
+                    "env_name": "halfcheetah-medium-v2", 
+                    "d4rl": True,            
+                    "online": False,
+                    "num_steps_per_epoch": 5000,
+                    "bc_weight": 1.0,
+                    "num_epochs": 10000,
+                }
+                job_list.append(job_id)
+                filename = os.path.join(config_dir, file_name)
+                file_paths.append(filename)
+                make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        run_python_file(job, file_paths[ind], main="experiment.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -2766,4 +2802,5 @@ if __name__ == "__main__":
     # aug31_resample_eval()
     # aug31_resample_eval2()
     # sept3_resample_eval()
-    sept3_dql_param()
+    # sept3_dql_param()
+    sept3_dql_param_with_v()
