@@ -1,0 +1,12 @@
+T: 4
+algo: ql
+bc_weight: 1.0
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- csv
+id: dql-t4-oldparam
+name: dql-t4-oldparam
+num_epochs: 10000
+num_steps_per_epoch: 100
+predict_epsilon: false
