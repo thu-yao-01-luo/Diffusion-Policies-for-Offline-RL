@@ -2748,7 +2748,7 @@ def sept3_dql_wv_test_critic():
     config_dir = f"configs/resample-eval/"
     os.makedirs(config_dir, exist_ok=True)
     for T in Ts:
-                job_id = f"dql-with-v-t{T}-oldparam"
+                job_id = f"dql-wv-t{T}-test-critic"
                 file_name = job_id + ".yaml"
                 config = {
                     "algo": "dql", 
