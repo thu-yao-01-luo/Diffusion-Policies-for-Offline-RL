@@ -1,0 +1,16 @@
+T: 16
+algo: dql
+bc_weight: 1.0
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: dql-wv-t16-test-critic
+name: dql-wv-t16-test-critic
+num_epochs: 10000
+num_steps_per_epoch: 5000
+online: false
+predict_epsilon: false
+test_critic: true
