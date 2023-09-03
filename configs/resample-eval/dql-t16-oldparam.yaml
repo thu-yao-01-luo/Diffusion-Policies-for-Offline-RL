@@ -1,0 +1,14 @@
+T: 16
+algo: dql
+bc_weight: 1.0
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- csv
+id: dql-t16-oldparam
+name: dql-t16-oldparam
+num_epochs: 10000
+num_steps_per_epoch: 100
+online: false
+predict_epsilon: false

@@ -2662,8 +2662,8 @@ def sept3_resample_eval():
 def sept3_dql_param():
     file_paths = []
     job_list = []
-    # Ts = [1, 4, 8, 16]
-    Ts = [4]
+    Ts = [1, 4, 8, 16]
+    # Ts = [4]
     task_id = f"resample-eval/change{(time.strftime('%H:%M:%S'))}"
     config_dir = f"configs/resample-eval/"
     os.makedirs(config_dir, exist_ok=True)
