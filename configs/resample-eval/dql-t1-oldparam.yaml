@@ -5,6 +5,7 @@ d4rl: true
 env_name: halfcheetah-medium-v2
 format:
 - stdout
+- wandb
 - csv
 id: dql-t1-oldparam
 name: dql-t1-oldparam
