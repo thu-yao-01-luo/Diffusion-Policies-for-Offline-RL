@@ -13,4 +13,3 @@ num_epochs: 10000
 num_steps_per_epoch: 5000
 online: false
 predict_epsilon: false
-test_critic: true
