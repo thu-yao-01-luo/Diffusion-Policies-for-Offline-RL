@@ -23,9 +23,9 @@ class Config:
     discount2: float = 1.0
     tau: float = 0.005
     # diffusion
-    target_noise: float = 0.2
+    target_nise: float = 0.2
     noise_clip: float = 0.5
-    T: int = 5
+    T: int = 100
     beta_schedule: str = 'vp'
     # algo
     algo: str = 'dac'
@@ -71,11 +71,13 @@ class Config:
     consistency_coef: float = 1.0
     add_noise: bool = False
     update_ema_every: int = 5
+    step_start_ema: int = 1000
     need_animation: bool = False
     num_epochs: int = 1000
     eval_freq: int = 50
     eval_episodes: int = 10
     lr: float = 3e-4
+    lr_maxt: int = 1000
     eta: float = 1.0
     max_q_backup: bool = False
     reward_tune: str = "no"
