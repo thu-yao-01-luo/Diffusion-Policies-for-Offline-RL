@@ -360,7 +360,8 @@ def offline_train(args, env_fn):
 
     writer = None  # SummaryWriter(output_dir)
     evaluations = []
-    max_timesteps = args.num_epochs * args.num_steps_per_epoch
+    # max_timesteps = args.num_epochs * args.num_steps_per_epoch
+    max_timesteps = args.num_epochs // args.eval_freq
     best_nreward = -np.inf
     dataset = build_dataset(env_name=args.env_name, is_d4rl=args.d4rl) # TODO: build dataset 
     data_sampler = DatasetSampler(dataset, device)
@@ -504,10 +505,11 @@ def offline_train(args, env_fn):
     starting_time = time.time()
     last_eval_time = starting_time  
     for t in range(max_timesteps):
+        steps = args.num_steps_per_epoch * args.eval_freq
         if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc':
             loss_metric = agent.train(
                         replay_buffer=data_sampler,
-                        iterations=update_every,
+                        iterations=steps,
                         batch_size=args.batch_size,
                         log_writer=writer)
             for k, v in loss_metric.items():
@@ -522,7 +524,8 @@ def offline_train(args, env_fn):
         else:
             raise NotImplementedError
         train_time = time.time() - last_eval_time 
-        if t % args.num_steps_per_epoch == 0 and args.with_eval:
+        # if t % args.num_steps_per_epoch == 0 and args.with_eval:
+        if args.with_eval:
             infer_begin = time.time()
             eval_res, eval_res_std, eval_norm_res, eval_norm_res_std, eval_len, eval_len_std, local_opt, entropy = eval_policy(args, agent, test_env, algo=args.algo, 
             eval_episodes=args.eval_episodes)

@@ -378,6 +378,8 @@ class Diffusion_QL(object):
                 metric['ql_loss'].append(q1.mean().item())
                 metric['bc_loss'].append(bc_loss.item())
             """ Step Target network """
+            if self.step % self.update_ema_every == 0:
+                self.step_ema()
             if self.step % 2 == 0:
                 for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                     target_param.data.copy_(
