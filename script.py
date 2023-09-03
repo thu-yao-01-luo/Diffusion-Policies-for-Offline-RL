@@ -2671,7 +2671,7 @@ def sept3_dql_param():
                 job_id = f"dql-t{T}-oldparam"
                 file_name = job_id + ".yaml"
                 config = {
-                    "algo": "ql", 
+                    "algo": "dql", 
                     "T": T, 
                     # "update_ema_every": 5, 
                     "name": job_id, 
@@ -2680,11 +2680,11 @@ def sept3_dql_param():
                     # "format": ['stdout', "wandb", "csv"],
                     "format": ['stdout', "csv"],
                     "env_name": "halfcheetah-medium-v2", 
-                    # "d4rl": True,            
+                    "d4rl": True,            
                     # "need_animation": True, 
                     # "discount2": 1.0,
                     # "need_entropy_test": True,
-                    # "online": False,
+                    "online": False,
                     "num_steps_per_epoch": 100,
                     "bc_weight": 1.0,
                     "num_epochs": 10000,
@@ -2701,6 +2701,7 @@ def sept3_dql_param():
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="experiment.py")
+        # run_multi_py(job, file_paths[ind], main="experiment.py", directory=dir_path)
 
 if __name__ == "__main__":
     # jun22_all_env()
