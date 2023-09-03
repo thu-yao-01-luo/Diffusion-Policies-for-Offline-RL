@@ -1,0 +1,15 @@
+T: 16
+algo: dql
+bc_weight: 0.2
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: t16-sept3-dql-bcw
+name: t16-sept3-dql-bcw
+num_epochs: 10000
+num_steps_per_epoch: 5000
+online: false
+predict_epsilon: false
