@@ -2974,11 +2974,13 @@ def sept4_dac():
     file_paths = []
     job_list = []
     Ts = [1, 4, 8, 16]
-    algos = ["dac"]
+    # algos = ["dac"]
+    bcs = [0.2, 0.5, 1.0]
     task_id = f"sys_test/sept4_dac"
     config_dir = f"configs/sys_test/sept4_dac"
     os.makedirs(config_dir, exist_ok=True)
     for T in Ts:
+        for bc in bcs:
         # for algo in algos:
             job_id = f"dac-t{T}-sept4-dac"
             file_name = job_id + ".yaml"
@@ -2993,7 +2995,7 @@ def sept4_dac():
                 "d4rl": True,            
                 "online": False,
                 "num_steps_per_epoch": 5000,
-                "bc_weight": 1.0,
+                "bc_weight": bc,
                 "num_epochs": 10000,
                 "test_critic": True,
                 "ablation": True,
