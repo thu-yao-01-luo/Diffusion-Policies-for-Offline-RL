@@ -41,7 +41,6 @@ class Diffusion_BC(object):
         if args.lr_decay:
             self.actor_lr_scheduler = CosineAnnealingLR(
                 self.actor_optimizer, T_max=args.lr_maxt, eta_min=0.)
-
         self.state_dim = state_dim
         self.max_action = max_action
         self.action_dim = action_dim

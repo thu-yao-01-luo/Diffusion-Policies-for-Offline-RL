@@ -167,7 +167,7 @@ class Diffusion_AC(object):
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
             with torch.no_grad():
-                noise = torch.randn_like(action, device=action.device)
+                # noise = torch.randn_like(action, device=action.device)
                 # target_v = self.critic_target.qmin(next_state, noise, self.actor.n_timesteps)
                 target_v = self.critic_target.v(next_state)
                 target_q = (reward + not_done * self.discount * target_v) # (b,)
@@ -217,7 +217,8 @@ class Diffusion_AC(object):
                     q_loss = - q2.mean() / q1.abs().mean().detach()
                     q_value = q2
                 # q_loss = - q_value.mean() / q_value.detach().abs().mean() if self.norm_q else - q_value.mean()     
-                bc_loss = self.actor.p_losses(action, state, t).mean()
+                # bc_loss = self.actor.p_losses(action, state, t).mean()
+                bc_loss = self.actor.loss(action, state).mean()
                 actor_loss = q_loss + self.bc_weight * bc_loss
                 self.actor_optimizer.zero_grad()
                 actor_loss.backward()

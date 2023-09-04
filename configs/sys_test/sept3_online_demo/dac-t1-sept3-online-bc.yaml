@@ -1,0 +1,17 @@
+T: 1
+algo: dac
+bc_weight: 0.0
+d4rl: false
+discount2: 1.0
+env_name: Demo-v0
+format:
+- stdout
+- wandb
+- csv
+id: dac-t1-sept3-online-bc
+name: dac-t1-sept3-online-bc
+need_animation: true
+num_steps_per_epoch: 50
+online: true
+predict_epsilon: false
+vis_q: true
