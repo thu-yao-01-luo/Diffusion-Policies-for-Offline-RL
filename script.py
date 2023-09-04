@@ -2982,7 +2982,7 @@ def sept4_dac():
     for T in Ts:
         for bc in bcs:
         # for algo in algos:
-            job_id = f"dac-t{T}-sept4-dac"
+            job_id = f"dac-t{T}-bc{bc}-sept4-dac"
             file_name = job_id + ".yaml"
             config = {
                 "algo": "dac", 
