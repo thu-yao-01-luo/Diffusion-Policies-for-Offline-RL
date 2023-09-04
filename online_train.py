@@ -140,7 +140,7 @@ def online_train(args, env_fn):
                     print("ql_loss", np.mean(loss_metric['ql_loss']))
                     print("actor_loss", np.mean(loss_metric['actor_loss']))
                     print("critic_loss", np.mean(loss_metric['critic_loss']))
-                    if args.save_best_model and eval_ret["avg_norm_score"] > best_nreward:
+                    if args.save_best_model and args.d4rl and eval_ret["avg_norm_score"] > best_nreward:
                         best_nreward = eval_ret["avg_norm_score"] 
             logger_zhiao.dumpkvs()
 

@@ -76,6 +76,11 @@ class TestCritic(nn.Module):
         if t == None: 
             t = torch.zeros((state.shape[0],), device=state.device)
         return self.q_network1(state, action, t)
+
+    def q2(self, state, action, t=None):
+        if t == None: 
+            t = torch.zeros((state.shape[0],), device=state.device)
+        return self.q_network1(state, action, t)
     
     def qmin(self, state, action, t=None):
         if t == None:
@@ -187,7 +192,11 @@ class Diffusion_AC(object):
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic_target.qmin(state, denoised_noisy_action_ema, t_scalar).detach() # (b, 1)->(b,)
-                target_v = self.critic_target.qmin(state, denoised_noisy_action_ema, q_t - 1) # (b, 1)->(b,)
+                # target_v = self.critic_target.qmin(state, denoised_noisy_action_ema, q_t - 1) # (b, 1)->(b,)
+                if np.random.uniform() > 0.5:
+                    target_v = self.critic_target.q1(state, denoised_noisy_action_ema, q_t - 1) # (b, 1)->(b,)
+                else:
+                    target_v = self.critic_target.q2(state, denoised_noisy_action_ema, q_t - 1)
             q_cur1, q_cur2 = self.critic.q(state, noisy_action, q_t)
             q_tar = target_v * self.discount2
             v_loss = F.mse_loss(q_cur1, q_tar) + F.mse_loss(q_cur2, q_tar) # (b, 1)->(1,)
