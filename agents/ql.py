@@ -211,6 +211,7 @@ class Diffusion_QL(object):
         self.update_ema_every = args.update_ema_every
         self.test_critic = args.test_critic
         self.critic = Critic(state_dim, action_dim).to(device)
+        self.ablation = args.ablation
         if self.test_critic and self.ablation:
             print("Using Test Critic")
             self.critic = TestCritic(state_dim, action_dim, max_time_step=args.T).to(device)
@@ -255,7 +256,6 @@ class Diffusion_QL(object):
         self.target_noise = args.target_noise
         self.noise_clip = args.noise_clip
         self.add_noise = args.add_noise
-        self.ablation = args.ablation
 
     def step_ema(self):
         if self.step < self.step_start_ema:
