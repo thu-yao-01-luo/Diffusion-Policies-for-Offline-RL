@@ -1,0 +1,17 @@
+T: 16
+ablation: true
+algo: dac
+bc_weight: 1.0
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: dac-t16-bc1.0-sept6-dac
+name: dac-t16-bc1.0-sept6-dac
+num_epochs: 10000
+num_steps_per_epoch: 5000
+online: false
+predict_epsilon: false
+test_critic: true
