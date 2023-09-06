@@ -3255,7 +3255,8 @@ def sept6_dac_debug():
             os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
-        run_python_file(job, file_paths[ind], main="experiment.py")
+        # run_python_file(job, file_paths[ind], main="experiment.py")
+        run_multi_py(job, file_paths[ind], main="experiment.py", directory=dir_path)
 
 if __name__ == "__main__":
     # jun22_all_env()

@@ -173,16 +173,12 @@ class Diffusion_AC(object):
             """ Q Training """
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
+            # print("begin train")
             with torch.no_grad():
                 # noise = torch.randn_like(action, device=action.device)
                 # target_v = self.critic_target.qmin(next_state, noise, self.actor.n_timesteps)
                 target_v = self.critic_target.v(next_state)
-                print(target_v.shape)
-                print(reward.shape)
-                print(not_done.shape)
                 target_q = (reward + not_done * self.discount * target_v) # (b,)
-                print(target_q.shape)
-                exit()
             q1, q2 = self.critic.q(state, action) # (b, 1)
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
             if log_writer is not None:
