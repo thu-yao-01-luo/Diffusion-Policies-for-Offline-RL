@@ -3175,7 +3175,7 @@ def sept6_dac():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="experiment.py")
 
-def sept5_dac_online():
+def sept6_dac_online():
     file_paths = []
     job_list = []
     Ts = [1, 4, 8]
