@@ -3180,12 +3180,12 @@ def sept6_dac_online():
     job_list = []
     Ts = [1, 4, 8]
     algos = ["dac"]
-    task_id = f"sys_test/sept5_dql_dac_online"
-    config_dir = f"configs/sys_test/sept5_dql_dac_online"
+    task_id = f"sys_test/sept6_dql_dac_online"
+    config_dir = f"configs/sys_test/sept6_dql_dac_online"
     os.makedirs(config_dir, exist_ok=True)
     for T in Ts:
         for algo in algos:
-            job_id = f"{algo}-t{T}-sept5-dql-dac-online"
+            job_id = f"{algo}-t{T}-sept6-dql-dac-online"
             file_name = job_id + ".yaml"
             config = {
                 "algo": algo, 
