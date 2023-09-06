@@ -3212,7 +3212,8 @@ def sept6_dac_online():
             os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
-        run_multi_py(job, file_paths[ind], main="experiment.py", directory=dir_path)
+        # run_multi_py(job, file_paths[ind], main="experiment.py", directory=dir_path)
+        run_python_file(job, file_paths[ind], main="experiment.py")
 
 if __name__ == "__main__":
     # jun22_all_env()
@@ -3289,4 +3290,5 @@ if __name__ == "__main__":
     # sept4_dac_bcw()
     # sept5_dql_dac_online()
     # sept5_dql_dac()
-    sept6_dac()
+    # sept6_dac()
+    sept6_dac_online()
