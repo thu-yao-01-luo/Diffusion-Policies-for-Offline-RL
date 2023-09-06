@@ -3215,6 +3215,48 @@ def sept6_dac_online():
         # run_multi_py(job, file_paths[ind], main="experiment.py", directory=dir_path)
         run_python_file(job, file_paths[ind], main="experiment.py")
 
+def sept6_dac_debug():
+    file_paths = []
+    job_list = []
+    # Ts = [1, 4, 8, 16]
+    Ts = [4]
+    # bcs = [0.2, 0.5, 1.0]
+    bcs = [1.0]
+    task_id = f"sys_test/sept6_dac_debug"
+    config_dir = f"configs/sys_test/sept6_dac_debug"
+    os.makedirs(config_dir, exist_ok=True)
+    for T in Ts:
+        for bc in bcs:
+            job_id = f"dac-t{T}-bc{bc}-sept6-dac-debug"
+            file_name = job_id + ".yaml"
+            config = {
+                "algo": "dac", 
+                "T": T, 
+                "name": job_id, 
+                "id": job_id, 
+                "predict_epsilon": False, 
+                "format": ['stdout', "csv"],
+                "env_name": "halfcheetah-medium-v2", 
+                "d4rl": True,            
+                "online": False,
+                "num_steps_per_epoch": 5000,
+                "bc_weight": bc,
+                "num_epochs": 10000,
+                "test_critic": True,
+                "ablation": True,
+            }
+            job_list.append(job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        run_python_file(job, file_paths[ind], main="experiment.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -3291,4 +3333,5 @@ if __name__ == "__main__":
     # sept5_dql_dac_online()
     # sept5_dql_dac()
     # sept6_dac()
-    sept6_dac_online()
+    # sept6_dac_online()
+    sept6_dac_debug()
