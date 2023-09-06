@@ -3179,7 +3179,7 @@ def sept5_dac_online():
     file_paths = []
     job_list = []
     Ts = [1, 4, 8]
-    algos = ["dql", "dac"]
+    algos = ["dac"]
     task_id = f"sys_test/sept5_dql_dac_online"
     config_dir = f"configs/sys_test/sept5_dql_dac_online"
     os.makedirs(config_dir, exist_ok=True)
