@@ -51,11 +51,18 @@ def offline_train(args, env_fn):
               max_action=act_limit,
               device=device,
               args=args)
+    elif args.algo == "pre-dac":
+        from agents.pre_ac import Diffusion_AC as Agent
+        agent = Agent(state_dim=obs_dim,
+                action_dim=act_dim,
+                max_action=act_limit,
+                device=device,
+                args=args)
     else:
         raise NotImplementedError
     for t in range(max_timesteps):
         steps = args.num_steps_per_epoch
-        if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc':
+        if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc' or args.algo == 'pre-dac':
             starting_time = time.time()
             loss_metric = agent.train(
                         replay_buffer=data_sampler,
