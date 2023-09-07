@@ -1,0 +1,17 @@
+T: 8
+algo: dac
+bc_weight: 0.01
+critic_ema: 1
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: dac-t8-bc0.01-sept7-dac-bcw
+name: dac-t8-bc0.01-sept7-dac-bcw
+num_epochs: 10000
+num_steps_per_epoch: 5000
+online: false
+policy_delay: 1
+predict_epsilon: false

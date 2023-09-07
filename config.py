@@ -97,3 +97,4 @@ class Config:
     grad_norm: float = 9.0
     ablation: bool = False
     mdp: bool = False
+    critic_ema: int = 2

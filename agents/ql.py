@@ -256,6 +256,7 @@ class Diffusion_QL(object):
         self.target_noise = args.target_noise
         self.noise_clip = args.noise_clip
         self.add_noise = args.add_noise
+        self.critic_ema = args.critic_ema
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -331,7 +332,7 @@ class Diffusion_QL(object):
             """ Step Target network """
             if self.step % self.update_ema_every == 0:
                 self.step_ema()
-            if self.step % 2 == 0:
+            if self.step % self.critic_ema == 0:
                 for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                     target_param.data.copy_(
                         self.tau * param.data + (1 - self.tau) * target_param.data)
