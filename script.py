@@ -3499,5 +3499,5 @@ if __name__ == "__main__":
     # sept6_dac_online()
     # sept6_dac_debug()
     # sept6_dac2()
-    # sept6_dac_bcw()
-    sept7_pre_dac_bcw()
+    sept6_dac_bcw()
+    # sept7_pre_dac_bcw()
