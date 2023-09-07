@@ -95,3 +95,4 @@ class Config:
     resample: bool = False
     grad_norm: float = 9.0
     ablation: bool = False
+    mdp: bool = False

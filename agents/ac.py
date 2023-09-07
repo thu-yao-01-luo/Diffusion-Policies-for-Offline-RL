@@ -153,6 +153,7 @@ class Diffusion_AC(object):
         self.target_noise = args.target_noise
         self.noise_clip = args.noise_clip
         self.add_noise = args.add_noise
+        self.mdp = args.mdp
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -173,7 +174,6 @@ class Diffusion_AC(object):
             """ Q Training """
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
-            # print("begin train")
             with torch.no_grad():
                 # noise = torch.randn_like(action, device=action.device)
                 # target_v = self.critic_target.qmin(next_state, noise, self.actor.n_timesteps)
