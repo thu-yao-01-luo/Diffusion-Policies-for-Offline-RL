@@ -102,8 +102,10 @@ class Diffusion_AC(object):
 
         self.scale = args.scale
         self.lr_decay = args.lr_decay
-        self.grad_norm = args.grad_norm
-        self.MSBE_coef = args.MSBE_coef
+        # self.grad_norm = args.grad_norm
+        self.grad_norm = args.gn
+        # self.MSBE_coef = args.MSBE_coef
+        self.MSBE_coef = args.coef
 
         self.step = 0
         self.step_start_ema = args.step_start_ema
