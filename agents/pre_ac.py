@@ -91,158 +91,160 @@ def exponential_loss(q, target_q, eta=1.0):
 
 
 class Diffusion_AC(object):
-    def __init__(self, state_dim, action_dim, max_action, device, args: Config):
-        self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
-
-        self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
-                               beta_schedule=args.beta_schedule, n_timesteps=args.T, scale=args.scale,
-                               predict_epsilon=args.predict_epsilon).to(device)
-
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=args.lr)
-
-        self.scale = args.scale
-        self.lr_decay = args.lr_decay
-        # self.grad_norm = args.grad_norm
-        self.grad_norm = args.gn
-        # self.MSBE_coef = args.MSBE_coef
-        self.MSBE_coef = args.coef
-
-        self.step = 0
-        self.step_start_ema = args.step_start_ema
-        self.ema = EMA(args.ema_decay)
-        self.ema_model = copy.deepcopy(self.actor)
-        self.update_ema_every = args.update_ema_every
-
-        self.critic = NoisyCritic(state_dim, action_dim).to(device)
-        self.critic_target = copy.deepcopy(self.critic)
-        self.critic_optimizer = torch.optim.Adam(
-            self.critic.parameters(), lr=3e-4)
-
-        if args.lr_decay:
-            self.actor_lr_scheduler = CosineAnnealingLR(
-                self.actor_optimizer, T_max=args.lr_maxt, eta_min=0.)
-            self.critic_lr_scheduler = CosineAnnealingLR(
-                self.critic_optimizer, T_max=args.lr_maxt, eta_min=0.)
-
-        self.state_dim = state_dim
-        self.max_action = max_action
-        self.action_dim = action_dim
-        self.discount = args.discount
-        self.discount2 = args.discount2
-        self.tau = args.tau
-        self.eta = args.eta
-        self.device = device
-        self.max_q_backup = args.max_q_backup
-        self.compute_consistency = args.compute_consistency
-        self.iql_style = args.iql_style
-        self.expectile = args.expectile
-        self.quantile = args.quantile
-        self.temperature = args.temperature
-        self.bc_weight = args.bc_weight
-        self.tune_bc_weight = args.tune_bc_weight
-        self.std_threshold = args.std_threshold
-        self.bc_lower_bound = args.bc_lower_bound
-        self.bc_decay = args.bc_decay
-        self.value_threshold = args.value_threshold
-        self.bc_upper_bound = args.bc_upper_bound
-        self.consistency = args.consistency
-        self.scale = args.scale
-        self.debug = args.debug
-
-    # def __init__(self,
-    #              state_dim,
-    #              action_dim,
-    #              max_action,
-    #              device,
-    #              discount,
-    #              tau,
-    #              max_q_backup=False,
-    #              eta=1.0,
-    #              beta_schedule='linear',
-    #              n_timesteps=100,
-    #              ema_decay=0.995,
-    #              step_start_ema=1000,
-    #              update_ema_every=5,
-    #              lr=3e-4,
-    #              lr_decay=False,
-    #              lr_maxt=1000,
-    #              grad_norm=1.0,
-    #              MSBE_coef=0.05,
-    #              discount2=0.99,
-    #              compute_consistency=True,
-    #              iql_style="discount",
-    #              expectile=0.7,
-    #              quantile=0.6,
-    #              temperature=1.0,
-    #              bc_weight=1.0,
-    #              log_every=10,
-    #              tune_bc_weight=False,
-    #              std_threshold=1e-4,
-    #              bc_lower_bound=1e-2,
-    #              bc_decay=0.995,
-    #              value_threshold=2.5e-4,
-    #              bc_upper_bound=1e2,
-    #              consistency=True,
-    #              scale=1.0,
-    #              predict_epsilon=False,
-    #              debug=False,
-    #              ):
-
-    #     self.model = MLP(state_dim=state_dim,
-    #                      action_dim=action_dim, device=device)
+    # def __init__(self, state_dim, action_dim, max_action, device, args: Config):
+    #     self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
 
     #     self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
-    #                            beta_schedule=beta_schedule, n_timesteps=n_timesteps, scale=scale, predict_epsilon=predict_epsilon).to(device)
+    #                            beta_schedule=args.beta_schedule, n_timesteps=args.T, scale=args.scale,
+    #                            predict_epsilon=args.predict_epsilon).to(device)
 
-    #     self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
+    #     self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=args.lr)
 
-    #     self.scale = scale
-    #     self.lr_decay = lr_decay
-    #     self.grad_norm = grad_norm
-    #     self.MSBE_coef = MSBE_coef
+    #     self.scale = args.scale
+    #     self.lr_decay = args.lr_decay
+    #     # self.grad_norm = args.grad_norm
+    #     self.grad_norm = args.gn
+    #     # self.MSBE_coef = args.MSBE_coef
+    #     self.MSBE_coef = args.coef
 
     #     self.step = 0
-    #     self.step_start_ema = step_start_ema
-    #     self.ema = EMA(ema_decay)
+    #     # self.step_start_ema = args.step_start_ema
+    #     self.step_start_ema = 1000
+    #     # self.ema = EMA(args.ema_decay)
+    #     self.ema = EMA(0.995)
     #     self.ema_model = copy.deepcopy(self.actor)
-    #     self.update_ema_every = update_ema_every
+    #     self.update_ema_every = args.update_ema_every
 
     #     self.critic = NoisyCritic(state_dim, action_dim).to(device)
     #     self.critic_target = copy.deepcopy(self.critic)
     #     self.critic_optimizer = torch.optim.Adam(
     #         self.critic.parameters(), lr=3e-4)
 
-    #     if lr_decay:
+    #     if args.lr_decay:
     #         self.actor_lr_scheduler = CosineAnnealingLR(
-    #             self.actor_optimizer, T_max=lr_maxt, eta_min=0.)
+    #             self.actor_optimizer, T_max=args.lr_maxt, eta_min=0.)
     #         self.critic_lr_scheduler = CosineAnnealingLR(
-    #             self.critic_optimizer, T_max=lr_maxt, eta_min=0.)
+    #             self.critic_optimizer, T_max=args.lr_maxt, eta_min=0.)
 
     #     self.state_dim = state_dim
     #     self.max_action = max_action
     #     self.action_dim = action_dim
-    #     self.discount = discount
-    #     self.discount2 = discount2
-    #     self.tau = tau
-    #     self.eta = eta  # q_learning weight
+    #     self.discount = args.discount
+    #     self.discount2 = args.discount2
+    #     self.tau = args.tau
+    #     self.eta = args.eta
     #     self.device = device
-    #     self.max_q_backup = max_q_backup
-    #     self.compute_consistency = compute_consistency
-    #     self.iql_style = iql_style
-    #     self.expectile = expectile
-    #     self.quantile = quantile
-    #     self.temperature = temperature
-    #     self.bc_weight = bc_weight
-    #     self.log_every = log_every
-    #     self.tune_bc_weight = tune_bc_weight
-    #     self.std_threshold = std_threshold
-    #     self.bc_lower_bound = bc_lower_bound
-    #     self.bc_decay = bc_decay
-    #     self.value_threshold = value_threshold
-    #     self.bc_upper_bound = bc_upper_bound
-    #     self.consistency = consistency
-    #     self.scale = scale
-    #     self.debug = debug
+    #     self.max_q_backup = args.max_q_backup
+    #     self.compute_consistency = args.compute_consistency
+    #     self.iql_style = args.iql_style
+    #     self.expectile = args.expectile
+    #     self.quantile = args.quantile
+    #     self.temperature = args.temperature
+    #     self.bc_weight = args.bc_weight
+    #     self.tune_bc_weight = args.tune_bc_weight
+    #     self.std_threshold = args.std_threshold
+    #     self.bc_lower_bound = args.bc_lower_bound
+    #     self.bc_decay = args.bc_decay
+    #     self.value_threshold = args.value_threshold
+    #     self.bc_upper_bound = args.bc_upper_bound
+    #     self.consistency = args.consistency
+    #     self.scale = args.scale
+    #     self.debug = args.debug
+
+    def __init__(self,
+                 state_dim,
+                 action_dim,
+                 max_action,
+                 device,
+                 discount,
+                 tau,
+                 max_q_backup=False,
+                 eta=1.0,
+                 beta_schedule='linear',
+                 n_timesteps=100,
+                 ema_decay=0.995,
+                 step_start_ema=1000,
+                 update_ema_every=5,
+                 lr=3e-4,
+                 lr_decay=False,
+                 lr_maxt=1000,
+                 grad_norm=1.0,
+                 MSBE_coef=0.05,
+                 discount2=0.99,
+                 compute_consistency=True,
+                 iql_style="discount",
+                 expectile=0.7,
+                 quantile=0.6,
+                 temperature=1.0,
+                 bc_weight=1.0,
+                 log_every=10,
+                 tune_bc_weight=False,
+                 std_threshold=1e-4,
+                 bc_lower_bound=1e-2,
+                 bc_decay=0.995,
+                 value_threshold=2.5e-4,
+                 bc_upper_bound=1e2,
+                 consistency=True,
+                 scale=1.0,
+                 predict_epsilon=False,
+                 debug=False,
+                 ):
+
+        self.model = MLP(state_dim=state_dim,
+                         action_dim=action_dim, device=device)
+
+        self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
+                               beta_schedule=beta_schedule, n_timesteps=n_timesteps, scale=scale, predict_epsilon=predict_epsilon).to(device)
+
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
+
+        self.scale = scale
+        self.lr_decay = lr_decay
+        self.grad_norm = grad_norm
+        self.MSBE_coef = MSBE_coef
+
+        self.step = 0
+        self.step_start_ema = step_start_ema
+        self.ema = EMA(ema_decay)
+        self.ema_model = copy.deepcopy(self.actor)
+        self.update_ema_every = update_ema_every
+
+        self.critic = NoisyCritic(state_dim, action_dim).to(device)
+        self.critic_target = copy.deepcopy(self.critic)
+        self.critic_optimizer = torch.optim.Adam(
+            self.critic.parameters(), lr=3e-4)
+
+        if lr_decay:
+            self.actor_lr_scheduler = CosineAnnealingLR(
+                self.actor_optimizer, T_max=lr_maxt, eta_min=0.)
+            self.critic_lr_scheduler = CosineAnnealingLR(
+                self.critic_optimizer, T_max=lr_maxt, eta_min=0.)
+
+        self.state_dim = state_dim
+        self.max_action = max_action
+        self.action_dim = action_dim
+        self.discount = discount
+        self.discount2 = discount2
+        self.tau = tau
+        self.eta = eta  # q_learning weight
+        self.device = device
+        self.max_q_backup = max_q_backup
+        self.compute_consistency = compute_consistency
+        self.iql_style = iql_style
+        self.expectile = expectile
+        self.quantile = quantile
+        self.temperature = temperature
+        self.bc_weight = bc_weight
+        self.log_every = log_every
+        self.tune_bc_weight = tune_bc_weight
+        self.std_threshold = std_threshold
+        self.bc_lower_bound = bc_lower_bound
+        self.bc_decay = bc_decay
+        self.value_threshold = value_threshold
+        self.bc_upper_bound = bc_upper_bound
+        self.consistency = consistency
+        self.scale = scale
+        self.debug = debug
 
     def step_ema(self):
         if self.step < self.step_start_ema:
