@@ -10,10 +10,10 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from utils.logger import logger
 # from dreamfuser.logger import logger as logger_zhiao
 import utils.logger_zhiao as logger_zhiao
-
 from agents.diffusion import Diffusion
 from agents.model import MLP
 import time
+from config import Config
 from agents.helpers import EMA, SinusoidalPosEmb
 
 
@@ -91,7 +91,7 @@ def exponential_loss(q, target_q, eta=1.0):
 
 
 class Diffusion_AC(object):
-    def __init__(self, state_dim, action_dim, max_action, device, args):
+    def __init__(self, state_dim, action_dim, max_action, device, args: Config):
         self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
 
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
@@ -137,7 +137,6 @@ class Diffusion_AC(object):
         self.quantile = args.quantile
         self.temperature = args.temperature
         self.bc_weight = args.bc_weight
-        self.log_every = args.log_every
         self.tune_bc_weight = args.tune_bc_weight
         self.std_threshold = args.std_threshold
         self.bc_lower_bound = args.bc_lower_bound
