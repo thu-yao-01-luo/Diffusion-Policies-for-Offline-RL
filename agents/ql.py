@@ -206,7 +206,7 @@ class Diffusion_QL(object):
 
         self.step = 0
         self.step_start_ema = args.step_start_ema
-        self.ema = EMA(1-args.tau)
+        self.ema = EMA(args.ema_decay)
         self.ema_model = copy.deepcopy(self.actor)
         self.update_ema_every = args.update_ema_every
         self.test_critic = args.test_critic

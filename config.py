@@ -22,6 +22,7 @@ class Config:
     discount: float = 0.99
     discount2: float = 1.0
     tau: float = 0.005
+    ema_decay: float = 0.995
     # diffusion
     target_noise: float = 0.2
     noise_clip: float = 0.5
