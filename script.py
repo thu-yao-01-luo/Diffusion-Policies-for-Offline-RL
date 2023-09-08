@@ -3575,7 +3575,6 @@ def sept8_pre_dac_bcw():
                 "bc_weight": bc,
                 "num_epochs": 10000,
                 "test_critic": True,
-                "ablation": True,
             }
             job_list.append(job_id)
             filename = os.path.join(config_dir, file_name)

@@ -1,5 +1,4 @@
 T: 4
-ablation: true
 algo: pre-dac
 bc_weight: 0.01
 d4rl: true
