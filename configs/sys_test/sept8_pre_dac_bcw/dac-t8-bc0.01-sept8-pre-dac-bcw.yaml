@@ -1,0 +1,18 @@
+T: 8
+ablation: true
+algo: pre-dac
+bc_weight: 0.01
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: dac-t8-bc0.01-sept8-pre-dac-bcw
+name: dac-t8-bc0.01-sept8-pre-dac-bcw
+num_epochs: 10000
+num_steps_per_epoch: 5000
+online: false
+pre_eval: true
+predict_epsilon: false
+test_critic: true
