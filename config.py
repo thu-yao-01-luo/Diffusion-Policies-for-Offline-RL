@@ -98,3 +98,4 @@ class Config:
     ablation: bool = False
     mdp: bool = False
     critic_ema: int = 2
+    pre_eval: bool = False
