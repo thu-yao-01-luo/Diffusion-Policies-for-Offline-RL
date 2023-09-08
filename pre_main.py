@@ -18,6 +18,7 @@ import utils.logger_zhiao as logger_zhiao
 from utils.logger import logger, setup_logger
 from dataclasses import dataclass, field
 # from torch.utils.tensorboard import SummaryWriter
+from config import Config
 
 hyperparameters = {
     'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 12000, 'gn': 9.0,  'top_k': 1},
@@ -44,7 +45,7 @@ hyperparameters = {
 
 
 @dataclass
-class Config:
+class Config2:
     # experiment
     exp: str = 'exp_1'
     device: int = 0
