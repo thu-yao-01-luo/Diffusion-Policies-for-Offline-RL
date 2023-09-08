@@ -7,11 +7,14 @@ import utils.logger_zhiao as logger_zhiao
 import torch
 import gym
 from config import Config
+from pre_main import Config as PreConfig 
 from online_train import online_train
 from offline_train import offline_train
 
 if __name__ == '__main__':
     args = load_config(Config)
+    if args.pre_eval and args.algo == "pre-dac":
+        args = load_config(PreConfig)
     logger_zhiao.configure(
         "logs",
         format_strs=args.format,
