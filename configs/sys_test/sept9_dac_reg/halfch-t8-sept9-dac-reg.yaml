@@ -1,0 +1,10 @@
+T: 8
+algo: dac
+bc_weight: 0.01
+coef: 1.0
+discount2: 0.999
+env_name: halfcheetah-medium-v2
+id: halfch-t8-sept9-dac-reg
+name: halfch-t8-sept9-dac-reg
+seed: 0
+tune_bc_weight: false
