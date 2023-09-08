@@ -13,8 +13,6 @@ from offline_train import offline_train
 
 if __name__ == '__main__':
     args = load_config(Config)
-    if args.pre_eval and args.algo == "pre-dac":
-        args = load_config(PreConfig)
     logger_zhiao.configure(
         "logs",
         format_strs=args.format,
@@ -30,19 +28,19 @@ if __name__ == '__main__':
     args.eval_episodes = 10 if 'v2' in args.env_name else 5
 
     # Setup Logging
-    file_name = f"{args.env_name}|{args.exp}|diffusion-{args.algo}|T-{args.T}"
-    if args.lr_decay:
-        file_name += '|lr_decay'
-    file_name += f'|ms-{args.ms}'
+    # file_name = f"{args.env_name}|{args.exp}|diffusion-{args.algo}|T-{args.T}"
+    # if args.lr_decay:
+    #     file_name += '|lr_decay'
+    # file_name += f'|ms-{args.ms}'
 
-    if args.ms == 'offline':
-        file_name += f'|k-{args.top_k}'
-    file_name += f'|{args.seed}'
+    # if args.ms == 'offline':
+    #     file_name += f'|k-{args.top_k}'
+    # file_name += f'|{args.seed}'
 
-    results_dir = os.path.join(args.output_dir, file_name)
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-    utils.print_banner(f"Saving location: {results_dir}")
+    # results_dir = os.path.join(args.output_dir, file_name)
+    # if not os.path.exists(results_dir):
+    #     os.makedirs(results_dir)
+    # utils.print_banner(f"Saving location: {results_dir}")
     if args.online:
         online_train(args, lambda: gym.make(args.env_name))
     else:

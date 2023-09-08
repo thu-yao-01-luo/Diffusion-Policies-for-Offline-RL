@@ -68,7 +68,7 @@ class Config:
     # algo
     algo: str = 'dac'
     ms: str = 'offline'
-    coef: float = 0.2
+    coef: float = 1.0 
     eta: float = 1.0
     compute_consistency: bool = True
     iql_style: str = "discount"

@@ -14,7 +14,8 @@ class Config:
     # format: list = field(default_factory=lambda: ['stdout', "wandb"])
     format: list = field(default_factory=lambda: ['stdout'])
     # optimization
-    batch_size: int = 100
+    # batch_size: int = 100
+    batch_size: int = 256
     lr_decay: bool = False
     early_stop: bool = False
     save_best_model: bool = True
@@ -32,7 +33,7 @@ class Config:
     algo: str = 'dac'
     ms: str = 'offline'
     # coef: float = 0.2
-    coef: float = 1.0
+    coef: float = 1.0 
     MSBE_coef: float = 1.0
     eta: float = 1.0
     compute_consistency: bool = True
