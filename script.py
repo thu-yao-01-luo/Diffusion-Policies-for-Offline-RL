@@ -3803,7 +3803,7 @@ def sept10_dac_pre_dataset():
             os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
-        run_python_file(job, file_paths[ind], main="pre_dataset.py")
+        run_python_file(job, file_paths[ind], main="pre_main2.py")
 
 def sept10_dac_pre_eval():
     file_paths = []
@@ -3846,7 +3846,7 @@ def sept10_dac_pre_eval():
             os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
-        run_python_file(job, file_paths[ind], main="pre_eval.py")
+        run_python_file(job, file_paths[ind], main="pre_main2.py")
 
 if __name__ == "__main__":
     # jun22_all_env()
@@ -3936,6 +3936,6 @@ if __name__ == "__main__":
     # sept9_dac_reg()
     # sept9_dac_main()
     # sept10_dac_pre_main2()
-    sept10_dac_pre_main2()
+    # sept10_dac_pre_main2()
     sept10_dac_pre_dataset()
     sept10_dac_pre_eval()
