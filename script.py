@@ -3603,6 +3603,12 @@ def sept9_dac_reg():
             job_id = f"{env_name[:6]}-t{T}-sept9-dac-reg"
             file_name = job_id + ".yaml"
             config = {
+                "name": job_id, 
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb", "csv"],
+                "d4rl": True,            
+                "online": False,
+                "num_steps_per_epoch": 100,
                 "discount2": 0.999,
                 "coef": 1.0,
                 "seed": 0,
