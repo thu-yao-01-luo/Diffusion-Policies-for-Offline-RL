@@ -71,8 +71,6 @@ def train_agent(args):
     else:
         raise NotImplementedError
 
-    evaluations = []
-    metric = 100.
     for i in range(args.num_epochs):
         iterations = args.num_steps_per_epoch
         starting_time = time.time()

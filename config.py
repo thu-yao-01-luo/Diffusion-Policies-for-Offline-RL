@@ -100,3 +100,5 @@ class Config:
     mdp: bool = False
     critic_ema: int = 2
     pre_eval: bool = False
+    eval_seed: int = 100
+    pre_dataset: bool = True
