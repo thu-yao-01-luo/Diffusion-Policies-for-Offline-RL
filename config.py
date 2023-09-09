@@ -55,7 +55,6 @@ class Config:
     predict_epsilon: bool = True
     debug: bool = False
     fast: bool = False
-    seed: int =0
     num_steps_per_epoch: int = 5000
     replay_size: int = int(1e6)
     start_steps: int = 10000
@@ -76,7 +75,7 @@ class Config:
     update_ema_every: int = 5
     step_start_ema: int = 1000
     need_animation: bool = False
-    num_epochs: int = 1000
+    num_epochs: int = 2000 
     eval_freq: int = 50
     eval_episodes: int = 10
     lr: float = 3e-4

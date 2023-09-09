@@ -14,8 +14,8 @@ def pre_eval_policy_wrapper(agent, env_name, seed, eval_episodes=10):
         "std_reward": result[1],
         "avg_norm_score": result[2],
         "std_norm_score": result[3],
-        "avg_length": result[2],
-        "std_length": result[3],
+        "avg_length": result[4],
+        "std_length": result[5],
     }
     return result_dict
 
