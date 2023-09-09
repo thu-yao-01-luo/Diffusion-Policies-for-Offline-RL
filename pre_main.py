@@ -91,7 +91,7 @@ class Config2:
     debug: bool = False
     fast: bool = False
 
-def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args, using_server=True):
+def train_agent(env, state_dim, action_dim, max_action, device, args, output_dir=None, using_server=True):
     # Load buffer
     dataset = d4rl.qlearning_dataset(env)
     data_sampler = Data_Sampler(dataset, device, args.reward_tune)
@@ -278,11 +278,11 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
                             np.mean(loss_metric['actor_loss']), np.mean(
                                 loss_metric['critic_loss']),
                             curr_epoch])
-        if not using_server:
-            np.save(os.path.join(output_dir, "eval"), evaluations)
-            logger.record_tabular('Average Episodic Reward', eval_res)
-            logger.record_tabular('Average Episodic N-Reward', eval_norm_res)
-            logger.dump_tabular()
+        # if not using_server:
+        #     np.save(os.path.join(output_dir, "eval"), evaluations)
+        #     logger.record_tabular('Average Episodic Reward', eval_res)
+        #     logger.record_tabular('Average Episodic N-Reward', eval_norm_res)
+        #     logger.dump_tabular()
 
         bc_loss = np.mean(loss_metric['bc_loss'])
         for k, v in loss_metric.items():
@@ -298,33 +298,33 @@ def train_agent(env, state_dim, action_dim, max_action, device, output_dir, args
 
         metric = bc_loss
 
-        if args.save_best_model and eval_norm_res > best_nreward:
-            best_nreward = eval_norm_res
-            agent.save_model(output_dir, curr_epoch)
+        # if args.save_best_model and eval_norm_res > best_nreward:
+        #     best_nreward = eval_norm_res
+        #     agent.save_model(output_dir, curr_epoch)
 
     # Model Selection: online or offline
     scores = np.array(evaluations)
-    if args.ms == 'online':
-        best_id = np.argmax(scores[:, 2])
-        best_res = {'model selection': args.ms, 'epoch': scores[best_id, -1],
-                    'best normalized score avg': scores[best_id, 2],
-                    'best normalized score std': scores[best_id, 3],
-                    'best raw score avg': scores[best_id, 0],
-                    'best raw score std': scores[best_id, 1]}
-        with open(os.path.join(output_dir, f"best_score_{args.ms}.txt"), 'w') as f:
-            f.write(json.dumps(best_res))
-    elif args.ms == 'offline':
-        bc_loss = scores[:, 4]
-        top_k = min(len(bc_loss) - 1, args.top_k)
-        where_k = np.argsort(bc_loss) == top_k
-        best_res = {'model selection': args.ms, 'epoch': scores[where_k][0][-1],
-                    'best normalized score avg': scores[where_k][0][2],
-                    'best normalized score std': scores[where_k][0][3],
-                    'best raw score avg': scores[where_k][0][0],
-                    'best raw score std': scores[where_k][0][1]}
+    # if args.ms == 'online':
+    #     best_id = np.argmax(scores[:, 2])
+    #     best_res = {'model selection': args.ms, 'epoch': scores[best_id, -1],
+    #                 'best normalized score avg': scores[best_id, 2],
+    #                 'best normalized score std': scores[best_id, 3],
+    #                 'best raw score avg': scores[best_id, 0],
+    #                 'best raw score std': scores[best_id, 1]}
+    #     with open(os.path.join(output_dir, f"best_score_{args.ms}.txt"), 'w') as f:
+    #         f.write(json.dumps(best_res))
+    # elif args.ms == 'offline':
+    #     bc_loss = scores[:, 4]
+    #     top_k = min(len(bc_loss) - 1, args.top_k)
+    #     where_k = np.argsort(bc_loss) == top_k
+    #     best_res = {'model selection': args.ms, 'epoch': scores[where_k][0][-1],
+    #                 'best normalized score avg': scores[where_k][0][2],
+    #                 'best normalized score std': scores[where_k][0][3],
+    #                 'best raw score avg': scores[where_k][0][0],
+    #                 'best raw score std': scores[where_k][0][1]}
 
-        with open(os.path.join(output_dir, f"best_score_{args.ms}.txt"), 'w') as f:
-            f.write(json.dumps(best_res))
+    #     with open(os.path.join(output_dir, f"best_score_{args.ms}.txt"), 'w') as f:
+    #         f.write(json.dumps(best_res))
     # writer.close()
 
 
@@ -424,39 +424,39 @@ if __name__ == "__main__":
         id=args.id,
     )  # type: ignore
 
-    args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
-    args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
+    # args.device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
+    # args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
 
-    args.num_epochs = hyperparameters[args.env_name]['num_epochs']
-    args.eval_freq = hyperparameters[args.env_name]['eval_freq']
-    args.eval_episodes = 10 if 'v2' in args.env_name else 100
+    # args.num_epochs = hyperparameters[args.env_name]['num_epochs']
+    # args.eval_freq = hyperparameters[args.env_name]['eval_freq']
+    # args.eval_episodes = 10 if 'v2' in args.env_name else 100
 
-    args.lr = hyperparameters[args.env_name]['lr']
-    args.eta = hyperparameters[args.env_name]['eta'] if args.eta == 1.0 else args.eta
-    args.max_q_backup = hyperparameters[args.env_name]['max_q_backup']
-    args.reward_tune = hyperparameters[args.env_name]['reward_tune']
-    args.gn = hyperparameters[args.env_name]['gn']
-    args.top_k = hyperparameters[args.env_name]['top_k']
+    # args.lr = hyperparameters[args.env_name]['lr']
+    # args.eta = hyperparameters[args.env_name]['eta'] if args.eta == 1.0 else args.eta
+    # args.max_q_backup = hyperparameters[args.env_name]['max_q_backup']
+    # args.reward_tune = hyperparameters[args.env_name]['reward_tune']
+    # args.gn = hyperparameters[args.env_name]['gn']
+    # args.top_k = hyperparameters[args.env_name]['top_k']
 
-    # Setup Logging
-    file_name = f"{args.env_name}|{args.exp}|diffusion-{args.algo}|T-{args.T}"
-    if args.lr_decay:
-        file_name += '|lr_decay'
-    file_name += f'|ms-{args.ms}'
+    # # Setup Logging
+    # file_name = f"{args.env_name}|{args.exp}|diffusion-{args.algo}|T-{args.T}"
+    # if args.lr_decay:
+    #     file_name += '|lr_decay'
+    # file_name += f'|ms-{args.ms}'
 
-    if args.ms == 'offline':
-        file_name += f'|k-{args.top_k}'
-    file_name += f'|{args.seed}'
+    # if args.ms == 'offline':
+    #     file_name += f'|k-{args.top_k}'
+    # file_name += f'|{args.seed}'
 
-    results_dir = os.path.join(args.output_dir, file_name)
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-    utils.print_banner(f"Saving location: {results_dir}")
-    # if os.path.exists(os.path.join(results_dir, 'variant.json')):
-    #     raise AssertionError("Experiment under this setting has been done!")
-    variant = vars(args)
+    # results_dir = os.path.join(args.output_dir, file_name)
+    # if not os.path.exists(results_dir):
+    #     os.makedirs(results_dir)
+    # utils.print_banner(f"Saving location: {results_dir}")
+    # # if os.path.exists(os.path.join(results_dir, 'variant.json')):
+    # #     raise AssertionError("Experiment under this setting has been done!")
+    # variant = vars(args)
 
-    variant.update(version=f"Diffusion-Policies-RL")
+    # variant.update(version=f"Diffusion-Policies-RL")
 
     env = gym.make(args.env_name)
 
@@ -468,9 +468,10 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    variant.update(state_dim=state_dim)
-    variant.update(action_dim=action_dim)
-    variant.update(max_action=max_action)
+    # variant.update(state_dim=state_dim)
+    # variant.update(action_dim=action_dim)
+    # variant.update(max_action=max_action)
+
     # setup_logger(os.path.basename(results_dir), variant=variant, log_dir=results_dir)
     utils.print_banner(
         f"Env: {args.env_name}, state_dim: {state_dim}, action_dim: {action_dim}")
@@ -480,5 +481,4 @@ if __name__ == "__main__":
                 action_dim,
                 max_action,
                 args.device,
-                results_dir,
                 args)
