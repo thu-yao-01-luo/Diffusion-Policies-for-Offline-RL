@@ -1,0 +1,19 @@
+T: 8
+algo: dac
+bc_weight: 0.01
+coef: 1.0
+d4rl: true
+discount2: 0.999
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: halfch-t8-sept9-dac-main
+name: halfch-t8-sept9-dac-main
+num_epochs: 100000
+num_steps_per_epoch: 100
+online: false
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
