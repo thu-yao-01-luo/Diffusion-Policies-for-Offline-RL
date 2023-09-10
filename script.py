@@ -4021,14 +4021,13 @@ def sept10_dac_pre_simp():
 def sept10_dac_pre_simp():
     file_paths = []
     job_list = []
-    # env = ["halfcheetah-medium-v2"]
     Ts = [1, 8]
     task_id = f"sys_test/sept10_dac_pre_simp"
     config_dir = f"configs/sys_test/sept10_dac_pre_simp"
     os.makedirs(config_dir, exist_ok=True)
     for pre_dataset in [True, False]:
         for T in Ts:
-            job_id = f"pd{pre_dataset}-t{T}-sept10-dac-pre-simp"
+            job_id = f"pd{int(pre_dataset)}-t{T}-sept10-dac-pre-simp"
             file_name = job_id + ".yaml"
             config = {
                 "predict_epsilon": False, 
