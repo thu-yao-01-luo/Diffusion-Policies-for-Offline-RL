@@ -4324,7 +4324,7 @@ def sept10_nb_online():
             "predict_epsilon": False, 
             "format": ['stdout', "wandb", "csv"],
             "d4rl": True,            
-            "online": False,
+            "online": True,
             "num_steps_per_epoch": 500,
             "discount2": 1.0,
             "seed": 0,
