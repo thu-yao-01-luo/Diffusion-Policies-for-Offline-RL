@@ -160,6 +160,13 @@ def train_agent(env, state_dim, action_dim, max_action, device, args, output_dir
                       debug=args.debug,
                       fast=args.fast,
                       )
+    elif args.algo=="pac":
+        from agents.pac import Diffusion_AC as Agent
+        agent = Agent(state_dim=state_dim,
+                    action_dim=action_dim,
+                    max_action=max_action,
+                    device=device,
+                    args=args) 
     else:
         raise NotImplementedError
     writer = None  # SummaryWriter(output_dir)
