@@ -35,7 +35,7 @@ def build_dataset(env_name, is_d4rl):
 #         rew = torch.as_tensor(self.rewards[idxs], dtype=torch.float32).reshape(-1, 1).to(self.device)
 #         return obs, act, obs2, rew, 1-done
 
-class Data_Sampler(object):
+class DatasetSampler(object):
 	def __init__(self, data, device):
 		# self.state = torch.from_numpy(data['observations'])
 		# self.action = torch.from_numpy(data['actions'])
