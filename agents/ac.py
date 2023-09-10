@@ -175,24 +175,37 @@ class Diffusion_AC(object):
             """ Q Training """
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
+            b = state.shape[0]
+            a = action.shape[1]
             with torch.no_grad():
                 # noise = torch.randn_like(action, device=action.device)
                 # target_v = self.critic_target.qmin(next_state, noise, self.actor.n_timesteps)
                 target_v = self.critic_target.v(next_state)
-                target_q = (reward + not_done * self.discount * target_v) # (b,)
+                assert target_v.shape == (b, 1), f"target_v.shape={target_v.shape}"
+                assert not_done.shape == (b, 1), f"not_done.shape={not_done.shape}"
+                assert reward.shape == (b, 1), f"reward.shape={reward.shape}"
+                target_q = (reward + not_done * self.discount * target_v) # (b,) 
+                assert target_q.shape == (b, 1), f"target_q.shape={target_q.shape}"
             q1, q2 = self.critic.q(state, action) # (b, 1)
+            assert q1.shape == (b, 1), f"q1.shape={q1.shape}"
+            assert q2.shape == (b, 1), f"q2.shape={q2.shape}"
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)
             if log_writer is not None:
                 log_writer.add_scalar('MSBE Loss', MSBE_loss.item(), self.step)
             metric['MSBE_loss'].append(MSBE_loss.item())
             noise = torch.randn_like(action, device=action.device)
+            assert noise.shape == (b, a), f"noise.shape={noise.shape}"
             t = torch.randint(0, self.actor.n_timesteps,
                             (batch_size,), device=self.device).long()
+            assert t.shape == (b,), f"t.shape={t.shape}"
             q_t = t + 1
+            assert q_t.shape == (b,), f"q_t.shape={q_t.shape}"
             noisy_action = self.actor.q_sample(action, t, noise)
+            assert noisy_action.shape == (b, a), f"noisy_action.shape={noisy_action.shape}"
 
             with torch.no_grad():
                 denoised_noisy_action_ema = self.ema_model.p_sample(noisy_action, t, state)
+                assert denoised_noisy_action_ema.shape == (b, a), f"denoised_noisy_action_ema.shape={denoised_noisy_action_ema.shape}"
                 # target_v = self.critic.qmin(state, denoised_noisy_action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic.qmin(state, action, 0).detach() # (b, 1)->(b,)
                 # target_v = self.critic_target.qmin(state, denoised_noisy_action_ema, t_scalar).detach() # (b, 1)->(b,)
@@ -201,8 +214,11 @@ class Diffusion_AC(object):
                     target_v = self.critic_target.q1(state, denoised_noisy_action_ema, q_t - 1) # (b, 1)->(b,)
                 else:
                     target_v = self.critic_target.q2(state, denoised_noisy_action_ema, q_t - 1)
+                assert target_v.shape == (b, 1), f"target_v.shape={target_v.shape}"
             q_cur1, q_cur2 = self.critic.q(state, noisy_action, q_t)
+            assert q_cur1.shape == (b, 1), f"q_cur1.shape={q_cur1.shape}"
             q_tar = target_v * self.discount2
+            assert q_tar.shape == (b, 1), f"q_tar.shape={q_tar.shape}"
             v_loss = F.mse_loss(q_cur1, q_tar) + F.mse_loss(q_cur2, q_tar) # (b, 1)->(1,)
             critic_loss = v_loss + MSBE_loss * self.MSBE_coef
             self.critic_optimizer.zero_grad()
@@ -218,8 +234,10 @@ class Diffusion_AC(object):
             metric["critic_loss"].append(critic_loss.item())
             if self.step % self.policy_freq == 0:
                 denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
+                assert denoised_noisy_action.shape == (b, a), f"denoised_noisy_action.shape={denoised_noisy_action.shape}"
                 # q_value = self.critic.qmin(state, denoised_noisy_action, q_t)
                 q1, q2 = self.critic.q(state, denoised_noisy_action, q_t)
+                assert q1.shape == (b, 1), f"q1.shape={q1.shape}"
                 # q_value = q1 + q2
                 q_value = q1
                 if np.random.uniform() > 0.5:
