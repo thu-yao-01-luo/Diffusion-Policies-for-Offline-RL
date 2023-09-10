@@ -28,37 +28,42 @@ class DatasetSampler:
 
     def sample(self, batch_size):
         idxs = np.random.randint(0, self.size, size=batch_size)
-        obs = torch.as_tensor(self.observations[idxs], dtype=torch.float32).to(self.device)
-        act = torch.as_tensor(self.actions[idxs], dtype=torch.float32).to(self.device)
-        obs2 = torch.as_tensor(self.next_observations[idxs], dtype=torch.float32).to(self.device)
-        done = torch.as_tensor(self.terminals[idxs], dtype=torch.float32).reshape(-1, 1).to(self.device)
-        rew = torch.as_tensor(self.rewards[idxs], dtype=torch.float32).reshape(-1, 1).to(self.device)
+        # obs = torch.as_tensor(self.observations[idxs], dtype=torch.float32).to(self.device)
+        # act = torch.as_tensor(self.actions[idxs], dtype=torch.float32).to(self.device)
+        # obs2 = torch.as_tensor(self.next_observations[idxs], dtype=torch.float32).to(self.device)
+        # done = torch.as_tensor(self.terminals[idxs], dtype=torch.float32).reshape(-1, 1).to(self.device)
+        # rew = torch.as_tensor(self.rewards[idxs], dtype=torch.float32).reshape(-1, 1).to(self.device)
+        obs = torch.from_numpy(self.observations[idxs]).float().to(self.device)
+        act = torch.from_numpy(self.actions[idxs]).float().to(self.device)
+        obs2 = torch.from_numpy(self.next_observations[idxs]).float().to(self.device)
+        done = torch.from_numpy(self.terminals[idxs]).float().reshape(-1, 1).to(self.device)
+        rew = torch.from_numpy(self.rewards[idxs]).float().reshape(-1, 1).to(self.device)
         return obs, act, obs2, rew, 1-done
 
-# class DatasetSampler(object):
-# 	def __init__(self, data, device):
-# 		# self.state = torch.from_numpy(data['observations'])
-# 		# self.action = torch.from_numpy(data['actions'])
-# 		# self.next_state = torch.from_numpy(data['next_observations'])
-# 		# reward = torch.from_numpy(data['rewards']).view(-1, 1)
-#         # self.not_done = 1. - torch.from_numpy(data['terminals']).view(-1, 1)
-# 		self.state = torch.as_tensor(data['observations'], dtype=torch.float32)
-# 		self.action = torch.as_tensor(data['actions'], dtype=torch.float32)
-# 		self.next_state = torch.as_tensor(data['next_observations'], dtype=torch.float32)
-# 		self.reward = torch.as_tensor(data['rewards'], dtype=torch.float32).view(-1, 1)
-# 		self.not_done = 1. - torch.as_tensor(data['terminals'], dtype=torch.float32).view(-1, 1)
-# 		self.size = self.state.shape[0]
-# 		self.state_dim = self.state.shape[1]
-# 		self.action_dim = self.action.shape[1]
-# 		self.device = device
+class DatasetSamplerNP(object):
+	def __init__(self, data, device):
+		# self.state = torch.from_numpy(data['observations'])
+		# self.action = torch.from_numpy(data['actions'])
+		# self.next_state = torch.from_numpy(data['next_observations'])
+		# reward = torch.from_numpy(data['rewards']).view(-1, 1)
+        # self.not_done = 1. - torch.from_numpy(data['terminals']).view(-1, 1)
+		self.state = torch.as_tensor(data['observations'], dtype=torch.float32)
+		self.action = torch.as_tensor(data['actions'], dtype=torch.float32)
+		self.next_state = torch.as_tensor(data['next_observations'], dtype=torch.float32)
+		self.reward = torch.as_tensor(data['rewards'], dtype=torch.float32).view(-1, 1)
+		self.not_done = 1. - torch.as_tensor(data['terminals'], dtype=torch.float32).view(-1, 1)
+		self.size = self.state.shape[0]
+		self.state_dim = self.state.shape[1]
+		self.action_dim = self.action.shape[1]
+		self.device = device
 
-# 	def sample(self, batch_size):
-# 		ind = torch.randint(0, self.size, size=(batch_size,))
+	def sample(self, batch_size):
+		ind = torch.randint(0, self.size, size=(batch_size,))
 
-# 		return (
-# 			self.state[ind].to(self.device),
-# 			self.action[ind].to(self.device),
-# 			self.next_state[ind].to(self.device),
-# 			self.reward[ind].to(self.device),
-# 			self.not_done[ind].to(self.device)
-# 		)
+		return (
+			self.state[ind].to(self.device),
+			self.action[ind].to(self.device),
+			self.next_state[ind].to(self.device),
+			self.reward[ind].to(self.device),
+			self.not_done[ind].to(self.device)
+		)

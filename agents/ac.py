@@ -10,8 +10,10 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from config import Config
 # from agents.diffusion_ import Diffusion
 # from agents.model_ import MLP
-from agents.diffusion_ import Diffusion_prime as Diffusion
-from agents.model_ import MLP_wo_tanh as MLP
+# from agents.diffusion_ import Diffusion_prime as Diffusion
+# from agents.model_ import MLP_wo_tanh as MLP
+from agents.diffusion import Diffusion 
+from agents.model import
 from agents.helpers import EMA, SinusoidalPosEmb
 
 # Initialize Policy weights
@@ -236,7 +238,7 @@ class Diffusion_AC(object):
                 denoised_noisy_action = self.actor.p_sample(noisy_action, t, state)
                 assert denoised_noisy_action.shape == (b, a), f"denoised_noisy_action.shape={denoised_noisy_action.shape}"
                 # q_value = self.critic.qmin(state, denoised_noisy_action, q_t)
-                q1, q2 = self.critic.q(state, denoised_noisy_action, q_t)
+                q1, q2 = self.critic.q(state, denoised_noisy_action, q_t-1) # this is the bug!
                 assert q1.shape == (b, 1), f"q1.shape={q1.shape}"
                 # q_value = q1 + q2
                 q_value = q1
