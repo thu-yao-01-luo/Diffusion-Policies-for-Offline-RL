@@ -4026,7 +4026,6 @@ def sept10_dac_pre_simp():
     task_id = f"sys_test/sept10_dac_pre_simp"
     config_dir = f"configs/sys_test/sept10_dac_pre_simp"
     os.makedirs(config_dir, exist_ok=True)
-    # for env_name in env:
     for pre_dataset in [True, False]:
         for T in Ts:
             job_id = f"pd{pre_dataset}-t{T}-sept10-dac-pre-simp"
@@ -4046,7 +4045,7 @@ def sept10_dac_pre_simp():
                 "tune_bc_weight": False,
                 "name": job_id,
                 "id": job_id,
-                "pre_dataset": pre_dataset,
+                
             }
             job_list.append(
                 job_id)
