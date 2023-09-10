@@ -4196,5 +4196,5 @@ if __name__ == "__main__":
     # sept10_dac_pre_tensor()
     # sept10_dac_bcw_shape()
     # sept10_dac_pre_simp()
-    # sept10_dac_pre_critic()
-    sept10_pre_dac_bcw()
+    sept10_dac_pre_critic()
+    # sept10_pre_dac_bcw()
