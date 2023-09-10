@@ -4352,6 +4352,45 @@ def sept10_nb_online():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="nb.py")
 
+def sept10_nb_t():
+    file_paths = []
+    job_list = []
+    Ts = [1, 8, 16, 64]
+    task_id = f"sys_test/sept10_nb_t"
+    config_dir = f"configs/sys_test/sept10_nb_t"
+    os.makedirs(config_dir, exist_ok=True)
+    for T in Ts:
+        job_id = f"half-t{T}-sept10-nb-t"
+        file_name = job_id + ".yaml"
+        config = {
+            "predict_epsilon": False, 
+            "format": ['stdout', "wandb", "csv"],
+            "d4rl": True,            
+            "online": False,
+            "num_steps_per_epoch": 5000,
+            "discount2": 1.0,
+            "seed": 0,
+            "T": T,
+            "algo": "dac",
+            "env_name": "halfcheetah-medium-v2",
+            "bc_weight": 0.01,
+            "tune_bc_weight": False,
+            "name": job_id,
+            "id": job_id,
+        }
+        job_list.append(
+            job_id)
+        filename = os.path.join(config_dir, file_name)
+        file_paths.append(filename)
+        make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        run_python_file(job, file_paths[ind], main="nb.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
