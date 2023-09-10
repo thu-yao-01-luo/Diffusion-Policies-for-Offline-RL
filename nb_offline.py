@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import gym
 import torch
 import utils.logger_zhiao as logger_zhiao
@@ -10,6 +11,7 @@ from config import Config
 
 def offline_train(args: Config):
     # parameters
+    args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
     seed = args.seed
     output_dir = args.output_dir
     torch.manual_seed(seed)

@@ -1,4 +1,5 @@
 from evaluation import eval_policy
+import os
 import gym
 import numpy as np
 import torch
@@ -9,6 +10,7 @@ from helpers import BufferNotDone, ReplayBuffer, SACBufferNotDone, sac_args_type
 
 def online_train(args):
     # parameters
+    args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
     seed = args.seed
     num_steps_per_epoch = args.num_steps_per_epoch
     replay_size = args.replay_size
@@ -16,13 +18,10 @@ def online_train(args):
     update_after = args.update_after
     update_every = args.update_every
     max_ep_len = args.max_ep_len
-    output_dir = args.output_dir
     torch.manual_seed(seed)
     np.random.seed(seed)
 
     # environment
-    # env = env_fn()
-    # test_env = env_fn()
     env = gym.make(args.env_name)
     test_env = gym.make(args.env_name)
     # observation and action dimension
@@ -36,14 +35,15 @@ def online_train(args):
 
     writer = None  # SummaryWriter(output_dir)
     # buffer and evaluation
-    max_timesteps = args.num_epochs * args.num_steps_per_epoch
+    max_timesteps = args.num_epochs
     buffer_size = replay_size
     best_nreward = -np.inf
     action_space = env.action_space
     buffer = ReplayBuffer(obs_dim, act_dim, buffer_size)
 
     if args.algo == 'dac':
-        from agents.ac import Diffusion_AC as Agent
+        # from agents.ac import Diffusion_AC as Agent
+        from agents.nbac import Diffusion_AC as Agent
         agent = Agent(state_dim=obs_dim,
               action_dim=act_dim,
               max_action=act_limit,
@@ -138,12 +138,12 @@ def online_train(args):
             if t % args.num_steps_per_epoch == 0:
                 eval_ret = eval_policy(args, agent, test_env, algo=args.algo, eval_episodes=args.eval_episodes)
                 logger_zhiao.logkvs(eval_ret)
-                if args.algo == 'dac':
-                    print("bc_loss", np.mean(loss_metric['bc_loss']))
-                    print("ql_loss", np.mean(loss_metric['ql_loss']))
-                    print("actor_loss", np.mean(loss_metric['actor_loss']))
-                    print("critic_loss", np.mean(loss_metric['critic_loss']))
-                    if args.save_best_model and args.d4rl and eval_ret["avg_norm_score"] > best_nreward:
-                        best_nreward = eval_ret["avg_norm_score"] 
+                # if args.algo == 'dac':
+                #     print("bc_loss", np.mean(loss_metric['bc_loss']))
+                #     print("ql_loss", np.mean(loss_metric['ql_loss']))
+                #     print("actor_loss", np.mean(loss_metric['actor_loss']))
+                #     print("critic_loss", np.mean(loss_metric['critic_loss']))
+                if args.save_best_model and args.d4rl and eval_ret["avg_norm_score"] > best_nreward:
+                    best_nreward = eval_ret["avg_norm_score"] 
             logger_zhiao.dumpkvs()
 
