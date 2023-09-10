@@ -4352,15 +4352,17 @@ def sept10_nb_online():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="nb.py")
 
-def sept10_nb_t():
+def sept10_nb_freq():
     file_paths = []
     job_list = []
-    Ts = [1, 8, 16, 64]
-    task_id = f"sys_test/sept10_nb_t"
-    config_dir = f"configs/sys_test/sept10_nb_t"
+    # Ts = [1, 8, 16, 64]
+    task_id = f"sys_test/sept10_nb_freq"
+    config_dir = f"configs/sys_test/sept10_nb_freq"
     os.makedirs(config_dir, exist_ok=True)
-    for T in Ts:
-        job_id = f"half-t{T}-sept10-nb-t"
+    # for T in Ts:
+    pfreq = [1, 2, 4]
+    for freq in pfreq:
+        job_id = f"half-t8-pfreq{freq}-sept10-nb-freq"
         file_name = job_id + ".yaml"
         config = {
             "predict_epsilon": False, 
@@ -4370,13 +4372,14 @@ def sept10_nb_t():
             "num_steps_per_epoch": 5000,
             "discount2": 1.0,
             "seed": 0,
-            "T": T,
+            "T": 8,
             "algo": "dac",
             "env_name": "halfcheetah-medium-v2",
             "bc_weight": 0.01,
             "tune_bc_weight": False,
             "name": job_id,
             "id": job_id,
+            "policy_freq": freq,
         }
         job_list.append(
             job_id)
@@ -4493,4 +4496,5 @@ if __name__ == "__main__":
     # sept10_pac_pre_diff()
     # sept10_pac_pre_mlp()
     # sept10_nb_t()
-    sept10_nb_online()
+    # sept10_nb_online()
+    sept10_nb_freq()

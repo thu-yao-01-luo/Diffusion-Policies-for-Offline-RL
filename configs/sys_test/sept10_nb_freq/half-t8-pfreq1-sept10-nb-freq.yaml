@@ -1,0 +1,18 @@
+T: 8
+algo: dac
+bc_weight: 0.01
+d4rl: true
+discount2: 1.0
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: half-t8-pfreq1-sept10-nb-freq
+name: half-t8-pfreq1-sept10-nb-freq
+num_steps_per_epoch: 5000
+online: false
+policy_freq: 1
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
