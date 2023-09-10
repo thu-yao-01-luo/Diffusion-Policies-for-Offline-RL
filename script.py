@@ -3848,6 +3848,49 @@ def sept10_dac_pre_eval():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="pre_main2.py")
 
+def sept10_dac_pre_shape():
+    file_paths = []
+    job_list = []
+    env = ["halfcheetah-medium-v2"]
+    Ts = [1, 8]
+    task_id = f"sys_test/sept10_dac_pre_shape"
+    config_dir = f"configs/sys_test/sept10_dac_pre_shape"
+    os.makedirs(config_dir, exist_ok=True)
+    for env_name in env:
+        for T in Ts:
+            job_id = f"{env_name[:6]}-t{T}-sept10-dac-pre-shape"
+            file_name = job_id + ".yaml"
+            config = {
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb", "csv"],
+                "d4rl": True,            
+                "online": False,
+                "num_steps_per_epoch": 5000,
+                "discount2": 0.999,
+                "coef": 1.0,
+                "seed": 0,
+                "T": T,
+                "algo": "dac",
+                "env_name": env_name,
+                "bc_weight": 0.01,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "pre_dataset": False,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        run_python_file(job, file_paths[ind], main="pre_main2.py")
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -3937,5 +3980,6 @@ if __name__ == "__main__":
     # sept9_dac_main()
     # sept10_dac_pre_main2()
     # sept10_dac_pre_main2()
-    sept10_dac_pre_dataset()
-    sept10_dac_pre_eval()
+    # sept10_dac_pre_dataset()
+    # sept10_dac_pre_eval()
+    sept10_dac_pre_shape()
