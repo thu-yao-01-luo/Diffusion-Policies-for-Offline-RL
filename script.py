@@ -3986,7 +3986,7 @@ def sept10_dac_pre_simp():
     # for env_name in env:
     for pre_dataset in [True, False]:
         for T in Ts:
-            job_id = f"pd{pre_dataset}-t{T}-sept10-dac-pre-simp"
+            job_id = f"pd{int(pre_dataset)}-t{T}-sept10-dac-pre-simp"
             file_name = job_id + ".yaml"
             config = {
                 "predict_epsilon": False, 
@@ -4018,16 +4018,18 @@ def sept10_dac_pre_simp():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="pre_main2.py")
 
-def sept10_dac_pre_simp2():
+def sept10_dac_pre_critic():
     file_paths = []
     job_list = []
     Ts = [1, 8]
-    task_id = f"sys_test/sept10_dac_pre_simp"
-    config_dir = f"configs/sys_test/sept10_dac_pre_simp"
+    env = ["halfcheetah-medium-v2"]
+    task_id = f"sys_test/sept10_dac_pre_critic"
+    config_dir = f"configs/sys_test/sept10_dac_pre_critic"
     os.makedirs(config_dir, exist_ok=True)
-    for pre_dataset in [True, False]:
+    # for pre_dataset in [True, False]:
+    for env_name in env:
         for T in Ts:
-            job_id = f"pd{int(pre_dataset)}-t{T}-sept10-dac-pre-simp"
+            job_id = f"{env_name[:6]}-t{T}-sept10-dac-pre-critic"
             file_name = job_id + ".yaml"
             config = {
                 "predict_epsilon": False, 
@@ -4044,7 +4046,7 @@ def sept10_dac_pre_simp2():
                 "tune_bc_weight": False,
                 "name": job_id,
                 "id": job_id,
-                
+                "test_critic": True,
             }
             job_list.append(
                 job_id)
@@ -4154,3 +4156,4 @@ if __name__ == "__main__":
     # sept10_dac_pre_tensor()
     # sept10_dac_bcw_shape()
     sept10_dac_pre_simp()
+    sept10_dac_pre_critic()

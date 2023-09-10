@@ -15,6 +15,14 @@ from agents.model import MLP
 import time
 from config import Config
 from agents.helpers import EMA, SinusoidalPosEmb
+from agents.ac import TestCritic
+
+class TC(TestCritic):
+    def q_min(self, state, noisy_action, t):
+        return self.qmin(state, noisy_action, t)
+
+    def forward(self, state, noisy_action, t):
+        return self.q(state, noisy_action, t)
 
 class Q_function(nn.Module):
     """
@@ -107,8 +115,10 @@ class Diffusion_AC(object):
         self.ema = EMA(args.ema_decay)
         self.ema_model = copy.deepcopy(self.actor)
         self.update_ema_every = args.update_ema_every
-
+        
         self.critic = NoisyCritic(state_dim, action_dim).to(device) # difference
+        if args.test_critic:
+            self.critic = TC(state_dim, action_dim).to(device)
         self.critic_target = copy.deepcopy(self.critic)
         self.critic_optimizer = torch.optim.Adam(
             self.critic.parameters(), lr=3e-4)

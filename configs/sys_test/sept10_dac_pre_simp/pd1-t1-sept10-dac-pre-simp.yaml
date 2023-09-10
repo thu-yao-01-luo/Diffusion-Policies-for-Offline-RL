@@ -12,6 +12,7 @@ id: pd1-t1-sept10-dac-pre-simp
 name: pd1-t1-sept10-dac-pre-simp
 num_steps_per_epoch: 5000
 online: false
+pre_dataset: true
 predict_epsilon: false
 seed: 0
 tune_bc_weight: false
