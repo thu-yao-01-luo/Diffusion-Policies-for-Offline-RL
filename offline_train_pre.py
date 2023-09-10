@@ -1,4 +1,4 @@
-from evaluation import eval_policy as pre_eval_policy
+from evaluation import eval_policy as now_eval_policy
 import gym
 import d4rl
 from utils.data_sampler import Data_Sampler
@@ -9,7 +9,7 @@ import numpy as np
 
 def eval_policy(args, agent, eval_episodes=10):
     eval_env = gym.make(args.env_name)
-    return pre_eval_policy(args, agent, eval_env, args.algo, eval_episodes=eval_episodes)
+    return now_eval_policy(args, agent, eval_env, args.algo, eval_episodes=eval_episodes)
 
 def train_agent(args):
     # Load buffer
