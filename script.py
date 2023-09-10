@@ -4379,7 +4379,7 @@ def sept10_nb_freq():
             "tune_bc_weight": False,
             "name": job_id,
             "id": job_id,
-            "policy_freq": freq,
+            "policy_delay": freq,
         }
         job_list.append(
             job_id)
