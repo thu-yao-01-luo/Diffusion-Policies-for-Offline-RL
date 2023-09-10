@@ -4370,4 +4370,5 @@ if __name__ == "__main__":
     # sept10_pre_dac_bcw()
     # sept10_pac_pre_simp()
     # sept10_pac_pre_critic() 
-    sept10_pac_pre_diff()
+    # sept10_pac_pre_diff()
+    sept10_pac_pre_mlp()
