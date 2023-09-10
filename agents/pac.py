@@ -12,7 +12,8 @@ from utils.logger import logger
 import utils.logger_zhiao as logger_zhiao
 # from agents.diffusion import Diffusion
 from agents.diffusion_ import Diffusion_prime as Diffusion
-from agents.model import MLP
+# from agents.model import MLP
+from agents.model_ import MLP_wo_tanh as MLP
 import time
 from config import Config
 from agents.helpers import EMA, SinusoidalPosEmb
