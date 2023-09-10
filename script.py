@@ -4310,7 +4310,7 @@ def sept10_nb_t():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="nb.py")
 
-def sept10_nb_t():
+def sept10_nb_online():
     file_paths = []
     job_list = []
     Ts = [1, 8, 16, 64]
