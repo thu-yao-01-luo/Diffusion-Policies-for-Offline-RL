@@ -4018,7 +4018,7 @@ def sept10_dac_pre_simp():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="pre_main2.py")
 
-def sept10_dac_pre_simp():
+def sept10_dac_pre_simp2():
     file_paths = []
     job_list = []
     Ts = [1, 8]
