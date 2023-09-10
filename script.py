@@ -4067,4 +4067,5 @@ if __name__ == "__main__":
     # sept10_dac_pre_dataset()
     # sept10_dac_pre_eval()
     # sept10_dac_pre_shape()
-    sept10_dac_pre_tensor()
+    # sept10_dac_pre_tensor()
+    sept10_dac_bcw_shape()
