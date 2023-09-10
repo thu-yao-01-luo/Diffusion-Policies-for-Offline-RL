@@ -31,6 +31,6 @@ class DatasetSampler:
         obs = torch.as_tensor(self.observations[idxs], dtype=torch.float32).to(self.device)
         act = torch.as_tensor(self.actions[idxs], dtype=torch.float32).to(self.device)
         obs2 = torch.as_tensor(self.next_observations[idxs], dtype=torch.float32).to(self.device)
-        done = torch.as_tensor(self.terminals[idxs], dtype=torch.float32).to(self.device)
-        rew = torch.as_tensor(self.rewards[idxs], dtype=torch.float32).to(self.device)
+        done = torch.as_tensor(self.terminals[idxs], dtype=torch.float32).reshape(-1, 1).to(self.device)
+        rew = torch.as_tensor(self.rewards[idxs], dtype=torch.float32).reshape(-1, 1).to(self.device)
         return obs, act, obs2, rew, 1-done
