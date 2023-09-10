@@ -4325,7 +4325,7 @@ def sept10_nb_online():
             "format": ['stdout', "wandb", "csv"],
             "d4rl": True,            
             "online": True,
-            "num_steps_per_epoch": 500,
+            "num_steps_per_epoch": 100,
             "discount2": 1.0,
             "seed": 0,
             "T": T,
@@ -4335,7 +4335,7 @@ def sept10_nb_online():
             "name": job_id,
             "id": job_id,
             "bc_weight": 0.0,
-            "num_epochs": 50000,
+            "num_epochs": 5000,
             "test_critic": True,
             "ablation": True,
         }
@@ -4453,5 +4453,5 @@ if __name__ == "__main__":
     # sept10_pac_pre_critic() 
     # sept10_pac_pre_diff()
     # sept10_pac_pre_mlp()
-    sept10_nb_t()
-    # sept10_nb_online()
+    # sept10_nb_t()
+    sept10_nb_online()

@@ -7,8 +7,9 @@ import utils.logger_zhiao as logger_zhiao
 import time
 # from visualize import animation
 from helpers import BufferNotDone, ReplayBuffer, SACBufferNotDone, sac_args_type     
+from config import Config
 
-def online_train(args):
+def online_train(args: Config):
     # parameters
     args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
     seed = args.seed
@@ -16,7 +17,7 @@ def online_train(args):
     replay_size = args.replay_size
     start_steps = args.start_steps
     update_after = args.update_after
-    update_every = args.update_every
+    num_steps_per_epoch = args.num_steps_per_epoch
     max_ep_len = args.max_ep_len
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -35,7 +36,7 @@ def online_train(args):
 
     writer = None  # SummaryWriter(output_dir)
     # buffer and evaluation
-    max_timesteps = args.num_epochs
+    max_timesteps = args.num_epochs * args.num_steps_per_epoch
     buffer_size = replay_size
     best_nreward = -np.inf
     action_space = env.action_space
@@ -106,7 +107,7 @@ def online_train(args):
                 starting_time = time.time()
                 loss_metric = agent.train(
                                 replay_buffer=data_sampler,
-                                iterations=update_every,
+                                iterations=num_steps_per_epoch,
                                 batch_size=args.batch_size,
                                 log_writer=writer) # type:ignore
                 ending_time = time.time()
@@ -124,7 +125,7 @@ def online_train(args):
                 data_sampler = SACBufferNotDone(buffer, device)
                 loss_metric = agent.train(
                     replay_buffer=data_sampler,
-                    iterations=update_every,
+                    iterations=num_steps_per_epoch,
                     batch_size=args.batch_size,
                     log_writer=writer,
                     t=t,) # type:ignore

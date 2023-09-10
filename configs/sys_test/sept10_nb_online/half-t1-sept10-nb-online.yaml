@@ -11,9 +11,9 @@ format:
 - csv
 id: half-t1-sept10-nb-online
 name: half-t1-sept10-nb-online
-num_epochs: 50000
-num_steps_per_epoch: 500
-online: false
+num_epochs: 5000
+num_steps_per_epoch: 100
+online: true
 predict_epsilon: false
 seed: 0
 test_critic: true
