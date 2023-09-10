@@ -1,0 +1,18 @@
+T: 1
+algo: pac
+bc_weight: 0.01
+d4rl: true
+discount2: 0.999
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: pd0-t1-sept10-pac-pre-simp
+name: pd0-t1-sept10-pac-pre-simp
+num_steps_per_epoch: 5000
+online: false
+pre_dataset: false
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
