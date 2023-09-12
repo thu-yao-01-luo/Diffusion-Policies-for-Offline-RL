@@ -1,0 +1,17 @@
+T: 4
+algo: dac
+bc_weight: 1.0
+d4rl: true
+discount2: 1.0
+env_name: hopper-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: hopper-t4-sept10-nb-env
+name: hopper-t4-sept10-nb-env
+num_steps_per_epoch: 5000
+online: false
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false

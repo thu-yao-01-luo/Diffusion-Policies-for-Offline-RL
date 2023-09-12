@@ -409,7 +409,7 @@ if __name__ == "__main__":
         "logs",
         format_strs=args.format,
         config=args,
-        project="dream-ac-fix",
+        project="online-dream-ac",
         # name=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-{args.algo}-{args.env_name}-lrd{args.lr_decay}-cc{args.compute_consistency}-iql{args.iql_style}-{time.time()}",
         # id=f"Discount{args.discount2}-T{args.T}-Coef{args.coef}-{args.algo}-{args.env_name}-lrd{args.lr_decay}-cc{args.compute_consistency}-iql{args.iql_style}-{time.time()}",
         name=args.name,

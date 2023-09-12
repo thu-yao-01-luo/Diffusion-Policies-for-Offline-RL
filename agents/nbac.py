@@ -8,7 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from config import Config
-from agents.diffusion import Diffusion 
+# from agents.diffusion import Diffusion 
+from agents.nb_diffusion import Diffusion
 from agents.model import MLP
 from agents.helpers import EMA, SinusoidalPosEmb
 
@@ -90,9 +91,14 @@ class Diffusion_AC(object):
     def __init__(self, state_dim, action_dim, max_action, device, args: Config):
         self.model = MLP(state_dim=state_dim, action_dim=action_dim, device=device)
 
+        # self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
+        #                        beta_schedule=args.beta_schedule, n_timesteps=args.T, scale=args.scale,
+        #                        predict_epsilon=args.predict_epsilon).to(device)
+
         self.actor = Diffusion(state_dim=state_dim, action_dim=action_dim, model=self.model, max_action=max_action,
-                               beta_schedule=args.beta_schedule, n_timesteps=args.T, scale=args.scale,
-                               predict_epsilon=args.predict_epsilon).to(device)
+                               sampler_type=args.sampler_type, beta_schedule=args.beta_schedule, n_timesteps=args.T, scale=args.scale,
+                               predict_epsilon=args.predict_epsilon, n_inf_steps=args.n_inf_steps, 
+                               use_clipped_model_output=args.use_clipped_model_output, device=device).to(device)
 
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=args.lr)
 

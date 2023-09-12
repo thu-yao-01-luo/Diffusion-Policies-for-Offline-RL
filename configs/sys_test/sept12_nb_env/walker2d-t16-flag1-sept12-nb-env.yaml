@@ -1,0 +1,14 @@
+T: 16
+ablation: true
+algo: dql
+bc_weight: 1.0
+coef: 1.0
+consistency: false
+discount2: 1.0
+env_name: walker2d-medium-v2
+id: walker2d-t16-flag1-sept12-nb-env
+name: walker2d-t16-flag1-sept12-nb-env
+predict_epsilon: false
+seed: 0
+test_critic: true
+tune_bc_weight: false

@@ -1,0 +1,12 @@
+T: 16
+algo: ql
+bc_weight: 1.0
+coef: 1.0
+consistency: false
+discount2: 1.0
+env_name: walker2d-medium-v2
+id: walker-t16-sept12-main-env
+name: walker-t16-sept12-main-env
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false

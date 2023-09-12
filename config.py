@@ -75,7 +75,7 @@ class Config:
     update_ema_every: int = 5
     step_start_ema: int = 1000
     need_animation: bool = False
-    num_epochs: int = 2000 
+    num_epochs: int = 2500 
     eval_freq: int = 50
     eval_episodes: int = 10
     lr: float = 3e-4
@@ -102,3 +102,6 @@ class Config:
     pre_eval: bool = False
     eval_seed: int = 100
     pre_dataset: bool = True
+    sampler_type: str = "origin"
+    n_inf_steps: int = 4
+    use_clipped_model_output: bool = False

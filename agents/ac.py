@@ -13,7 +13,7 @@ from config import Config
 # from agents.diffusion_ import Diffusion_prime as Diffusion
 # from agents.model_ import MLP_wo_tanh as MLP
 from agents.diffusion import Diffusion 
-from agents.model import
+from agents.model import MLP
 from agents.helpers import EMA, SinusoidalPosEmb
 
 # Initialize Policy weights
@@ -286,6 +286,12 @@ class Diffusion_AC(object):
             state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
         elif state.ndim==1 and torch.is_tensor(state)==True:
             state = state.float().unsqueeze(0)
+        elif state.ndim==2 and torch.is_tensor(state)==False:
+            state = torch.tensor(state, dtype=torch.float)
+        elif state.ndim==2 and torch.is_tensor(state)==True:
+            state = state.float()
+        else:
+            raise NotImplementedError
         state = state.to(self.device)
         if self.resample:
             state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)

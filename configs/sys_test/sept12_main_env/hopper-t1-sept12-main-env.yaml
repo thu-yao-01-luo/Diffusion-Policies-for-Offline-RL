@@ -1,0 +1,12 @@
+T: 1
+algo: ql
+bc_weight: 1.0
+coef: 1.0
+consistency: false
+discount2: 1.0
+env_name: hopper-medium-v2
+id: hopper-t1-sept12-main-env
+name: hopper-t1-sept12-main-env
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
