@@ -4516,8 +4516,8 @@ def sept12_nb_env():
             os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
-        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
-        run_python_file(job, file_paths[ind], main="nb.py")
+        run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
+        # run_python_file(job, file_paths[ind], main="nb.py")
 
 if __name__ == "__main__":
     # jun22_all_env()
