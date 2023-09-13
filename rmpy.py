@@ -2,7 +2,7 @@ import os
 import sys
 
 py_list = []
-os.system("ps ux | grep 'python -u experiment.py' > py_code.txt")
+os.system("ps ux | grep 'python -u nb.py' > py_code.txt")
 for i in open("py_code.txt"):
     py_list.append(i.strip())
 for i in py_list:

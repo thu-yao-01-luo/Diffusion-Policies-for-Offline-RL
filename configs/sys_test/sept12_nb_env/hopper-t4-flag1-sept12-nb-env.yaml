@@ -1,0 +1,14 @@
+T: 4
+ablation: true
+algo: dql
+bc_weight: 1.0
+coef: 1.0
+consistency: false
+discount2: 1.0
+env_name: hopper-medium-v2
+id: hopper-t4-flag1-sept12-nb-env
+name: hopper-t4-flag1-sept12-nb-env
+predict_epsilon: false
+seed: 0
+test_critic: true
+tune_bc_weight: false

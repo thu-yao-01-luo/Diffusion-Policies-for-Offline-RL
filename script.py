@@ -4485,9 +4485,9 @@ def sept12_nb_env():
     config_dir = f"configs/sys_test/sept12_nb_env"
     os.makedirs(config_dir, exist_ok=True)
     Ts = [1, 4, 8, 16]
-    for flag in [True]:
+    for flag in [False, True]:
         for T in Ts:
-            job_id = f"walker2d-t{T}-flag{int(flag)}-sept12-nb-env"
+            job_id = f"hopper-t{T}-flag{int(flag)}-sept12-nb-env"
             file_name = job_id + ".yaml"
             config = {
                 "discount2": 1.0,
@@ -4495,7 +4495,7 @@ def sept12_nb_env():
                 "seed": 0,
                 "T": T,
                 "algo": "dql",
-                "env_name": "walker2d-medium-v2",
+                "env_name": "hopper-medium-v2",
                 "bc_weight": 1.0,
                 "tune_bc_weight": False,
                 "name": job_id,
@@ -4518,6 +4518,48 @@ def sept12_nb_env():
         os.system("git log -1 -2 -3 > " + git_log)
         run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
         # run_python_file(job, file_paths[ind], main="nb.py")
+
+def sept13_main_env():
+    file_paths = []
+    job_list = []
+    task_id = f"sys_test/sept13_main_env"
+    config_dir = f"configs/sys_test/sept13_main_env"
+    os.makedirs(config_dir, exist_ok=True)
+    Ts = [1, 4, 8]
+    env = ["hopper-medium-v2", "walker2d-medium-v2"]
+    for env_name in env:
+        for T in Ts:
+            job_id = f"{env[:6]}-t{T}-sept13-main-env"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 1.0,
+                "coef": 1.0,
+                "seed": 0,
+                "T": T,
+                "algo": "ql",
+                "env_name": env_name,
+                "format": ['stdout', "wandb", "csv"],
+                "bc_weight": 1.0,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "predict_epsilon": False,
+                "consistency": False,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
+        # run_python_file(job, file_paths[ind], main="nb.py")
+        run_python_file(job, file_paths[ind], main="main.py")
 
 if __name__ == "__main__":
     # jun22_all_env()
@@ -4625,5 +4667,5 @@ if __name__ == "__main__":
     # sept10_nb_freq()
     # sept11_nb_env()
     # sept11_nb_scheduler()
-    # sept12_main_env()
-    sept12_nb_env()
+    sept13_main_env()
+    # sept12_nb_env()
