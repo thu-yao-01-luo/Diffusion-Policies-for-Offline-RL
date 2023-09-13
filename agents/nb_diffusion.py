@@ -78,7 +78,8 @@ class Diffusion(nn.Module):
         if sampler_type == "ddpm":
             self.scheduler = DDPMScheduler(
                 num_train_timesteps=n_timesteps, 
-                beta_schedule=beta_schedule, 
+                # beta_schedule=beta_schedule, 
+                trained_betas=betas.cpu().numpy(),
                 clip_sample=clip_denoised, 
                 clip_sample_range=max_action, 
                 prediction_type=predict_type
@@ -86,7 +87,8 @@ class Diffusion(nn.Module):
         elif sampler_type == "ddim":
             self.scheduler = DDIMScheduler(
                 num_train_timesteps=n_timesteps,    
-                beta_schedule=beta_schedule,
+                # beta_schedule=beta_schedule,
+                trained_betas=betas.cpu().numpy(),
                 clip_sample=clip_denoised,
                 clip_sample_range=max_action,
                 prediction_type=predict_type
@@ -94,7 +96,8 @@ class Diffusion(nn.Module):
         elif sampler_type == "dpm_multistep":
             self.scheduler = DPMSolverMultistepScheduler(
                 num_train_timesteps=n_timesteps,
-                beta_schedule=beta_schedule,
+                # beta_schedule=beta_schedule,
+                trained_betas=betas.cpu().numpy(),
             )
         elif sampler_type == "origin":
             self.scheduler = None
