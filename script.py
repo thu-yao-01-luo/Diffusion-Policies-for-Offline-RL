@@ -4667,5 +4667,5 @@ if __name__ == "__main__":
     # sept10_nb_freq()
     # sept11_nb_env()
     # sept11_nb_scheduler()
-    sept13_main_env()
     # sept12_nb_env()
+    sept13_main_env()
