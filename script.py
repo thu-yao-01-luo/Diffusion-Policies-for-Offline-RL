@@ -4645,6 +4645,49 @@ def sept13_nb_scheduler():
         run_python_file(job, file_paths[ind], main="nb.py")
         # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
 
+def sept13_main_bc():
+    file_paths = []
+    job_list = []
+    task_id = f"sys_test/sept13_main_bc"
+    config_dir = f"configs/sys_test/sept13_main_bc"
+    os.makedirs(config_dir, exist_ok=True)
+    # Ts = [1, 4, 8]
+    env = ["halfcheetah-medium-expert-v2"]
+    # for env_name in env:
+    for debug in [True, False]:
+        # for T in Ts:
+            job_id = f"half-debug{int(debug)}-sept13-main-bc"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 1.0,
+                "coef": 1.0,
+                "seed": 0,
+                "T": 4,
+                "algo": "ql",
+                "env_name": "halfcheetah-medium-v2",
+                "format": ['stdout', "wandb", "csv"],
+                "bc_weight": 1.0,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "predict_epsilon": False,
+                "consistency": False,
+                "debug": debug,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        # run_multi_py(job, file_paths[ind], main="main.py", directory=dir_path)
+        run_python_file(job, file_paths[ind], main="main.py")
+        
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -4754,4 +4797,5 @@ if __name__ == "__main__":
     # sept12_nb_env()
     # sept13_main_env()
     # sept13_main_medium_expert()
-    sept13_nb_scheduler()
+    # sept13_nb_scheduler()
+    sept13_main_bc()

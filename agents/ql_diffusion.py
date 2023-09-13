@@ -173,21 +173,23 @@ class Diffusion_QL(object):
             self.critic_optimizer.step()
 
             """ Policy Training """
-            bc_loss = self.actor.loss(action, state) if not self.debug \
-            else self.actor.loss_to_verify(action, state)
-            if self.actor.predict_epsilon:
-                self.actor.predict_epsilon = False
-                true_bc_loss = self.actor.loss(action, state)
-                metric["true_bc_loss"].append(true_bc_loss.item())
-                self.actor.predict_epsilon = True
             new_action = self.actor(state)
-
             q1_new_action, q2_new_action = self.critic(state, new_action)
             metric["actor_q"].append(q1_new_action.mean().item())
             if np.random.uniform() > 0.5:
                 q_loss = - q1_new_action.mean() / q2_new_action.abs().mean().detach()
             else:
                 q_loss = - q2_new_action.mean() / q1_new_action.abs().mean().detach()
+            if not self.debug:
+                bc_loss = self.actor.loss(action, state)
+            # else self.actor.loss_to_verify(action, state)
+            else:
+                bc_loss = F.mse_loss(new_action, action)
+            if self.actor.predict_epsilon:
+                self.actor.predict_epsilon = False
+                true_bc_loss = self.actor.loss(action, state)
+                metric["true_bc_loss"].append(true_bc_loss.item())
+                self.actor.predict_epsilon = True
             actor_loss = self.bc_weight * bc_loss + \
                 self.eta * q_loss  # add bc weight control
 
