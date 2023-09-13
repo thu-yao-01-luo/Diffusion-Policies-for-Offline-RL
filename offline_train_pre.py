@@ -9,7 +9,7 @@ import numpy as np
 
 def eval_policy(args, agent, eval_episodes=10):
     eval_env = gym.make(args.env_name)
-    return now_eval_policy(args, agent, eval_env, args.algo, eval_episodes=eval_episodes)
+    return now_eval_policy(args, agent)
 
 def train_agent(args):
     # Load buffer

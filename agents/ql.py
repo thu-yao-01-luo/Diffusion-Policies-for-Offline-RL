@@ -347,23 +347,53 @@ class Diffusion_QL(object):
         return metric
 
     def sample_action(self, state, noise_scale=0.0):
-        if state.ndim==1 and torch.is_tensor(state)==False:
-            state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
-        elif state.ndim==1 and torch.is_tensor(state)==True:
-            state = state.float().unsqueeze(0)
+        # if state.ndim==1 and torch.is_tensor(state)==False:
+        #     state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
+        # elif state.ndim==1 and torch.is_tensor(state)==True:
+        #     state = state.float().unsqueeze(0)
+        # elif state.ndim==2 and torch.is_tensor(state)==False:
+        #     state = torch.tensor(state, dtype=torch.float)
+        # elif state.ndim==2 and torch.is_tensor(state)==True:    
+        #     state = state.float()
+        # else:
+        #     raise NotImplementedError
+        # state = state.to(self.device)
+        # if self.resample:
+        #     state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
+        #     with torch.no_grad():
+        #         action = self.actor.sample(state_rpt)
+        #         q_value = self.critic_target.qmin(state_rpt, action).flatten()
+        #         idx = torch.multinomial(F.softmax(q_value), 1)
+        #     return action[idx].cpu().data.numpy().flatten()
+        # else:
+        #     action = self.actor.sample(state)
+        #     action += noise_scale * torch.randn_like(action)
+        #     action = action.clamp(-self.max_action, self.max_action)
+        #     return action.cpu().data.numpy().flatten()
+        assert state is np.ndarray
+        state = torch.tensor(state, dtype=torch.float)
+        if state.ndim==1:
+            state = state.unsqueeze(0)
+        assert state.ndim==2 and torch.is_tensor(state)==True # (b, o)
         state = state.to(self.device)
         if self.resample:
-            state_rpt = torch.repeat_interleave(state, repeats=50, dim=0)
+            state_rpt = torch.repeat_interleave(state, repeats=50, dim=0) # (50b, o)
             with torch.no_grad():
-                action = self.actor.sample(state_rpt)
-                q_value = self.critic_target.qmin(state_rpt, action).flatten()
-                idx = torch.multinomial(F.softmax(q_value), 1)
-            return action[idx].cpu().data.numpy().flatten()
+                action = self.actor.sample(state_rpt) # (50b, a)
+                action += noise_scale * torch.randn_like(action)
+                action = action.clamp(-self.max_action, self.max_action)
+                # q_value = self.critic_target.qmin(state_rpt, action).flatten() # (50b,)
+                q_value = self.critic_target.qmin(state_rpt, action).reshape(-1, 50) # (50b,)
+                idx = torch.multinomial(F.softmax(q_value, dim=1), 1) # (b, 1)
+                idx = idx.flatten() + torch.arange(idx.shape[0]) * 50 #(b,)
+            # return action[idx].cpu().data.numpy().flatten()
+            return action[idx].cpu().data.numpy().squeeze()
         else:
             action = self.actor.sample(state)
             action += noise_scale * torch.randn_like(action)
             action = action.clamp(-self.max_action, self.max_action)
-            return action.cpu().data.numpy().flatten()
+            # return action.cpu().data.numpy().flatten()
+            return action.cpu().data.numpy().squeeze()
 
     def save_model(self, dir, id=None):
         if id is not None:

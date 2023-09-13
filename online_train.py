@@ -133,7 +133,7 @@ def online_train(args, env_fn):
             else: 
                 raise NotImplementedError
             if t % args.num_steps_per_epoch == 0:
-                eval_ret = eval_policy(args, agent, test_env, algo=args.algo, eval_episodes=args.eval_episodes)
+                eval_ret = eval_policy(args, agent)
                 logger_zhiao.logkvs(eval_ret)
                 if args.algo == 'dac':
                     print("bc_loss", np.mean(loss_metric['bc_loss']))

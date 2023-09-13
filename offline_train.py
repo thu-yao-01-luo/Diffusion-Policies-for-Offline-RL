@@ -132,7 +132,7 @@ def offline_train(args, env_fn):
             if args.pre_eval:
                 eval_ret = pre_eval_policy_wrapper(agent, args.env_name, args.seed, eval_episodes=args.eval_episodes)
             else:
-                eval_ret = eval_policy(args, agent, test_env, algo=args.algo, eval_episodes=args.eval_episodes)
+                eval_ret = eval_policy(args, agent)
             logger_zhiao.logkvs(eval_ret)
             if args.algo == 'dac':
                 print("bc_loss", np.mean(loss_metric['bc_loss']))

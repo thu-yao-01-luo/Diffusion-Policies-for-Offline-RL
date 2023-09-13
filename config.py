@@ -5,7 +5,8 @@ class Config:
     # experiment
     exp: str = 'exp_1'
     # device: int = 0
-    device: str = 'cuda:0'
+    device = 'cuda:0'
+    num_cpu: int|None = 5
     output_dir: str = 'results'
     env_name: str = 'halfcheetah-medium-v2'
     # env_name: str = 'Demo-v0'
@@ -105,3 +106,4 @@ class Config:
     sampler_type: str = "origin"
     n_inf_steps: int = 4
     use_clipped_model_output: bool = False
+    vec_env_eval: bool = False

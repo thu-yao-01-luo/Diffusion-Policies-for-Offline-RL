@@ -86,7 +86,7 @@ def offline_train(args: Config):
         else:
             raise NotImplementedError
         if args.with_eval:
-            eval_ret = eval_policy(args, agent, test_env, algo=args.algo, eval_episodes=args.eval_episodes)
+            eval_ret = eval_policy(args, agent)
             logger_zhiao.logkvs(eval_ret)
             if args.save_best_model and eval_ret["avg_norm_score"] > best_nreward:
                 best_nreward = eval_ret["avg_norm_score"] 

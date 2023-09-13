@@ -449,14 +449,22 @@ class Diffusion_AC(object):
     # ---------------------------- #
 
     def sample_action(self, state):
-        state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
-        state_rpt = torch.repeat_interleave(state, repeats=5, dim=0)
-        with torch.no_grad():
-            action = self.actor.sample(state_rpt)
-            q_value = self.critic_target.q_min(state_rpt, action, torch.zeros(
-                action.shape[0], device=self.device).long()).flatten()
-            idx = torch.multinomial(F.softmax(q_value, dim=-1), 1) 
-        return action[idx].cpu().data.numpy().flatten()
+        # state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+        # state_rpt = torch.repeat_interleave(state, repeats=5, dim=0)
+        # with torch.no_grad():
+        #     action = self.actor.sample(state_rpt)
+        #     q_value = self.critic_target.q_min(state_rpt, action, torch.zeros(
+        #         action.shape[0], device=self.device).long()).flatten()
+        #     idx = torch.multinomial(F.softmax(q_value, dim=-1), 1) 
+        # return action[idx].cpu().data.numpy().flatten()
+        assert state is np.ndarray
+        state = torch.tensor(state, dtype=torch.float)
+        if state.ndim==1:
+            state = state.unsqueeze(0)
+        assert state.ndim==2 and torch.is_tensor(state)==True # (b, o)
+        state = state.to(self.device)
+        action = self.actor.sample(state)
+        return action.cpu().data.numpy().squeeze()
 
     def save_model(self, dir, id=None):
         if id is not None:

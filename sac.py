@@ -176,7 +176,19 @@ class SAC(object):
         self.policy_optim = Adam(self.policy.parameters(), lr=args.lr)
 
     def select_action(self, state, eval=False):
-        state = torch.FloatTensor(state).to(self.device).unsqueeze(0)
+        # state = torch.FloatTensor(state).to(self.device).unsqueeze(0)
+        if state.ndim==1 and torch.is_tensor(state)==False:
+            state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
+        elif state.ndim==1 and torch.is_tensor(state)==True:
+            state = state.float().unsqueeze(0)
+        elif state.ndim==2 and torch.is_tensor(state)==False:
+            state = torch.tensor(state, dtype=torch.float)
+        elif state.ndim==2 and torch.is_tensor(state)==True:    
+            state = state.float()
+        else:
+            raise NotImplementedError
+        # state = torch.tensor(state, dtype=torch.float).to(self.device)
+        state = state.to(self.device)
         if eval == False:
             # action, _, _, _ = self.policy.sample(state)
             action = self.policy.sample(state)[0]

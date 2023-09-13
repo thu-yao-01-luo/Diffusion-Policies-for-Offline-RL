@@ -1,4 +1,6 @@
 from utils.utils_zhiao import load_config
+import torch
+import os
 import utils.logger_zhiao as logger_zhiao
 from config import Config
 from nb_online import online_train
@@ -15,6 +17,7 @@ if __name__ == '__main__':
         id=args.id,
     )  # type: ignore
 
+    args.num_cpu = min(os.cpu_count(), args.num_cpu)
     if args.online:
         online_train(args)
     else:

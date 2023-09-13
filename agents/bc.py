@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import copy
 import torch
+import numpy as np
 import torch.nn as nn
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import torch.nn.functional as F
@@ -72,6 +73,7 @@ class Diffusion_BC(object):
         self.target_noise = args.target_noise
         self.noise_clip = args.noise_clip
         self.add_noise = args.add_noise
+        self.resample = args.resample
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -109,13 +111,36 @@ class Diffusion_BC(object):
         return metric
 
     def sample_action(self, state, noise_scale=0.0):
+        # # if state.ndim==1:
+        # #     state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
+        # if state.ndim==1 and torch.is_tensor(state)==False:
+        #     state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
+        # elif state.ndim==1 and torch.is_tensor(state)==True:
+        #     state = state.float().unsqueeze(0)
+        # elif state.ndim==2 and torch.is_tensor(state)==False:
+        #     state = torch.tensor(state, dtype=torch.float)
+        # elif state.ndim==2 and torch.is_tensor(state)==True:    
+        #     state = state.float()
+        # else:
+        #     raise NotImplementedError
+        # # state = torch.tensor(state, dtype=torch.float).to(self.device)
+        # state = state.to(self.device)
+        # action = self.actor.sample(state)
+        # action += noise_scale * torch.randn_like(action)
+        # action = action.clamp(-self.max_action, self.max_action)
+        # return action.cpu().data.numpy().flatten()
+        assert state is np.ndarray
+        state = torch.tensor(state, dtype=torch.float)
         if state.ndim==1:
-            state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
-        state = torch.tensor(state, dtype=torch.float).to(self.device)
+            state = state.unsqueeze(0)
+        assert state.ndim==2 and torch.is_tensor(state)==True # (b, o)
+        state = state.to(self.device)
         action = self.actor.sample(state)
         action += noise_scale * torch.randn_like(action)
         action = action.clamp(-self.max_action, self.max_action)
-        return action.cpu().data.numpy().flatten()
+        # return action.cpu().data.numpy().flatten()
+        return action.cpu().data.numpy().squeeze()
+
 
     def save_model(self, dir, id=None):
         if id is not None:
