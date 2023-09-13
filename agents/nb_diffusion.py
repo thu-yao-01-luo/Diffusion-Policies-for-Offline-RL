@@ -186,6 +186,7 @@ class Diffusion(nn.Module):
             return x
 
     def diff_sample(self, state, shape):
+        assert self.scheduler_type is not None
         input = torch.randn(shape, device=state.device, dtype=torch.float32)
         for i in self.scheduler.timesteps:
             with torch.no_grad():
@@ -196,7 +197,7 @@ class Diffusion(nn.Module):
             # 2. predict previous mean of image x_t-1 and add variance depending on eta
             # eta corresponds to η in paper and should be between [0, 1]
             # do x_t -> x_t-1
-            if self.diff_type == "ddim":
+            if self.scheduler_type == "ddim":
                 input = self.scheduler.step(
                     model_output, int(i.item()), input, eta=self.eta, use_clipped_model_output=self.use_clipped_model_output
                 ).prev_sample
