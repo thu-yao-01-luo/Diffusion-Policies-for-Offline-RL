@@ -1,0 +1,19 @@
+T: 16
+algo: dac
+bc_weight: 0.01
+d4rl: true
+discount2: 1.0
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: half-t16-infer4-igin-sept13-nb-scheduler
+n_inf_steps: 4
+name: half-t16-infer4-igin-sept13-nb-scheduler
+num_steps_per_epoch: 5000
+online: false
+predict_epsilon: false
+sampler_type: origin
+seed: 0
+tune_bc_weight: false

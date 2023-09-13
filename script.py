@@ -4611,7 +4611,7 @@ def sept13_nb_scheduler():
     os.makedirs(config_dir, exist_ok=True)
     schedulers = ["origin", "ddim", "dpm_multistep", "ddpm"]
     for scheduler in schedulers:
-        job_id = f"half-t16-infer4-{scheduler}-sept13-nb-scheduler"
+        job_id = f"half-t16-infer4-{scheduler[-4:]}-sept13-nb-scheduler"
         file_name = job_id + ".yaml"
         config = {
             "predict_epsilon": False, 
