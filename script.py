@@ -4609,7 +4609,8 @@ def sept13_nb_scheduler():
     task_id = f"sys_test/sept13_nb_scheduler"
     config_dir = f"configs/sys_test/sept13_nb_scheduler"
     os.makedirs(config_dir, exist_ok=True)
-    schedulers = ["origin", "ddim", "dpm_multistep", "ddpm"]
+    # schedulers = ["origin", "ddim", "dpm_multistep", "ddpm"]
+    schedulers = ["dpm_multistep"]
     for scheduler in schedulers:
         job_id = f"half-t16-infer4-{scheduler[-4:]}-sept13-nb-scheduler"
         file_name = job_id + ".yaml"
@@ -4797,5 +4798,5 @@ if __name__ == "__main__":
     # sept12_nb_env()
     # sept13_main_env()
     # sept13_main_medium_expert()
-    # sept13_nb_scheduler()
-    sept13_main_bc()
+    sept13_nb_scheduler()
+    # sept13_main_bc()
