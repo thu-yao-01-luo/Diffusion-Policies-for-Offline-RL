@@ -1,0 +1,16 @@
+T: 8
+algo: ql
+bc_weight: 1.0
+coef: 1.0
+consistency: false
+discount2: 1.0
+env_name: halfcheetah-medium-expert-v2
+format:
+- stdout
+- wandb
+- csv
+id: halfch-t8-sept13-main-medium-expert
+name: halfch-t8-sept13-main-medium-expert
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false

@@ -4561,6 +4561,90 @@ def sept13_main_env():
         # run_python_file(job, file_paths[ind], main="nb.py")
         run_python_file(job, file_paths[ind], main="main.py")
 
+def sept13_main_medium_expert():
+    file_paths = []
+    job_list = []
+    task_id = f"sys_test/sept13_main_medium_expert"
+    config_dir = f"configs/sys_test/sept13_main_medium_expert"
+    os.makedirs(config_dir, exist_ok=True)
+    Ts = [1, 4, 8]
+    env = ["halfcheetah-medium-expert-v2", "walker2d-medium-expert-v2", "hopper-medium-expert-v2"]
+    for env_name in env:
+        for T in Ts:
+            job_id = f"{env_name[:6]}-t{T}-sept13-main-medium-expert"
+            file_name = job_id + ".yaml"
+            config = {
+                "discount2": 1.0,
+                "coef": 1.0,
+                "seed": 0,
+                "T": T,
+                "algo": "ql",
+                "env_name": env_name,
+                "format": ['stdout', "wandb", "csv"],
+                "bc_weight": 1.0,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "predict_epsilon": False,
+                "consistency": False,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        run_multi_py(job, file_paths[ind], main="main.py", directory=dir_path)
+        # run_python_file(job, file_paths[ind], main="nb.py")
+        # run_python_file(job, file_paths[ind], main="main.py")
+
+def sept13_nb_scheduler():
+    file_paths = []
+    job_list = []
+    task_id = f"sys_test/sept13_nb_scheduler"
+    config_dir = f"configs/sys_test/sept13_nb_scheduler"
+    os.makedirs(config_dir, exist_ok=True)
+    schedulers = ["origin", "ddim", "dpm_multistep", "ddpm"]
+    for scheduler in schedulers:
+        job_id = f"half-t16-infer4-{scheduler}-sept13-nb-scheduler"
+        file_name = job_id + ".yaml"
+        config = {
+            "predict_epsilon": False, 
+            "format": ['stdout', "wandb", "csv"],
+            "d4rl": True,            
+            "online": False,
+            "num_steps_per_epoch": 5000,
+            "n_inf_steps": 4,
+            "discount2": 1.0,
+            "seed": 0,
+            "T": 16,
+            "algo": "dac",
+            "env_name": "halfcheetah-medium-v2",
+            "bc_weight": 0.01,
+            "tune_bc_weight": False,
+            "name": job_id,
+            "id": job_id,
+            "sampler_type": scheduler,
+        }
+        job_list.append(
+            job_id)
+        filename = os.path.join(config_dir, file_name)
+        file_paths.append(filename)
+        make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        run_python_file(job, file_paths[ind], main="nb.py")
+        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -4668,4 +4752,6 @@ if __name__ == "__main__":
     # sept11_nb_env()
     # sept11_nb_scheduler()
     # sept12_nb_env()
-    sept13_main_env()
+    # sept13_main_env()
+    # sept13_main_medium_expert()
+    sept13_nb_scheduler()
