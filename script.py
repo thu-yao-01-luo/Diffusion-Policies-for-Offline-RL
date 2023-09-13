@@ -4526,10 +4526,10 @@ def sept13_main_env():
     config_dir = f"configs/sys_test/sept13_main_env"
     os.makedirs(config_dir, exist_ok=True)
     Ts = [1, 4, 8]
-    env = ["hopper-medium-v2", "walker2d-medium-v2"]
+    env = ["walker2d-medium-v2", "hopper-medium-v2"]
     for env_name in env:
         for T in Ts:
-            job_id = f"{env[:6]}-t{T}-sept13-main-env"
+            job_id = f"{env_name[:6]}-t{T}-sept13-main-env"
             file_name = job_id + ".yaml"
             config = {
                 "discount2": 1.0,
