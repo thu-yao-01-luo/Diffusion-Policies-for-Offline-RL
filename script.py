@@ -4808,7 +4808,7 @@ def sept14_nb_hopbc():
                 "n_inf_steps": infer_steps,
                 "discount2": 1.0,
                 "T": T,
-                "algo": "dac",
+                "algo": "dql",
                 "env_name": env_name,
                 "bc_weight": bc_weight,
                 "tune_bc_weight": False,
