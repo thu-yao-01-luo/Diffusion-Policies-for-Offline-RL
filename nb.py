@@ -1,6 +1,6 @@
 from utils.utils_zhiao import load_config
-import torch
 import os
+import d4rl
 import utils.logger_zhiao as logger_zhiao
 from config import Config
 from nb_online import online_train

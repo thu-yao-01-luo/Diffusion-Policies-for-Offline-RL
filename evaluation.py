@@ -1,6 +1,5 @@
 import numpy as np
 import gym
-import d4rl
 from config import Config
 from helpers import compute_entropy
 import utils.logger_zhiao as logger_zhiao
