@@ -129,6 +129,7 @@ RUN pip install pymunk==6.2.1
 RUN pip install scikit-image==0.19.3
 RUN pip install shapely==1.8.4
 RUN pip install pygame
+RUN pip install stable-baselines3
 RUN pip install git+https://github.com/Farama-Foundation/d4rl@master#egg=d4rl && python3 -c "import gym; import d4rl; gym.make('HalfCheetah-v3')"
 # # Download and compile vulkan components
 # RUN ln -s /usr/bin/python3 /usr/bin/python && \
