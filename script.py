@@ -4745,8 +4745,10 @@ def sept14_nb_hopbc():
     scheduler = "ddpm"
     # for scheduler in schedulers:
         # for env_name in env:
-    for T in [1, 4, 8]:
-       for bc_weight in [0.1, 0.2, 0.4, 0.8]: 
+    # for T in [1, 4, 8]:
+    #    for bc_weight in [0.1, 0.2, 0.4, 0.8]: 
+    for T in [1]:
+        for bc_weight in [0.1]:
             infer_steps = min(T, 4) 
             job_id = f"{env_name[:4]}-t{T}-infer{infer_steps}-{scheduler[-4:]}-bc{bc_weight}-sept14-nb-hopbc"
             file_name = job_id + ".yaml"
