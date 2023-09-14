@@ -4944,3 +4944,4 @@ if __name__ == "__main__":
     # sept13_main_bc()
     # sept13_nb_vecenv()
     sept14_nb_hopbc()
+    # sept14_nb_hopbc_ql()

@@ -1,0 +1,19 @@
+T: 1
+algo: dql
+bc_weight: 0.8
+d4rl: true
+discount2: 1.0
+env_name: hopper-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: ql-hopp-t1-infer1-ddpm-bc0.8-sept14-nb-hopbc
+n_inf_steps: 1
+name: ql-hopp-t1-infer1-ddpm-bc0.8-sept14-nb-hopbc
+num_steps_per_epoch: 5000
+online: false
+predict_epsilon: false
+sampler_type: ddpm
+tune_bc_weight: false
+vec_env_eval: true
