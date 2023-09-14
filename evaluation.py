@@ -123,7 +123,6 @@ def eval_policy(args:Config, policy):
             inference_time.append(time.time() - starting_time)
             actions_abs.append(np.mean(np.abs(action)))
             state, reward, done, _ = vec_eval_env.step(action)
-            print("reward", reward, "done", done)
             traj_return += reward
             traj_length += np.ones(cpus, dtype=np.int32)
             if any(done):
