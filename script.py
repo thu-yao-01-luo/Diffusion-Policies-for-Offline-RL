@@ -4739,14 +4739,8 @@ def sept14_nb_hopbc():
     task_id = f"sys_test/sept14_nb_hopbc"
     config_dir = f"configs/sys_test/sept14_nb_hopbc"
     os.makedirs(config_dir, exist_ok=True)
-    # schedulers = ["ddpm"]
-    # env = ["hopper-medium-v2"]
     env_name = "hopper-medium-v2"
     scheduler = "ddpm"
-    # for scheduler in schedulers:
-        # for env_name in env:
-    # for T in [1, 4, 8]:
-    #    for bc_weight in [0.1, 0.2, 0.4, 0.8]: 
     for T in [1]:
         for bc_weight in [0.1]:
             infer_steps = min(T, 4) 
@@ -4782,7 +4776,6 @@ def sept14_nb_hopbc():
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="nb.py")
-        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
 
 def sept14_nb_hopbc_ql():
     file_paths = []
@@ -4796,10 +4789,8 @@ def sept14_nb_hopbc_ql():
     scheduler = "ddpm"
     # for scheduler in schedulers:
         # for env_name in env:
-    for T in [1]:
-        for bc_weight in [0.1]:
-    # for T in [1, 4, 8]:
-    #    for bc_weight in [0.1, 0.2, 0.4, 0.8]: 
+    for T in [1, 4, 8]:
+       for bc_weight in [0.1, 0.2, 0.4, 0.8]: 
             infer_steps = min(T, 4) 
             job_id = f"ql-{env_name[:4]}-t{T}-infer{infer_steps}-{scheduler[-4:]}-bc{bc_weight}-sept14-nb-hopbc"
             file_name = job_id + ".yaml"

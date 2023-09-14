@@ -129,7 +129,7 @@ class Diffusion_BC(object):
         # action += noise_scale * torch.randn_like(action)
         # action = action.clamp(-self.max_action, self.max_action)
         # return action.cpu().data.numpy().flatten()
-        assert state is np.ndarray
+        assert type(state) is np.ndarray
         state = torch.tensor(state, dtype=torch.float)
         if state.ndim==1:
             state = state.unsqueeze(0)

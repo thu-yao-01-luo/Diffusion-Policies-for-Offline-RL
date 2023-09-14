@@ -129,7 +129,10 @@ RUN pip install pymunk==6.2.1
 RUN pip install scikit-image==0.19.3
 RUN pip install shapely==1.8.4
 RUN pip install pygame
-RUN pip install stable-baselines3
+# RUN pip install d4rl==1.1
+# RUN pip install gym==0.21.0
+# RUN pip install stable-baselines3==1.8.0
+RUN pip3 install setuptools==65.5.0
 RUN pip install git+https://github.com/Farama-Foundation/d4rl@master#egg=d4rl && python3 -c "import gym; import d4rl; gym.make('HalfCheetah-v3')"
 # # Download and compile vulkan components
 # RUN ln -s /usr/bin/python3 /usr/bin/python && \
@@ -143,7 +146,14 @@ RUN pip install git+https://github.com/Farama-Foundation/d4rl@master#egg=d4rl &&
 #     mkdir -p /usr/local/share/vulkan/registry && \
 #     cp -r Vulkan-Headers/build/install/share/vulkan/registry/* /usr/local/share/vulkan/registry && \
 #     rm -rf /opt/vulkan
-RUN pip install d3rlpy
+# RUN pip3 install setuptools==65.5.0
+RUN pip install stable-baselines3==1.8.0
+# RUN pip install d4rl==1.1
+RUN pip install gym==0.21.0
+# RUN pip install d4rl==1.1
+# RUN pip install d3rlpy=1.1.1
+# RUN pip install stable-baselines3==1.8.0
+# RUN pip install stable-baselines3==1.8.0
 # RUN GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa_dreamfuser -o IdentitiesOnly=yes" git clone -b caiwei_branch https://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@github.com/hzaskywalker/Dreamfuser.git ~/Dreamfuser
 RUN GIT_SSH_COMMAND="ssh -i /root/.ssh/id_rsa -o IdentitiesOnly=yes" git clone git@github.com:thu-yao-01-luo/Diffusion-Policies-for-Offline-RL.git ~/Diffusion-Policies-for-Offline-RL
 WORKDIR /root/Diffusion-Policies-for-Offline-RL

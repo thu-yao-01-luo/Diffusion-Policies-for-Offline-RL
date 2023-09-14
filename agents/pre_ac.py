@@ -457,7 +457,7 @@ class Diffusion_AC(object):
         #         action.shape[0], device=self.device).long()).flatten()
         #     idx = torch.multinomial(F.softmax(q_value, dim=-1), 1) 
         # return action[idx].cpu().data.numpy().flatten()
-        assert state is np.ndarray
+        assert type(state) is np.ndarray
         state = torch.tensor(state, dtype=torch.float)
         if state.ndim==1:
             state = state.unsqueeze(0)
