@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 import numpy as np
-from sklearn.neighbors import KernelDensity
+# from sklearn.neighbors import KernelDensity
 
 class ReplayBuffer:
     """
@@ -108,6 +108,7 @@ class SACBufferNotDone:
         return obs, act, rew, obs2, 1-done
 
 def compute_entropy(samples):
+    raise NotImplementedError
     # samples: list of numpy array
     # Convert samples to a numpy array
     samples_array = np.array(samples)
