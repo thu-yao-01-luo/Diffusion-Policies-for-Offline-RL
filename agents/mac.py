@@ -211,7 +211,6 @@ class Diffusion_AC(object):
             critic_loss = v_loss + MSBE_loss * self.MSBE_coef
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
-            q_value = q1
             if self.grad_norm > 0:
                 critic_grad_norms = nn.utils.clip_grad_norm_( # type: ignore
                     self.critic.parameters(), max_norm=self.grad_norm, norm_type=2) 
