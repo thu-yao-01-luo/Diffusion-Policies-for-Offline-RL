@@ -1,0 +1,21 @@
+T: 8
+ablation: false
+algo: dql
+d4rl: true
+discount2: 1.0
+env_name: hopper-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: hopp-delay2-abla0-t8-infer2-ddpm-dql-sept19-nb-hopql
+n_inf_steps: 2
+name: hopp-delay2-abla0-t8-infer2-ddpm-dql-sept19-nb-hopql
+num_steps_per_epoch: 5000
+online: false
+policy_delay: 2
+predict_epsilon: false
+sampler_type: ddpm
+test_critic: false
+tune_bc_weight: false
+vec_env_eval: true

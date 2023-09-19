@@ -5158,7 +5158,7 @@ def sept19_nb_hopql():
     it = 2
     for T in [8]:
         for flag in [True, False]:
-            job_id = f"{env_name[:4]}-abla{int(flag)}-t{T}-infer{it}-{scheduler}-dql-sept19-nb-hopql"
+            job_id = f"{env_name[:4]}-delay2-abla{int(flag)}-t{T}-infer{it}-{scheduler}-dql-sept19-nb-hopql"
             file_name = job_id + ".yaml"
             config = {
                 "predict_epsilon": False, 
