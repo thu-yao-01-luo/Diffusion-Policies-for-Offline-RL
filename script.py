@@ -4695,7 +4695,8 @@ def sept13_nb_vecenv():
     task_id = f"sys_test/sept13_nb_vecenv"
     config_dir = f"configs/sys_test/sept13_nb_vecenv"
     os.makedirs(config_dir, exist_ok=True)
-    schedulers = ["dpm_multistep", "origin"]
+    # schedulers = ["dpm_multistep", "origin"]
+    schedulers = ["ddpm", "origin"]
     env = ["halfcheetah-medium-v2", "hopper-medium-v2"]
     for scheduler in schedulers:
         for env_name in env:
@@ -4730,8 +4731,8 @@ def sept13_nb_vecenv():
             os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
-        # run_python_file(job, file_paths[ind], main="nb.py")
-        run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
+        run_python_file(job, file_paths[ind], main="nb.py")
+        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
 
 def sept14_nb_hopbc():
     file_paths = []
@@ -5208,11 +5209,11 @@ if __name__ == "__main__":
     # sept13_main_medium_expert()
     # sept13_nb_scheduler()
     # sept13_main_bc()
-    # sept13_nb_vecenv()
+    sept13_nb_vecenv()
     # sept14_nb_hopbc()
     # sept14_nb_hopbc_ql()
     # sept15_nb_hopbc()
     # sept16_nb_hopbc()
     # sept19_nb_hopbc()
-    sept19_nb_mac()
+    # sept19_nb_mac()
     # sept19_nb_dac()
