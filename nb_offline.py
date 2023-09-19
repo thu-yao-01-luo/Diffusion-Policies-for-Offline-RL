@@ -61,11 +61,19 @@ def offline_train(args: Config):
                 max_action=act_limit,
                 device=device,
                 args=args)
+    elif args.algo == "mac":
+        from agents.mac import Diffusion_AC as Agent
+        agent = Agent(state_dim=obs_dim,
+                action_dim=act_dim,
+                max_action=act_limit,
+                device=device,
+                args=args)
     else:
         raise NotImplementedError
     for t in range(args.num_epochs):
         steps = args.num_steps_per_epoch
-        if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc' or args.algo == 'pac':
+        # if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc' or args.algo == 'pac' or args.algo == 'mac':
+        if args.algo in ["dac", "dql", "bc", "pac", "mac"]:
             starting_time = time.time()
             loss_metric = agent.train(
                         replay_buffer=data_sampler,

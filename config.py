@@ -107,3 +107,4 @@ class Config:
     n_inf_steps: int = 4
     use_clipped_model_output: bool = False
     vec_env_eval: bool = False
+    len_rollout: int = 1
