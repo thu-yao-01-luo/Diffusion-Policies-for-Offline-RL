@@ -4700,7 +4700,7 @@ def sept13_nb_vecenv():
     env = ["halfcheetah-medium-v2", "hopper-medium-v2"]
     for scheduler in schedulers:
         for env_name in env:
-            job_id = f"{env_name[:4]}-t8-infer2-{scheduler[-4:]}-sept13-nb-vecenv"
+            job_id = f"{env_name[:4]}-t8-infer8-{scheduler[-4:]}-sept13-nb-vecenv"
             file_name = job_id + ".yaml"
             config = {
                 "predict_epsilon": False, 
@@ -4708,7 +4708,7 @@ def sept13_nb_vecenv():
                 "d4rl": True,            
                 "online": False,
                 "num_steps_per_epoch": 5000,
-                "n_inf_steps": 2,
+                "n_inf_steps": 8,
                 "discount2": 1.0,
                 "T": 8,
                 "algo": "dac",
