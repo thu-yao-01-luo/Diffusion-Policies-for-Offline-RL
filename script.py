@@ -5178,6 +5178,7 @@ def sept19_nb_hopql():
                 "sampler_type": scheduler,
                 "test_critic": flag,
                 "ablation": flag,
+                "policy_delay": 2,
             }
             job_list.append(
                 job_id)

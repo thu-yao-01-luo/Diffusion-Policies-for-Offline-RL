@@ -13,6 +13,7 @@ n_inf_steps: 2
 name: hopp-abla1-t8-infer2-ddpm-dql-sept19-nb-hopql
 num_steps_per_epoch: 5000
 online: false
+policy_delay: 2
 predict_epsilon: false
 sampler_type: ddpm
 test_critic: true
