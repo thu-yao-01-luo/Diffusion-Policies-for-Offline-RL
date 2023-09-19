@@ -4985,7 +4985,7 @@ def sept19_nb_hopbc():
                 "name": job_id,
                 "id": job_id,
                 "vec_env_eval": True,
-                "scheduler": scheduler,
+                "sampler_type": scheduler,
             }
             job_list.append(
                 job_id)
@@ -5163,4 +5163,4 @@ if __name__ == "__main__":
     # sept15_nb_hopbc()
     # sept16_nb_hopbc()
     sept19_nb_hopbc()
-    sept19_nb_mac()
+    # sept19_nb_mac()

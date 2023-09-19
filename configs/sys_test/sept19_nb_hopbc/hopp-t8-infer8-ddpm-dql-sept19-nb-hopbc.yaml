@@ -13,6 +13,6 @@ name: hopp-t8-infer8-ddpm-dql-sept19-nb-hopbc
 num_steps_per_epoch: 5000
 online: false
 predict_epsilon: false
-scheduler: ddpm
+sampler_type: ddpm
 tune_bc_weight: false
 vec_env_eval: true
