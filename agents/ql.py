@@ -7,8 +7,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from agents.diffusion_ import Diffusion_prime as Diffusion
-from agents.model_ import MLP_wo_tanh as MLP
+# from agents.diffusion_ import Diffusion_prime as Diffusion
+# from agents.model_ import MLP_wo_tanh as MLP
+from agents.nb_diffusion import Diffusion
+from agents.model import MLP
 from agents.helpers import EMA, SinusoidalPosEmb
 from config import Config
 
@@ -133,16 +135,19 @@ class QNetwork(nn.Module):
 
         self.q_network = nn.Sequential(
             nn.Linear(self.input_dim, hidden_dim),
-            nn.ReLU(),
+            # nn.ReLU(),
+            nn.Mish(),
             nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
+            # nn.ReLU(),
+            nn.Mish(),
             nn.Linear(hidden_dim, 1)
         )
         
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(t_dim),
             nn.Linear(t_dim, t_dim * 2),
-            nn.ReLU(),
+            # nn.ReLU(),
+            nn.Mish(),
             nn.Linear(t_dim * 2, t_dim),
         )
         self.apply(weights_init_)
