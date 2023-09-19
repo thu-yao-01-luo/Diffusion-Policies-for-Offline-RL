@@ -4965,7 +4965,8 @@ def sept19_nb_hopbc():
     config_dir = f"configs/sys_test/sept19_nb_hopbc"
     os.makedirs(config_dir, exist_ok=True)
     env_name = "hopper-medium-v2"
-    scheduler = "ddpm"
+    # scheduler = "ddpm"
+    scheduler = "origin"
     it = 8
     for T in [8]:
             job_id = f"{env_name[:4]}-t{T}-infer{it}-{scheduler}-dql-sept19-nb-hopbc"
@@ -4986,6 +4987,8 @@ def sept19_nb_hopbc():
                 "id": job_id,
                 "vec_env_eval": True,
                 "sampler_type": scheduler,
+                "test_critic": True,
+                "ablation": True,
             }
             job_list.append(
                 job_id)
@@ -5007,7 +5010,8 @@ def sept19_nb_mac():
     config_dir = f"configs/sys_test/sept19_nb_mac"
     os.makedirs(config_dir, exist_ok=True)
     env_name = "hopper-medium-v2"
-    scheduler = "ddpm"
+    # scheduler = "ddpm"
+    scheduler = "origin"
     infer_steps = 8
     for T in [8]:
         for len_rollout in [1, 4, 8]:
@@ -5162,5 +5166,5 @@ if __name__ == "__main__":
     # sept14_nb_hopbc_ql()
     # sept15_nb_hopbc()
     # sept16_nb_hopbc()
-    sept19_nb_hopbc()
-    # sept19_nb_mac()
+    # sept19_nb_hopbc()
+    sept19_nb_mac()
