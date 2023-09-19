@@ -4966,10 +4966,9 @@ def sept19_nb_hopbc():
     os.makedirs(config_dir, exist_ok=True)
     env_name = "hopper-medium-v2"
     scheduler = "ddpm"
-    for T in [4, 8]:
-        # for bc_weight in [0.01, 0.02, 0.04, 0.05, 0.08, 0.1]:
-            # infer_steps = min(T, 4) 
-            job_id = f"{env_name[:4]}-t{T}-dql-sept19-nb-hopbc"
+    it = 8
+    for T in [8]:
+            job_id = f"{env_name[:4]}-t{T}-infer{it}-{scheduler}-dql-sept19-nb-hopbc"
             file_name = job_id + ".yaml"
             config = {
                 "predict_epsilon": False, 
@@ -4979,12 +4978,60 @@ def sept19_nb_hopbc():
                 "num_steps_per_epoch": 5000,
                 "discount2": 1.0,
                 "T": T,
+                "n_inf_steps": it,
                 "algo": "dql",
                 "env_name": env_name,
                 "tune_bc_weight": False,
                 "name": job_id,
                 "id": job_id,
                 "vec_env_eval": True,
+                "scheduler": scheduler,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        run_python_file(job, file_paths[ind], main="nb.py")
+
+def sept19_nb_mac():
+    file_paths = []
+    job_list = []
+    task_id = f"sys_test/sept19_nb_mac"
+    config_dir = f"configs/sys_test/sept19_nb_mac"
+    os.makedirs(config_dir, exist_ok=True)
+    env_name = "hopper-medium-v2"
+    scheduler = "ddpm"
+    infer_steps = 8
+    for T in [8]:
+        for len_rollout in [1, 4, 8]:
+            # infer_steps = min(T, 8) 
+            # job_id = f"{env_name[:4]}-t{T}-infer{infer_steps}-{scheduler[-4:]}-bc{bc_weight}-sept19-nb-mac"
+            job_id = f"{env_name[:4]}-t{T}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept19-nb-mac"
+            file_name = job_id + ".yaml"
+            config = {
+                "predict_epsilon": False, 
+                "format": ['stdout', "wandb", "csv"],
+                "d4rl": True,            
+                "online": False,
+                "num_steps_per_epoch": 5000,
+                "n_inf_steps": infer_steps,
+                "discount2": 1.0,
+                "T": T,
+                "algo": "mac",
+                "env_name": env_name,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "sampler_type": scheduler,
+                "vec_env_eval": True,
+                "len_rollout": len_rollout,
             }
             job_list.append(
                 job_id)
@@ -5116,3 +5163,4 @@ if __name__ == "__main__":
     # sept15_nb_hopbc()
     # sept16_nb_hopbc()
     sept19_nb_hopbc()
+    sept19_nb_mac()
