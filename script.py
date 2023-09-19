@@ -5166,5 +5166,5 @@ if __name__ == "__main__":
     # sept14_nb_hopbc_ql()
     # sept15_nb_hopbc()
     # sept16_nb_hopbc()
-    # sept19_nb_hopbc()
-    sept19_nb_mac()
+    sept19_nb_hopbc()
+    # sept19_nb_mac()
