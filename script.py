@@ -5434,6 +5434,7 @@ def sept20_nb_resample():
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="nb.py")
+        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
 
 if __name__ == "__main__":
     # jun22_all_env()

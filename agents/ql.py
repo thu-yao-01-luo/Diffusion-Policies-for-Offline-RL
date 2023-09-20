@@ -395,7 +395,7 @@ class Diffusion_QL(object):
                 # q_value = self.critic_target.qmin(state_rpt, action).flatten() # (50b,)
                 q_value = self.critic_target.qmin(state_rpt, action).reshape(-1, 50) # (50b,)
                 idx = torch.multinomial(F.softmax(q_value, dim=1), 1) # (b, 1)
-                idx = idx.flatten() + torch.arange(idx.shape[0]) * 50 #(b,)
+                idx = idx.flatten() + torch.arange(idx.shape[0]).to(self.device) * 50 #(b,)
             # return action[idx].cpu().data.numpy().flatten()
             return action[idx].cpu().data.numpy().squeeze()
         else:
