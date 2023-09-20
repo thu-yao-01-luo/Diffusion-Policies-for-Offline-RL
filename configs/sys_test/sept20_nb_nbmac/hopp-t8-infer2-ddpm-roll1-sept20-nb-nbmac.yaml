@@ -1,0 +1,20 @@
+T: 8
+algo: mac
+bc_weight: 1.0
+d4rl: true
+discount2: 1.0
+env_name: hopper-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: hopp-t8-infer2-ddpm-roll1-sept20-nb-nbmac
+len_rollout: 1
+n_inf_steps: 2
+name: hopp-t8-infer2-ddpm-roll1-sept20-nb-nbmac
+num_steps_per_epoch: 5000
+online: false
+predict_epsilon: false
+sampler_type: ddpm
+tune_bc_weight: false
+vec_env_eval: true
