@@ -5393,7 +5393,7 @@ def sept20_nb_resample():
     env_name = "hopper-medium-v2"
     scheduler = "ddpm"
     it = 2
-    for T in [8]:
+    for T in [4, 8]:
         for flag in [True, False]:
             job_id = f"{env_name[:4]}-abla{int(flag)}-t{T}-infer{it}-{scheduler}-resample-sept20-nb-resample"
             file_name = job_id + ".yaml"
