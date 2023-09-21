@@ -11,7 +11,7 @@ from config import Config
 
 def offline_train(args: Config):
     # parameters
-    args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}')
+    args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}', args.name)
     seed = args.seed
     output_dir = args.output_dir
     torch.manual_seed(seed)
@@ -98,5 +98,6 @@ def offline_train(args: Config):
             logger_zhiao.logkvs(eval_ret)
             if args.save_best_model and eval_ret["avg_norm_score"] > best_nreward:
                 best_nreward = eval_ret["avg_norm_score"] 
-                agent.save_model(output_dir, t)
+                # agent.save_model(output_dir, t)
+                agent.save_model(output_dir)
         logger_zhiao.dumpkvs()
