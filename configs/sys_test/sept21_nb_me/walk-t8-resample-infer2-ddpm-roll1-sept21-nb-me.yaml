@@ -4,7 +4,7 @@ bc_weight: 1.0
 critic_ema: 1
 d4rl: true
 discount2: 1.0
-env_name: walker2d-medium-v2
+env_name: walker2d-medium-expert-v2
 format:
 - stdout
 - wandb
