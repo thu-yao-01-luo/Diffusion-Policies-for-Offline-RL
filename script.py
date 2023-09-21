@@ -5539,21 +5539,20 @@ def sept21_nb_pretrain():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="nb.py")
 
-def sept21_nb_pretrain():
+def sept21_nb_me():
     file_paths = []
     job_list = []
-    task_id = f"sys_test/sept21_nb_pretrain"
-    config_dir = f"configs/sys_test/sept21_nb_pretrain"
+    task_id = f"sys_test/sept21_nb_me"
+    config_dir = f"configs/sys_test/sept21_nb_me"
     os.makedirs(config_dir, exist_ok=True)
-    env_names = ["hopper-medium-v2", "halfcheetah-medium-v2", "walker2d-medium-v2"]
-                #  ["hopper-medium-expert-v2", "halfcheetah-medium-expert-v2", "walker2d-medium-expert-v2"]
+    # env_names = ["hopper-medium-v2", "halfcheetah-medium-v2", "walker2d-medium-v2"]
+    env_names = ["hopper-medium-expert-v2", "halfcheetah-medium-expert-v2", "walker2d-medium-expert-v2"]
     scheduler = "ddpm"
     infer_steps = 2
-    # for T in [8]:
     T = 8
     for env_name in env_names:
-        for len_rollout in [1, 2, 4, 8]:
-            job_id = f"{env_name[:4]}-t{T}-resample-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept21-nb-pretrain"
+        for len_rollout in [1]:
+            job_id = f"{env_name[:4]}-t{T}-resample-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept21-nb-me"
             file_name = job_id + ".yaml"
             config = {
                 "predict_epsilon": False, 
@@ -5718,4 +5717,5 @@ if __name__ == "__main__":
     # sept20_nb_dql()
     # sept20_nb_resample()
     # sept21_nb_halfmac()
-    sept21_nb_pretrain()
+    # sept21_nb_pretrain()
+    sept21_nb_me()
