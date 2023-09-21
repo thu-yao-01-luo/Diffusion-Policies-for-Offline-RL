@@ -5546,7 +5546,8 @@ def sept21_nb_me():
     config_dir = f"configs/sys_test/sept21_nb_me"
     os.makedirs(config_dir, exist_ok=True)
     # env_names = ["hopper-medium-v2", "halfcheetah-medium-v2", "walker2d-medium-v2"]
-    env_names = ["hopper-medium-expert-v2", "halfcheetah-medium-expert-v2", "walker2d-medium-expert-v2"]
+    # env_names = ["hopper-medium-expert-v2", "halfcheetah-medium-expert-v2", "walker2d-medium-expert-v2"]
+    env_names = ["walker2d-medium-v2"]
     scheduler = "ddpm"
     infer_steps = 2
     T = 8
