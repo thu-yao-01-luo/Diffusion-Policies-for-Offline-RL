@@ -5494,10 +5494,8 @@ def sept21_nb_pretrain():
     config_dir = f"configs/sys_test/sept21_nb_pretrain"
     os.makedirs(config_dir, exist_ok=True)
     env_names = ["hopper-medium-v2", "halfcheetah-medium-v2", "walker2d-medium-v2"]
-                #  ["hopper-medium-expert-v2", "halfcheetah-medium-expert-v2", "walker2d-medium-expert-v2"]
     scheduler = "ddpm"
     infer_steps = 2
-    # for T in [8]:
     T = 8
     for env_name in env_names:
         for len_rollout in [1, 2, 4, 8]:
@@ -5520,7 +5518,7 @@ def sept21_nb_pretrain():
                 "sampler_type": scheduler,
                 "vec_env_eval": True,
                 "len_rollout": len_rollout,
-                "bc_weight": 1.0,
+                "bc_weight": 0.02 if env_name == "halfcheetah-medium-v2" else 1.0,
                 "resample": True,
                 "policy_delay": 1,
                 "critic_ema": 1,
@@ -5546,8 +5544,8 @@ def sept21_nb_me():
     config_dir = f"configs/sys_test/sept21_nb_me"
     os.makedirs(config_dir, exist_ok=True)
     # env_names = ["hopper-medium-v2", "halfcheetah-medium-v2", "walker2d-medium-v2"]
-    # env_names = ["hopper-medium-expert-v2", "halfcheetah-medium-expert-v2", "walker2d-medium-expert-v2"]
-    env_names = ["walker2d-medium-v2"]
+    env_names = ["hopper-medium-expert-v2", "halfcheetah-medium-expert-v2", "walker2d-medium-expert-v2"]
+    # env_names = ["walker2d-medium-v2"]
     scheduler = "ddpm"
     infer_steps = 2
     T = 8
@@ -5719,5 +5717,5 @@ if __name__ == "__main__":
     # sept20_nb_dql()
     # sept20_nb_resample()
     # sept21_nb_halfmac()
-    # sept21_nb_pretrain()
+    sept21_nb_pretrain()
     sept21_nb_me()

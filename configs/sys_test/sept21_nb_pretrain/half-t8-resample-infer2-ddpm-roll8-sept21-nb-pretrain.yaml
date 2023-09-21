@@ -1,6 +1,6 @@
 T: 8
 algo: mac
-bc_weight: 1.0
+bc_weight: 0.02
 critic_ema: 1
 d4rl: true
 discount2: 1.0
