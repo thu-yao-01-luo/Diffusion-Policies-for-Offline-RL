@@ -5559,7 +5559,7 @@ def sept21_nb_me():
                 "format": ['stdout', "wandb", "csv"],
                 "d4rl": True,            
                 "online": False,
-                "num_steps_per_epoch": 50,
+                "num_steps_per_epoch": 50000,
                 "n_inf_steps": infer_steps,
                 "discount2": 1.0,
                 "T": T,
@@ -5718,5 +5718,5 @@ if __name__ == "__main__":
     # sept20_nb_dql()
     # sept20_nb_resample()
     # sept21_nb_halfmac()
-    sept21_nb_pretrain()
+    # sept21_nb_pretrain()
     sept21_nb_me()
