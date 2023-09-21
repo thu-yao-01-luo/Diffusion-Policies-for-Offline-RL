@@ -5469,6 +5469,10 @@ def sept21_nb_halfmac():
                 "vec_env_eval": True,
                 "len_rollout": len_rollout,
                 "bc_weight": 1.0,
+                "resample": True,
+                "policy_delay": 1,
+                "critic_ema": 1,
+                "update_ema_every": 5,
             }
             job_list.append(
                 job_id)
