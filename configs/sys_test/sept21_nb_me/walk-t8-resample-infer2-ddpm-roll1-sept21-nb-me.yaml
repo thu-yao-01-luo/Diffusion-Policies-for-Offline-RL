@@ -13,7 +13,7 @@ id: walk-t8-resample-infer2-ddpm-roll1-sept21-nb-me
 len_rollout: 1
 n_inf_steps: 2
 name: walk-t8-resample-infer2-ddpm-roll1-sept21-nb-me
-num_steps_per_epoch: 50000
+num_steps_per_epoch: 50
 online: false
 policy_delay: 1
 predict_epsilon: false

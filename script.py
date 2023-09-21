@@ -5559,7 +5559,7 @@ def sept21_nb_me():
                 "format": ['stdout', "wandb", "csv"],
                 "d4rl": True,            
                 "online": False,
-                "num_steps_per_epoch": 50000,
+                "num_steps_per_epoch": 50,
                 "n_inf_steps": infer_steps,
                 "discount2": 1.0,
                 "T": T,
@@ -5589,6 +5589,7 @@ def sept21_nb_me():
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="nb.py")
+        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path)
 
 if __name__ == "__main__":
     # jun22_all_env()
@@ -5717,5 +5718,5 @@ if __name__ == "__main__":
     # sept20_nb_dql()
     # sept20_nb_resample()
     # sept21_nb_halfmac()
-    # sept21_nb_pretrain()
+    sept21_nb_pretrain()
     sept21_nb_me()

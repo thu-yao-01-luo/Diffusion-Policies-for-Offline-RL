@@ -14,6 +14,7 @@ def offline_train(args: Config):
     args.output_dir = os.path.join(os.environ['MODEL_DIR'], f'{args.dir}', args.name)
     seed = args.seed
     output_dir = args.output_dir
+    os.makedirs(output_dir, exist_ok=True)
     torch.manual_seed(seed)
     np.random.seed(seed)
 
