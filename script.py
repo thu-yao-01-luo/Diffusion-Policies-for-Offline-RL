@@ -5449,7 +5449,7 @@ def sept21_nb_halfmac():
     infer_steps = 2
     for T in [8]:
         for len_rollout in [1, 2, 4, 8]:
-            job_id = f"{env_name[:4]}-t{T}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept21-nb-halfmac"
+            job_id = f"{env_name[:4]}-t{T}-resample-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept21-nb-halfmac"
             file_name = job_id + ".yaml"
             config = {
                 "predict_epsilon": False, 
