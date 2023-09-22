@@ -5755,7 +5755,7 @@ def sept23_nb_statelen():
     T = 8
     len_rollout = 1
     for env_name in env_names:
-        for state_len in [2, 4, 6, 8]:
+        for state_len in [2, 6, 8]:
             job_id = f"{env_name[:4]}-t{T}-sl{state_len}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept23-nb-statelen"
             file_name = job_id + ".yaml"
             config = {
@@ -5811,7 +5811,7 @@ def sept23_nb_action_len():
     T = 8
     len_rollout = 1
     for env_name in env_names:
-        for action_len in [2, 3, 4]:
+        for action_len in [2, 4]:
             job_id = f"{env_name[:4]}-t{T}-al{action_len}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept23-nb-action-len"
             file_name = job_id + ".yaml"
             config = {
@@ -5867,7 +5867,7 @@ def sept23_nb_evalsteps():
     T = 8
     len_rollout = 1
     for env_name in env_names:
-        for eval_steps in [1, 2, 3]:
+        for eval_steps in [1, 3]:
             job_id = f"{env_name[:4]}-t{T}-es{eval_steps}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept23-nb-evalsteps"
             file_name = job_id + ".yaml"
             config = {
