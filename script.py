@@ -5755,7 +5755,7 @@ def sept23_nb_statelen():
     T = 8
     len_rollout = 1
     for env_name in env_names:
-        for state_len in [2, 6, 8]:
+        for state_len in [2, 8]:
             job_id = f"{env_name[:4]}-t{T}-sl{state_len}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept23-nb-statelen"
             file_name = job_id + ".yaml"
             config = {
