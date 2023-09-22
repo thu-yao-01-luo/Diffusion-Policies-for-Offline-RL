@@ -5724,7 +5724,7 @@ def sept23_diffusion_bc_unit_test():
             "env_name": "halfcheetah-medium-v2", 
             "d4rl": True,            
             "online": False,
-            "num_steps_per_epoch": 500,
+            "num_steps_per_epoch": 50000,
             "bc_weight": 1.0,
             "num_epochs": 10000,
             "bc_sequence": bc_sequence,
@@ -5739,8 +5739,8 @@ def sept23_diffusion_bc_unit_test():
             os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
-        # run_python_file(job, file_paths[ind], main="nb.py")
-        run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path) 
+        run_python_file(job, file_paths[ind], main="nb.py")
+        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path) 
 
 def sept23_nb_statelen():
     file_paths = []
@@ -5755,7 +5755,7 @@ def sept23_nb_statelen():
     T = 8
     len_rollout = 1
     for env_name in env_names:
-        for state_len in [2, 8]:
+        for state_len in [2, 4, 6, 8]:
             job_id = f"{env_name[:4]}-t{T}-sl{state_len}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept23-nb-statelen"
             file_name = job_id + ".yaml"
             config = {
@@ -5811,7 +5811,7 @@ def sept23_nb_action_len():
     T = 8
     len_rollout = 1
     for env_name in env_names:
-        for action_len in [2, 4]:
+        for action_len in [2, 3, 4]:
             job_id = f"{env_name[:4]}-t{T}-al{action_len}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept23-nb-action-len"
             file_name = job_id + ".yaml"
             config = {
@@ -5867,7 +5867,7 @@ def sept23_nb_evalsteps():
     T = 8
     len_rollout = 1
     for env_name in env_names:
-        for eval_steps in [1, 3]:
+        for eval_steps in [1, 2, 3]:
             job_id = f"{env_name[:4]}-t{T}-es{eval_steps}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept23-nb-evalsteps"
             file_name = job_id + ".yaml"
             config = {
@@ -6042,4 +6042,6 @@ if __name__ == "__main__":
     # sept22_nb_tmac()
     # sept22_nb_tmacwandb()
     sept23_diffusion_bc_unit_test()
-    # sept23_nb_statelen()
+    sept23_nb_statelen()
+    sept23_nb_action_len()
+    sept23_nb_evalsteps()

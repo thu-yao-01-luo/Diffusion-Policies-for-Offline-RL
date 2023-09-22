@@ -11,6 +11,6 @@ format:
 id: t8-bcs1-sept23-diffusion-bc-unit-test
 name: t8-bcs1-sept23-diffusion-bc-unit-test
 num_epochs: 10000
-num_steps_per_epoch: 500
+num_steps_per_epoch: 50000
 online: false
 predict_epsilon: false
