@@ -5597,6 +5597,7 @@ def sept22_nb_tmac():
     config_dir = f"configs/sys_test/sept22_nb_tmac"
     os.makedirs(config_dir, exist_ok=True)
     env_names = ["hopper-medium-v2", "halfcheetah-medium-v2", "walker2d-medium-v2"]
+    # env_names = ["halfcheetah-medium-v2"]
     scheduler = "ddpm"
     infer_steps = 2
     T = 8

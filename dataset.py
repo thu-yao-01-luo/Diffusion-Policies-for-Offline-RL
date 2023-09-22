@@ -5,15 +5,16 @@ import numpy as np
 from demo_data_generator import data_generation
 
 def build_dataset(env_name, is_d4rl):
-    if is_d4rl:
-        env = gym.make(env_name)
-        dataset = d4rl.qlearning_dataset(env)
-        return dataset
-    elif env_name == "Demo-v0":
-        dataset = data_generation(action_type="medium", save_path="data/Demo-v0.hdf5")
-        return dataset
-    else:
-        raise NotImplementedError
+	if is_d4rl:
+		env = gym.make(env_name)
+		# dataset = d4rl.qlearning_dataset(env)
+		dataset = env.get_dataset()
+		return dataset
+	elif env_name == "Demo-v0":
+		dataset = data_generation(action_type="medium", save_path="data/Demo-v0.hdf5")
+		return dataset
+	else:
+		raise NotImplementedError
 
 class DatasetSampler:
     def __init__(self, dataset, device) -> None:
@@ -74,7 +75,9 @@ class DatasetTrajectorySampler(object):
 		self.action = torch.as_tensor(data['actions'], dtype=torch.float32)
 		self.next_state = torch.as_tensor(data['next_observations'], dtype=torch.float32)
 		self.reward = torch.as_tensor(data['rewards'], dtype=torch.float32).view(-1, 1)
-		self.not_done = 1. - torch.as_tensor(data['terminals'], dtype=torch.float32).view(-1, 1)
+		self.terminals = torch.as_tensor(data['terminals'], dtype=torch.float32).view(-1, 1)
+		self.not_done = 1. - self.terminals
+		self.time_outs = torch.as_tensor(data['timeouts'], dtype=torch.float32).view(-1, 1)
 		self.size = self.state.shape[0]
 		self.state_dim = self.state.shape[1]
 		self.action_dim = self.action.shape[1]
@@ -101,8 +104,10 @@ class DatasetTrajectorySampler(object):
 	def get_trajectory_indices(self):
 		trajectory_indices = []
 		trajectory_start = 0
+		print(torch.where(self.terminals == 1))
+		print(torch.where(self.time_outs == 1))
 		for i in range(self.size):
-			if self.not_done[i] == 1:
+			if self.terminals[i] == 0 and self.time_outs[i] == 0:
 				continue
 			else:
 				trajectory_indices.append((trajectory_start, i+1)) # [start, end)
@@ -112,9 +117,11 @@ class DatasetTrajectorySampler(object):
 	def get_action_indices(self):
 		assert self.trajectory_indices is not None
 		action_indices = []
+		print("len(self.trajectory_indices)", len(self.trajectory_indices))
 		for i in range(len(self.trajectory_indices)):
 			start = self.trajectory_indices[i][0]
 			end = self.trajectory_indices[i][1]
+			print("start", start, " end", end)
 			if end - start > self.action_len - 1:
 				action_indices.append((start, end - self.action_len + 1)) # [start, end)
 		return action_indices
@@ -123,7 +130,10 @@ class DatasetTrajectorySampler(object):
 		assert self.action_indices is not None
 		# merged_action = torch.zeros((len(self.action_indices), self.action_len, self.action_dim))
 		merged_action = []
+		print("len(self.action_indices)", len(self.action_indices))
 		for i in range(len(self.action_indices)):
+			print("i", i)
+			print("self.action_indices[i]", self.action_indices[i])
 			for j in range(self.action_indices[i][0], self.action_indices[i][1]):
 				start = j
 				end = j + self.action_len
