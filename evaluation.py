@@ -25,17 +25,37 @@ def eval_policy(args:Config, policy):
         actions = []
         inference_time = []
         ret = {}
+        action_pool = []
         # test scores and compute normalized scores
         for _ in range(eval_episodes):
             traj_return = 0.
             traj_length = 0
             state, done = eval_env.reset(), False
+            sampled_action = None
             while not done:
-                starting_time = time.time()
-                action = policy.sample_action(np.array(state))
-                inference_time.append(time.time() - starting_time)
+                if args.algo == "tmac":
+                    while action_pool == [] or sampled_action is None:
+                        starting_time = time.time()
+                        sampled_action = policy.sample_action(np.array(state))
+                        inference_time.append(time.time() - starting_time)
+                        if type(sampled_action) is np.ndarray:
+                            action_pool.append(sampled_action)
+                        elif type(sampled_action) is list:
+                            action_pool.extend(sampled_action)
+                        elif sampled_action is None:
+                            continue
+                        else:
+                            raise NotImplementedError
+                    action = action_pool.pop(0)
+                else:
+                    starting_time = time.time()
+                    action = policy.sample_action(np.array(state))
+                    inference_time.append(time.time() - starting_time)
                 actions_abs.append(np.mean(np.abs(action)))
                 state, reward, done, _ = eval_env.step(action)
+                if args.algo == "tmac" and done:
+                    # policy.sample_count = 0
+                    policy.sample_states = []
                 traj_return += reward
                 traj_length += 1
             scores.append(traj_return)
@@ -69,6 +89,7 @@ def eval_policy(args:Config, policy):
                 avg_norm_score, std_norm_score))
         # check the local optimality
         if env_name == 'Demo-v0':
+            raise NotImplementedError
             local_opt = True
             state, done = eval_env.reset(), False
             eval_env.set_state(np.array([-5, 0]))
@@ -82,9 +103,11 @@ def eval_policy(args:Config, policy):
             f"Evaluation over {eval_episodes} episodes: {avg_reward:.2f}")
         # animation 
         if need_animation:
+            raise NotImplementedError
             ims = animation(eval_env, vis_q, policy, algo)
             logger_zhiao.animate(ims, f'{args.algo}_{args.T}_{args.env_name}_bcw{args.bc_weight}.mp4')
         if need_entropy_test:
+            raise NotImplementedError
             # the state is the last state of test(for mujoco, it is suitable)
             if args.env_name == 'Demo-v0':
                 state = eval_env.reset()
@@ -104,6 +127,7 @@ def eval_policy(args:Config, policy):
         env_fn = lambda: gym.make(env_name)
         cpus = args.num_cpu if args.num_cpu is not None else 2
         assert cpus > 1
+        assert args.trajectory == False
         eval_env = env_fn()
         vec_eval_env = SubprocVecEnv([env_fn for i in range(cpus)])
         # max_len = env_fn().max_episode_steps

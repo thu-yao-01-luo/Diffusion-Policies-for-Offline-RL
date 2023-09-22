@@ -67,3 +67,209 @@ class DatasetSamplerNP(object):
 			self.reward[ind].to(self.device),
 			self.not_done[ind].to(self.device)
 		)
+
+class DatasetTrajectorySampler(object):
+	def __init__(self, data, device, state_len=1, action_len=1, eval_steps=1, gamma=0.99):
+		self.state = torch.as_tensor(data['observations'], dtype=torch.float32)
+		self.action = torch.as_tensor(data['actions'], dtype=torch.float32)
+		self.next_state = torch.as_tensor(data['next_observations'], dtype=torch.float32)
+		self.reward = torch.as_tensor(data['rewards'], dtype=torch.float32).view(-1, 1)
+		self.not_done = 1. - torch.as_tensor(data['terminals'], dtype=torch.float32).view(-1, 1)
+		self.size = self.state.shape[0]
+		self.state_dim = self.state.shape[1]
+		self.action_dim = self.action.shape[1]
+		self.device = device
+		self.state_len = state_len
+		self.action_len = action_len
+		self.trajectory_indices = self.get_trajectory_indices()	# list of tuples (start, end)
+		self.action_indices = self.get_action_indices()	# list of tuples (start, end)
+		self.merged_action = self.merge_action()
+		self.merged_action_len = self.merged_action.shape[0]
+		self.merged_action_dim = self.merged_action.shape[1]
+		self.merged_state = self.merge_state()
+		self.merged_state_len = self.merged_state.shape[0]
+		self.merged_state_dim = self.merged_state.shape[1]
+		assert self.merged_action_len == self.merged_state_len
+		self.eval_steps = eval_steps
+		assert self.eval_steps <= self.state_len and self.eval_steps <= self.action_len
+		self.merged_next_state = self.merge_next_state()
+		self.gamma = gamma
+		self.merged_reward = self.merge_reward()
+		self.merged_terminal = self.merge_terminal()
+		self.merged_not_done = 1. - self.merged_terminal
+		
+	def get_trajectory_indices(self):
+		trajectory_indices = []
+		trajectory_start = 0
+		for i in range(self.size):
+			if self.not_done[i] == 1:
+				continue
+			else:
+				trajectory_indices.append((trajectory_start, i+1)) # [start, end)
+				trajectory_start = i+1
+		return trajectory_indices
+  
+	def get_action_indices(self):
+		assert self.trajectory_indices is not None
+		action_indices = []
+		for i in range(len(self.trajectory_indices)):
+			start = self.trajectory_indices[i][0]
+			end = self.trajectory_indices[i][1]
+			if end - start > self.action_len - 1:
+				action_indices.append((start, end - self.action_len + 1)) # [start, end)
+		return action_indices
+  
+	def merge_action(self):
+		assert self.action_indices is not None
+		# merged_action = torch.zeros((len(self.action_indices), self.action_len, self.action_dim))
+		merged_action = []
+		for i in range(len(self.action_indices)):
+			for j in range(self.action_indices[i][0], self.action_indices[i][1]):
+				start = j
+				end = j + self.action_len
+				merged_action.append(self.action[start:end].view(-1))
+		merged_action = torch.stack(merged_action, dim=0)
+		return merged_action
+
+	def merge_state(self):
+		assert self.action_indices is not None
+		merged_state = []
+		for i in range(len(self.action_indices)):
+			for j in range(self.action_indices[i][0], self.action_indices[i][1]):
+				# begin = j - self.state_len + 1
+				start = max(self.action_indices[i][0], j - self.state_len + 1)
+				end = j	+ 1 # open
+				if end - start < self.state_len:
+					repeated_start = self.state[start].repeat(self.state_len - (end - start), 1)
+					merged_state.append(torch.cat((repeated_start, self.state[start:end]), dim=0).view(-1))
+				else:
+					merged_state.append(self.state[start:end].view(-1))
+		merged_state = torch.stack(merged_state, dim=0)
+		return merged_state
+
+	def merge_next_state(self):
+		assert self.action_indices is not None
+		merged_next_state = []
+		for i in range(len(self.action_indices)):
+			for j in range(self.action_indices[i][0], self.action_indices[i][1]):
+				end = j + self.eval_steps # open
+				start = max(self.action_indices[i][0], end - self.state_len)
+				if end - start < self.state_len:
+					repeated_start = self.state[start].repeat(self.state_len - (end - start), 1)
+					merged_next_state.append(torch.cat((repeated_start, self.state[start:end]), dim=0).view(-1))
+				else:
+					merged_next_state.append(self.next_state[start:end].view(-1))
+		merged_next_state = torch.stack(merged_next_state, dim=0)
+		return merged_next_state
+
+	def merge_reward(self):
+		assert self.action_indices is not None
+		merged_reward = []
+		coef = torch.tensor([self.gamma**k for k in range(self.eval_steps)])
+		for i in range(len(self.action_indices)):
+			for j in range(self.action_indices[i][0], self.action_indices[i][1]):
+				start = j
+				end = j + self.eval_steps 	
+				merged_reward.append((self.reward[start:end].view(-1) * coef).sum())
+		merged_reward = torch.stack(merged_reward, dim=0).reshape(-1, 1)
+		return merged_reward
+
+	def merge_terminal(self):
+		tmp = torch.zeros((self.merged_action.shape[0],))
+		index = 0
+		for i in range(len(self.action_indices)):
+			span = self.action_indices[i][1] - self.action_indices[i][0]
+			index = index + span
+			tmp[index - 1] = 1
+		return tmp.reshape(-1, 1)
+
+	def sample(self, batch_size):
+		ind = torch.randint(0, len(self.action_indices), size=(batch_size,))
+		return (
+			self.merged_state[ind].to(self.device),
+			self.merged_action[ind].to(self.device),
+			self.merged_next_state[ind].to(self.device),
+			self.merged_reward[ind].to(self.device),
+			self.merged_not_done[ind].to(self.device)
+		)
+		# else:
+		# 	ind = torch.randint(0, self.size, size=(batch_size,))
+		# 	return (
+		# 		self.state[ind].to(self.device),
+		# 		self.action[ind].to(self.device),
+		# 		self.next_state[ind].to(self.device),
+		# 		self.reward[ind].to(self.device),
+		# 		self.not_done[ind].to(self.device)
+		# 	)
+
+import unittest
+import torch
+import numpy as np
+
+# Import the DatasetTrajectorySampler class here
+
+class TestDatasetTrajectorySampler(unittest.TestCase):
+    def setUp(self):
+        # Create a sample data dictionary
+        data = {
+            'observations': np.random.rand(100, 5),         # Sample state data
+            'actions': np.random.rand(100, 2),             # Sample action data
+            'next_observations': np.random.rand(100, 5),    # Sample next state data
+            'rewards': np.random.rand(100),                # Sample reward data
+            'terminals': np.random.randint(2, size=100),   # Sample terminal data (0 or 1)
+        }
+
+        device = 'cpu'  # You can use 'cuda' if you have a GPU
+
+        # Initialize the DatasetTrajectorySampler with sample data
+        self.sampler = DatasetTrajectorySampler(data, device=device)
+
+    def test_trajectory_indices(self):
+        # Test if trajectory_indices returns a list of tuples
+        self.assertTrue(isinstance(self.sampler.trajectory_indices, list))
+        self.assertTrue(isinstance(self.sampler.trajectory_indices[0], tuple))
+
+    def test_action_indices(self):
+        # Test if action_indices returns a list of tuples
+        self.assertTrue(isinstance(self.sampler.action_indices, list))
+        self.assertTrue(isinstance(self.sampler.action_indices[0], tuple))
+
+    def test_merge_action(self):
+        # Test if merge_action returns a torch.Tensor
+        merged_action = self.sampler.merge_action()
+        self.assertTrue(isinstance(merged_action, torch.Tensor))
+
+    def test_merge_state(self):
+        # Test if merge_state returns a torch.Tensor
+        merged_state = self.sampler.merge_state()
+        self.assertTrue(isinstance(merged_state, torch.Tensor))
+
+    def test_merge_next_state(self):
+        # Test if merge_next_state returns a torch.Tensor
+        merged_next_state = self.sampler.merge_next_state()
+        self.assertTrue(isinstance(merged_next_state, torch.Tensor))
+
+    def test_merge_reward(self):
+        # Test if merge_reward returns a torch.Tensor
+        merged_reward = self.sampler.merge_reward()
+        self.assertTrue(isinstance(merged_reward, torch.Tensor))
+
+    def test_merge_terminal(self):
+        # Test if merge_terminal returns a torch.Tensor
+        merged_terminal = self.sampler.merge_terminal()
+        self.assertTrue(isinstance(merged_terminal, torch.Tensor))
+
+    def test_sample_trajectory(self):
+        # Test if sample method with trajectory=True returns the expected tensors
+        batch_size = 5
+        sampled_data = self.sampler.sample(batch_size)
+
+        # Check the shapes of the sampled tensors
+        self.assertEqual(sampled_data[0].shape, (batch_size, self.sampler.merged_state_dim))
+        self.assertEqual(sampled_data[1].shape, (batch_size, self.sampler.merged_action_dim))
+        self.assertEqual(sampled_data[2].shape, (batch_size, self.sampler.merged_state_dim))
+        self.assertEqual(sampled_data[3].shape, (batch_size, 1))
+        self.assertEqual(sampled_data[4].shape, (batch_size, 1))
+
+if __name__ == '__main__':
+    unittest.main()

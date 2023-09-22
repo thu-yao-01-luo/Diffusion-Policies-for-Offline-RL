@@ -6,6 +6,7 @@ import utils.logger_zhiao as logger_zhiao
 import time
 from dataset import build_dataset
 from dataset import DatasetSamplerNP as DatasetSampler
+from dataset import DatasetTrajectorySampler
 from evaluation import eval_policy
 from config import Config
 
@@ -33,7 +34,17 @@ def offline_train(args: Config):
     best_nreward = -np.inf
 
     dataset = build_dataset(env_name=args.env_name, is_d4rl=args.d4rl) # TODO: build dataset 
-    data_sampler = DatasetSampler(dataset, device)
+    if args.trajectory:
+        data_sampler = DatasetTrajectorySampler(
+            data=dataset, 
+            device=device, 
+            state_len=args.state_len,
+            action_len=args.action_len,
+            eval_steps=args.eval_steps,
+            gamma=args.discount,
+        )
+    else:
+        data_sampler = DatasetSampler(dataset, device)
     if args.algo == 'dac':
         from agents.nbac import Diffusion_AC as Agent
         agent = Agent(state_dim=obs_dim,
@@ -69,12 +80,19 @@ def offline_train(args: Config):
                 max_action=act_limit,
                 device=device,
                 args=args)
+    elif args.algo == "tmac":
+        from agents.tmac import Diffusion_AC as Agent
+        agent = Agent(state_dim=obs_dim,
+                action_dim=act_dim,
+                max_action=act_limit,
+                device=device,
+                args=args)
     else:
         raise NotImplementedError
     for t in range(args.num_epochs):
         steps = args.num_steps_per_epoch
         # if args.algo == 'dac' or args.algo == 'dql' or args.algo == 'bc' or args.algo == 'pac' or args.algo == 'mac':
-        if args.algo in ["dac", "dql", "bc", "pac", "mac"]:
+        if args.algo in ["dac", "dql", "bc", "pac", "mac", "tmac"]:
             starting_time = time.time()
             loss_metric = agent.train(
                         replay_buffer=data_sampler,

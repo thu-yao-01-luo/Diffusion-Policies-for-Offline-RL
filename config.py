@@ -108,3 +108,8 @@ class Config:
     use_clipped_model_output: bool = False
     vec_env_eval: bool = False
     len_rollout: int = 1
+    trajectory: bool = False
+    state_len: int = 1
+    action_len: int = 1
+    eval_steps: int = 1
+    
