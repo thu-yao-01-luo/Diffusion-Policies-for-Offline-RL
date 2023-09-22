@@ -5739,8 +5739,8 @@ def sept23_diffusion_bc_unit_test():
             os.makedirs(dir_path, exist_ok=True)
         git_log = os.path.join(dir_path, "git_log")
         os.system("git log -1 -2 -3 > " + git_log)
-        run_python_file(job, file_paths[ind], main="nb.py")
-        # run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path) 
+        # run_python_file(job, file_paths[ind], main="nb.py")
+        run_multi_py(job, file_paths[ind], main="nb.py", directory=dir_path) 
 
 def sept23_nb_statelen():
     file_paths = []
