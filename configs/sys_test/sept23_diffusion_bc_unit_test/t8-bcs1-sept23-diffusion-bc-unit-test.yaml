@@ -1,0 +1,16 @@
+T: 8
+algo: bc
+bc_sequence: true
+bc_weight: 1.0
+d4rl: true
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: t8-bcs1-sept23-diffusion-bc-unit-test
+name: t8-bcs1-sept23-diffusion-bc-unit-test
+num_epochs: 10000
+num_steps_per_epoch: 500
+online: false
+predict_epsilon: false

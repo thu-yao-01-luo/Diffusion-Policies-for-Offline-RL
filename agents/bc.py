@@ -74,6 +74,7 @@ class Diffusion_BC(object):
         self.noise_clip = args.noise_clip
         self.add_noise = args.add_noise
         self.resample = args.resample
+        self.bc_sequence = args.bc_sequence
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -93,7 +94,10 @@ class Diffusion_BC(object):
             # bc_loss = self.actor.p_losses(action, state, t).mean()
             # bc_loss = self.actor.loss(action, state).mean()
             starting_time = time.time()
-            bc_loss = F.mse_loss(self.actor.sample(state=state), action)
+            if self.bc_sequence:
+                bc_loss = F.mse_loss(self.actor.sample(state=state), action)
+            else:
+                bc_loss = self.actor.loss(action, state).mean()
             ending_time = time.time()
             actor_loss = bc_loss
             self.actor_optimizer.zero_grad()

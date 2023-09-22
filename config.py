@@ -112,4 +112,4 @@ class Config:
     state_len: int = 1
     action_len: int = 1
     eval_steps: int = 1
-    
+    bc_sequence: bool = False
