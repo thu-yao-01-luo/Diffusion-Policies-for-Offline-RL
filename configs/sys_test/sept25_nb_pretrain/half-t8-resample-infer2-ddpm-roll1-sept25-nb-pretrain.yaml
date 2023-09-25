@@ -1,0 +1,24 @@
+T: 8
+algo: mac
+bc_weight: 1.0
+critic_ema: 1
+d4rl: true
+discount2: 1.0
+env_name: halfcheetah-medium-v2
+format:
+- stdout
+- wandb
+- csv
+id: half-t8-resample-infer2-ddpm-roll1-sept25-nb-pretrain
+len_rollout: 1
+n_inf_steps: 2
+name: half-t8-resample-infer2-ddpm-roll1-sept25-nb-pretrain
+num_steps_per_epoch: 50000
+online: false
+policy_delay: 1
+predict_epsilon: false
+resample: true
+sampler_type: ddpm
+tune_bc_weight: false
+update_ema_every: 5
+vec_env_eval: true
