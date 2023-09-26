@@ -5,18 +5,18 @@ bc_weight: 1.0
 critic_ema: 1
 d4rl: true
 discount2: 1.0
-env_name: antmaze-medium-diverse-v0
-eta: 3.0
+env_name: antmaze-large-play-v0
+eta: 4.5
 eval_freq: 50
 eval_steps: 2
 format:
 - stdout
 - wandb
 - csv
-gn: 1.0
-grad_norm: 1.0
+gn: 10.0
+grad_norm: 10.0
 id: f{env_name}-roll{rollout}
-len_rollout: 8
+len_rollout: 1
 lr: 0.0003
 max_q_backup: true
 n_inf_steps: 2
@@ -30,7 +30,7 @@ resample: true
 reward_tune: cql_antmaze
 sampler_type: ddim
 state_len: 4
-top_k: 1
+top_k: 2
 trajectory: false
 tune_bc_weight: false
 update_ema_every: 5
