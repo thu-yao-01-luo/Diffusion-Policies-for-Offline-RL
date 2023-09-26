@@ -16,7 +16,7 @@ format:
 gn: 2.0
 grad_norm: 2.0
 id: f{env_name}-roll{rollout}
-len_rollout: 1
+len_rollout: 8
 lr: 0.001
 max_q_backup: true
 n_inf_steps: 2
