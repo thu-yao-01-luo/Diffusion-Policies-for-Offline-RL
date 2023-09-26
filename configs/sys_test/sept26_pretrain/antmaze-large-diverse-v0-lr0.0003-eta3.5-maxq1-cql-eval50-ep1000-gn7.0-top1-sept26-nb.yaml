@@ -16,7 +16,7 @@ format:
 gn: 7.0
 grad_norm: 7.0
 id: antmaze-large-diverse-v0-lr0.0003-eta3.5-maxq1-cql-eval50-ep1000-gn7.0-top1-sept26-nb
-len_rollout: 1
+len_rollout: 8
 lr: 0.0003
 max_q_backup: true
 n_inf_steps: 2
