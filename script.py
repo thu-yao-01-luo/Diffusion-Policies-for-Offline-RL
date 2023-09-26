@@ -5994,7 +5994,7 @@ def run_hyper(env_name, hyper, rollout=1, nautilus=True):
     gn = hyper['gn']
     top_k = hyper['top_k']
     # job_id = f"{env_name}-lr{lr}-eta{eta}-maxq{int(max_q_backup)}-{reward_tune[:3]}-eval{eval_freq}-ep{num_epochs}-gn{gn}-top{top_k}-sept26-nb"
-    job_id = "f{env_name}-roll{rollout}"
+    job_id = f"{env_name}-roll{rollout}"
     file_name = job_id + ".yaml"
     config = {
         "predict_epsilon": False, 
