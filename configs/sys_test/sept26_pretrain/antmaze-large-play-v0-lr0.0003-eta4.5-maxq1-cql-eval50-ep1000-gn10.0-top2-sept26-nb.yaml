@@ -16,7 +16,7 @@ format:
 gn: 10.0
 grad_norm: 10.0
 id: antmaze-large-play-v0-lr0.0003-eta4.5-maxq1-cql-eval50-ep1000-gn10.0-top2-sept26-nb
-len_rollout: 1
+len_rollout: 8
 lr: 0.0003
 max_q_backup: true
 n_inf_steps: 2
