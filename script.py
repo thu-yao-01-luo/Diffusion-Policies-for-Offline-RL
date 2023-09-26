@@ -6063,6 +6063,19 @@ def sept26_nb_ant(hyperparameters: dict):
     for env_name in replayenv:
         run_hyper(env_name, hyperparameters[env_name])
 
+def sept26_nb_ant_only(hyperparameters: dict):
+    antenv = [
+        "antmaze-umaze-v0",
+        "antmaze-umaze-diverse-v0",
+        "antmaze-medium-play-v0",
+        "antmaze-medium-diverse-v0",
+        "antmaze-large-play-v0",
+        "antmaze-large-diverse-v0",
+        ]
+    for env_name in antenv:
+        for rollout in [1, 8]:
+            run_hyper(env_name, hyperparameters[env_name], rollout=rollout)
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -6199,4 +6212,5 @@ if __name__ == "__main__":
     # sept23_nb_action_len()
     # sept23_nb_evalsteps()
     # sept25_nb_pretrain()
-    sept26_nb_ant(hyperparameters)
+    # sept26_nb_ant(hyperparameters)
+    sept26_nb_ant_only(hyperparameters)
