@@ -5,7 +5,7 @@ bc_weight: 1.0
 critic_ema: 1
 d4rl: true
 discount2: 1.0
-env_name: hopper-medium-replay-v2
+env_name: walker2d-medium-replay-v2
 eta: 1.0
 eval_freq: 50
 eval_steps: 2
@@ -30,7 +30,7 @@ resample: true
 reward_tune: 'no'
 sampler_type: ddim
 state_len: 4
-top_k: 2
+top_k: 1
 trajectory: false
 tune_bc_weight: false
 update_ema_every: 5
