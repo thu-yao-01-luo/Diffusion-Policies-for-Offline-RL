@@ -165,6 +165,7 @@ class Diffusion_AC(object):
         self.critic_ema = args.critic_ema
         self.len_rollout = args.len_rollout
         self.sample_states = []
+        self.max_q_backup = args.max_q_backup
 
     def step_ema(self):
         if self.step < self.step_start_ema:

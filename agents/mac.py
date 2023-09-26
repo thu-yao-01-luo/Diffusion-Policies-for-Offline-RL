@@ -168,6 +168,17 @@ class Diffusion_AC(object):
             return
         self.ema.update_model_average(self.ema_model, self.actor)
 
+    def compute_target_v(self, next_state):
+        # next_state: (b, o)
+        # target_v: (b, 1)        
+        if self.max_q_backup:
+            next_state_repeat = torch.repeat_interleave(next_state, repeats=20, dim=0) # (20b, o)
+            target_v_repeat = self.critic_target.v(next_state_repeat) # (20b,)
+            target_v = target_v_repeat.reshape(-1, 20).max(dim=1)[0] # (b,)
+            return target_v.reshape(-1, 1) # (b, 1)
+        else:
+            return self.critic_target.v(next_state) # (b, 1)
+
     def train(self, replay_buffer, iterations, batch_size=100, log_writer=None):
         metric = {'bc_loss': [], 'ql_loss': [], 'actor_loss': [],
                   'critic_loss': [], 'consistency_loss': [], 'MSBE_loss': [], "bc_weight": [], "target_q": [], 
@@ -183,7 +194,8 @@ class Diffusion_AC(object):
             reward = reward.reshape(-1, 1)
             not_done = not_done.reshape(-1, 1)
             with torch.no_grad():
-                target_v = self.critic_target.v(next_state)
+                # target_v = self.critic_target.v(next_state)
+                target_v = self.compute_target_v(next_state)
                 target_q = (reward + not_done * self.discount * target_v) # (b,) 
             q1, q2 = self.critic.q(state, action) # (b, 1)
             MSBE_loss = F.mse_loss(q1, target_q) + F.mse_loss(q2, target_q) # (b,)->(1,)

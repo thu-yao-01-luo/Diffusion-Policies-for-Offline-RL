@@ -5960,6 +5960,108 @@ def sept25_nb_pretrain():
         os.system("git log -1 -2 -3 > " + git_log)
         run_python_file(job, file_paths[ind], main="nb.py")
 
+hyperparameters = {
+    'halfcheetah-medium-v2':         {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 9.0,  'top_k': 1},
+    'hopper-medium-v2':              {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 9.0,  'top_k': 2},
+    'walker2d-medium-v2':            {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 1.0,  'top_k': 1},
+    'halfcheetah-medium-replay-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 2.0,  'top_k': 0},
+    'hopper-medium-replay-v2':       {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 4.0,  'top_k': 2},
+    'walker2d-medium-replay-v2':     {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 4.0,  'top_k': 1},
+    'halfcheetah-medium-expert-v2':  {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 7.0,  'top_k': 0},
+    'hopper-medium-expert-v2':       {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 5.0,  'top_k': 2},
+    'walker2d-medium-expert-v2':     {'lr': 3e-4, 'eta': 1.0,   'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 4000, 'gn': 5.0,  'top_k': 1},
+    'antmaze-umaze-v0':              {'lr': 3e-4, 'eta': 0.5,   'max_q_backup': False,  'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 2.0,  'top_k': 2},
+    'antmaze-umaze-diverse-v0':      {'lr': 3e-4, 'eta': 2.0,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 3.0,  'top_k': 2},
+    'antmaze-medium-play-v0':        {'lr': 1e-3, 'eta': 2.0,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 2.0,  'top_k': 1},
+    'antmaze-medium-diverse-v0':     {'lr': 3e-4, 'eta': 3.0,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 1.0,  'top_k': 1},
+    'antmaze-large-play-v0':         {'lr': 3e-4, 'eta': 4.5,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 2},
+    'antmaze-large-diverse-v0':      {'lr': 3e-4, 'eta': 3.5,   'max_q_backup': True,   'reward_tune': 'cql_antmaze', 'eval_freq': 50, 'num_epochs': 1000, 'gn': 7.0,  'top_k': 1},
+    'pen-human-v1':                  {'lr': 3e-5, 'eta': 0.15,  'max_q_backup': False,  'reward_tune': 'normalize',   'eval_freq': 50, 'num_epochs': 1000, 'gn': 7.0,  'top_k': 2},
+    'pen-cloned-v1':                 {'lr': 3e-5, 'eta': 0.1,   'max_q_backup': False,  'reward_tune': 'normalize',   'eval_freq': 50, 'num_epochs': 1000, 'gn': 8.0,  'top_k': 2},
+    'kitchen-complete-v0':           {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 250, 'gn': 9.0,  'top_k': 2},
+    'kitchen-partial-v0':            {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 2},
+    'kitchen-mixed-v0':              {'lr': 3e-4, 'eta': 0.005, 'max_q_backup': False,  'reward_tune': 'no',          'eval_freq': 50, 'num_epochs': 1000, 'gn': 10.0, 'top_k': 0},
+}
+
+def run_hyper(env_name, hyper, rollout=1, nautilus=True):
+    lr = hyper['lr']
+    eta = hyper['eta']
+    max_q_backup = hyper['max_q_backup']
+    reward_tune = hyper['reward_tune']
+    eval_freq = hyper['eval_freq']
+    num_steps_per_epoch = eval_freq * 100
+    num_epochs = hyper['num_epochs']
+    gn = hyper['gn']
+    top_k = hyper['top_k']
+    job_id = f"{env_name}-lr{lr}-eta{eta}-maxq{int(max_q_backup)}-{reward_tune[:3]}-eval{eval_freq}-ep{num_epochs}-gn{gn}-top{top_k}-sept26-nb"
+    file_name = job_id + ".yaml"
+    config = {
+        "predict_epsilon": False, 
+        "format": ['stdout', "wandb", "csv"],
+        "d4rl": True,            
+        "online": False,
+        "num_steps_per_epoch": num_steps_per_epoch,
+        "n_inf_steps": 2,
+        "discount2": 1.0,
+        "T": 8,
+        # "algo": "tmac",
+        "algo": "mac",
+        "env_name": env_name,
+        "tune_bc_weight": False,
+        "name": job_id,
+        "id": job_id,
+        "sampler_type": "ddim",
+        # "vec_env_eval": False,
+        "vec_env_eval": True,
+        "len_rollout": rollout,
+        "bc_weight": 1.0,
+        "resample": True,
+        "policy_delay": 2,
+        "critic_ema": 1,
+        "update_ema_every": 5,
+        # "trajectory": True,
+        "trajectory": False,
+        "state_len": 4,
+        "action_len": 3,
+        "eval_steps": 2,
+        "lr": lr,
+        "eta": eta,
+        "max_q_backup": max_q_backup,
+        "reward_tune": reward_tune,
+        "eval_freq": eval_freq,
+        "num_epochs": num_epochs,
+        "gn": gn,
+        "grad_norm": gn,
+        "top_k": top_k,
+    }
+    filename = os.path.join("configs/sys_test/sept26_pretrain/", file_name)
+    make_config_file(filename, config)
+    if nautilus:
+        run_python_file(job_id, filename, main="nb.py")
+    else:
+        run_multi_py(job_id, filename, main="nb.py", directory="inter_result/sys_test/sept26_pretrain")
+
+def sept26_nb_ant(hyperparameters: dict):
+    antenv = [
+        "antmaze-umaze-v0",
+        "antmaze-umaze-diverse-v0",
+        "antmaze-medium-play-v0",
+        "antmaze-medium-diverse-v0",
+        "antmaze-large-play-v0",
+        "antmaze-large-diverse-v0",
+        ]
+    replayenv = [
+        'halfcheetah-medium-v2',
+        'halfcheetah-medium-replay-v2',
+        'hopper-medium-replay-v2',
+        'walker2d-medium-replay-v2',
+    ]
+    for env_name in antenv:
+        for rollout in [1, 8]:
+            run_hyper(env_name, hyperparameters[env_name], rollout=rollout)
+    for env_name in replayenv:
+        run_hyper(env_name, hyperparameters[env_name])
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -6095,4 +6197,5 @@ if __name__ == "__main__":
     # sept23_nb_statelen()
     # sept23_nb_action_len()
     # sept23_nb_evalsteps()
-    sept25_nb_pretrain()
+    # sept25_nb_pretrain()
+    sept26_nb_ant(hyperparameters)
