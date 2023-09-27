@@ -115,7 +115,7 @@ class DatasetTrajectorySampler(object):
 		self.reward = torch.as_tensor(data['rewards'], dtype=torch.float32).view(-1, 1)
 		self.terminals = torch.as_tensor(data['terminals'], dtype=torch.float32).view(-1, 1)
 		self.not_done = 1. - self.terminals
-		self.time_outs = torch.as_tensor(data['timeouts'], dtype=torch.float32).view(-1, 1)
+		self.timeouts = torch.as_tensor(data['timeouts'], dtype=torch.float32).view(-1, 1)
 		self.size = self.state.shape[0]
 		self.state_dim = self.state.shape[1]
 		self.action_dim = self.action.shape[1]
@@ -143,9 +143,9 @@ class DatasetTrajectorySampler(object):
 		trajectory_indices = []
 		trajectory_start = 0
 		print(torch.where(self.terminals == 1))
-		print(torch.where(self.time_outs == 1))
+		print(torch.where(self.timeouts == 1))
 		for i in range(self.size):
-			if self.terminals[i] == 0 and self.time_outs[i] == 0:
+			if self.terminals[i] == 0 and self.timeouts[i] == 0:
 				continue
 			else:
 				trajectory_indices.append((trajectory_start, i+1)) # [start, end)
