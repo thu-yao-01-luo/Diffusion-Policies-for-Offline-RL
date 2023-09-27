@@ -6,8 +6,8 @@ bc_weight: 1.0
 critic_ema: 1
 d4rl: true
 discount2: 1.0
-env_name: antmaze-medium-diverse-v0
-eta: 3.0
+env_name: walker2d-medium-v2
+eta: 1.0
 eval_freq: 50
 eval_steps: 2
 format:
@@ -16,19 +16,19 @@ format:
 - csv
 gn: 1.0
 grad_norm: 1.0
-id: antmaze-medium-diverse-v0-roll1
+id: walker2d-medium-v2-roll1
 len_rollout: 1
 lr: 0.0003
-max_q_backup: true
+max_q_backup: false
 n_inf_steps: 2
-name: antmaze-medium-diverse-v0-roll1
-num_epochs: 1000
+name: walker2d-medium-v2-roll1
+num_epochs: 4000
 num_steps_per_epoch: 5000
 online: false
 policy_delay: 2
 predict_epsilon: false
 resample: true
-reward_tune: cql_antmaze
+reward_tune: 'no'
 sampler_type: ddim
 state_len: 4
 top_k: 1
