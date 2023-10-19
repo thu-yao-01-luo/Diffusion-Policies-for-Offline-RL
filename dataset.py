@@ -84,18 +84,6 @@ class DatasetSamplerNP(object):
 			reward = (reward - 0.25) * 2.0
 		self.reward = reward
 
-		if reward_tune == 'normalize':
-			reward = (reward - reward.mean()) / reward.std()
-		elif reward_tune == 'iql_antmaze':
-			reward = reward - 1.0
-		elif reward_tune == 'iql_locomotion':
-			reward = iql_normalize(reward, self.not_done)
-		elif reward_tune == 'cql_antmaze':
-			reward = (reward - 0.5) * 4.0
-		elif reward_tune == 'antmaze':
-			reward = (reward - 0.25) * 2.0
-		self.reward = reward
-
 	def sample(self, batch_size):
 		ind = torch.randint(0, self.size, size=(batch_size,))
 

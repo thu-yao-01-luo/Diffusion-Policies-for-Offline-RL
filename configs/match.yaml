@@ -1,0 +1,30 @@
+T: 8
+n_inf_steps: 2
+algo: mac
+bc_weight: 1.0
+# coef: 0.0
+# MSBE_coef: 0.0
+# v_coef: 0.0
+# q_coef: 0.0
+MSBE_coef: 1.0
+v_coef: 1.0
+q_coef: 1.0
+d4rl: true
+# discount2: 0.99
+discount2: 1.0
+env_name: halfcheetah-medium-v2
+format:
+  - stdout
+  - wandb
+  - csv
+id: halfch-t8-oct16-dac-reg
+name: halfch-t8-oct16-dac-reg
+num_steps_per_epoch: 2000
+online: false
+predict_epsilon: false
+seed: 0
+tune_bc_weight: false
+sampler_type: ddpm
+# beta_schedule: "linear"
+beta_schedule: "vp"
+eval_episodes: 20

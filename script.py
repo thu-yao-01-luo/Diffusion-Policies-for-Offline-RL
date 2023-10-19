@@ -6091,6 +6091,65 @@ def sept28_nb_ant_only(hyperparameters: dict):
         for rollout in [1, 8]:
             run_hyper(env_name, hyperparameters[env_name], rollout=rollout)
 
+def oct19_vp():
+    file_paths = []
+    job_list = []
+    # task_id = f"sys_test/sept23_nb_evalsteps"
+    # config_dir = f"configs/sys_test/sept23_nb_evalsteps"
+    task_id = f"sys_test/oct19_vp"
+    config_dir = f"configs/sys_test/oct19_vp"
+    os.makedirs(config_dir, exist_ok=True)
+    env_names = ["hopper-medium-v2", "halfcheetah-medium-v2", "walker2d-medium-v2"]
+    # env_names = ["hopper-medium-v2", "halfcheetah-medium-v2"]
+    scheduler = "ddpm"
+    infer_steps = 2
+    T = 8
+    len_rollout = 1
+    for env_name in env_names:
+        # for eval_steps in [1, 3]:
+            # job_id = f"{env_name[:4]}-t{T}-es{eval_steps}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-sept23-nb-evalsteps"
+            job_id = f"{env_name[:4]}-t{T}-infer{infer_steps}-{scheduler[-4:]}-roll{len_rollout}-oct19-vp"
+            file_name = job_id + ".yaml"
+            config = {
+                "eval_episodes": 20,
+                "format": ['stdout', "wandb", "csv"],
+                "d4rl": True,            
+                "online": False,
+                "num_steps_per_epoch": 2000,
+                "n_inf_steps": infer_steps,
+                "discount2": 1.0,
+                "T": T,
+                "algo": "mac",
+                "env_name": env_name,
+                "tune_bc_weight": False,
+                "name": job_id,
+                "id": job_id,
+                "sampler_type": scheduler,
+                "vec_env_eval": False,
+                "len_rollout": len_rollout,
+                "bc_weight": 1.0,
+                # "resample": True,
+                # "policy_delay": 1,
+                "MSBE_coef": 1.0,
+                "v_coef": 1.0,
+                "q_coef": 1.0,
+                # "policy_delay": 2,
+                # "critic_ema": 1,
+                # "update_ema_every": 5,
+            }
+            job_list.append(
+                job_id)
+            filename = os.path.join(config_dir, file_name)
+            file_paths.append(filename)
+            make_config_file(filename, config)
+    for ind, job in enumerate(job_list):
+        dir_path = os.path.join("inter_result", task_id)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path, exist_ok=True)
+        git_log = os.path.join(dir_path, "git_log")
+        os.system("git log -1 -2 -3 > " + git_log)
+        run_python_file(job, file_paths[ind], main="nb.py")
+
 # def sept25_nb_pretrain():
 #     file_paths = []
 #     job_list = []
@@ -6279,4 +6338,5 @@ if __name__ == "__main__":
     # sept25_nb_pretrain()
     # sept26_nb_ant(hyperparameters)
     # sept26_nb_ant_only(hyperparameters)
-    sept28_nb_ant_only(hyperparameters)
+    # sept28_nb_ant_only(hyperparameters)
+    oct19_vp()

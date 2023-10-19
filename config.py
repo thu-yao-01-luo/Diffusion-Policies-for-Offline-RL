@@ -36,6 +36,8 @@ class Config:
     # coef: float = 0.2
     coef: float = 1.0 
     MSBE_coef: float = 1.0
+    q_coef: float = 1.0
+    v_coef: float = 1.0
     eta: float = 1.0
     compute_consistency: bool = True
     iql_style: str = "discount"

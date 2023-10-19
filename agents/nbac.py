@@ -47,7 +47,7 @@ class QNetwork(nn.Module):
             nn.Mish(),
             nn.Linear(t_dim * 2, t_dim),
         )
-        self.apply(weights_init_)
+        # self.apply(weights_init_)
 
     def forward(self, state, action, t):
         t = self.time_mlp(t)
@@ -109,6 +109,8 @@ class Diffusion_AC(object):
         self.lr_decay = args.lr_decay
         self.grad_norm = args.grad_norm
         self.MSBE_coef = args.MSBE_coef
+        self.q_coef = args.q_coef
+        self.v_coef = args.v_coef
         self.resample = args.resample
 
         self.step = 0
@@ -201,7 +203,7 @@ class Diffusion_AC(object):
             q_cur1, q_cur2 = self.critic.q(state, noisy_action, q_t)
             q_tar = target_v * self.discount2
             v_loss = F.mse_loss(q_cur1, q_tar) + F.mse_loss(q_cur2, q_tar) # (b, 1)->(1,)
-            critic_loss = v_loss + MSBE_loss * self.MSBE_coef
+            critic_loss = v_loss * self.v_coef + MSBE_loss * self.MSBE_coef
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             q_value = q1    
@@ -221,7 +223,7 @@ class Diffusion_AC(object):
                     q_loss = - q2.mean() / q1.abs().mean().detach()
                     q_value = q2
                 bc_loss = self.actor.loss(action, state).mean()
-                actor_loss = q_loss + self.bc_weight * bc_loss
+                actor_loss = q_loss * self.q_coef + self.bc_weight * bc_loss
                 self.actor_optimizer.zero_grad()
                 actor_loss.backward()
                 if self.grad_norm > 0:

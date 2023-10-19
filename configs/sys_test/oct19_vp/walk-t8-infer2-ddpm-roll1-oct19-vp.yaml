@@ -1,0 +1,23 @@
+MSBE_coef: 1.0
+T: 8
+algo: mac
+bc_weight: 1.0
+d4rl: true
+discount2: 1.0
+env_name: walker2d-medium-v2
+eval_episodes: 20
+format:
+- stdout
+- wandb
+- csv
+id: walk-t8-infer2-ddpm-roll1-oct19-vp
+len_rollout: 1
+n_inf_steps: 2
+name: walk-t8-infer2-ddpm-roll1-oct19-vp
+num_steps_per_epoch: 2000
+online: false
+q_coef: 1.0
+sampler_type: ddpm
+tune_bc_weight: false
+v_coef: 1.0
+vec_env_eval: false

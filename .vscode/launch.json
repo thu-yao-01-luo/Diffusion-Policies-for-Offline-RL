@@ -2,27 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Launch online.py with Environment Variables",
+      "name": "Python Debug",
       "type": "python",
       "request": "launch",
-      "program": "online.py",
+      "program": "${workspaceFolder}/nb.py",
       "args": [
-        "algo=dac",
-        // "algo=td3",
-        "T=1",
-        "g_mdp=False",
-        "norm_q=False",
-        "consistency_coef=0.0",
-        "add_noise=True",
-        "update_ema_every=1",
-        "name=dac-td3-proj",
-        "id=dac-td3-proj",
-        "predict_epsilon=False",
+        "--config",
+        "configs/match.yaml"
       ],
-      "console": "integratedTerminal",
       "env": {
-        "MODEL_DIR": "/home/kairong/Diffusion-Policies-for-Offline-RL"
-      }
+        "MODEL_DIR": "~/Diffusion-Policies-for-Offline-RL",
+        "CUDA_VISIBLE_DEVICES": "1",
+      },
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
     }
   ]
 }

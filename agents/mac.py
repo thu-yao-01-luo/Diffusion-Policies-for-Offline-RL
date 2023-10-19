@@ -109,6 +109,8 @@ class Diffusion_AC(object):
         self.lr_decay = args.lr_decay
         self.grad_norm = args.grad_norm
         self.MSBE_coef = args.MSBE_coef
+        self.v_coef = args.v_coef
+        self.q_coef = args.q_coef
         self.resample = args.resample
 
         self.step = 0
@@ -134,7 +136,7 @@ class Diffusion_AC(object):
         self.discount = args.discount
         self.discount2 = args.discount2
         self.tau = args.tau
-        self.eta = args.eta
+        # self.eta = args.eta
         self.device = device
         self.max_q_backup = args.max_q_backup
         self.compute_consistency = args.compute_consistency
@@ -220,7 +222,7 @@ class Diffusion_AC(object):
             q_cur1, q_cur2 = self.critic.q(state, noisy_action, q_t)
             q_tar = target_v * self.discount2
             v_loss = F.mse_loss(q_cur1, q_tar) + F.mse_loss(q_cur2, q_tar) # (b, 1)->(1,)
-            critic_loss = v_loss + MSBE_loss * self.MSBE_coef
+            critic_loss = v_loss * self.v_coef + MSBE_loss * self.MSBE_coef
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             if self.grad_norm > 0:
@@ -243,7 +245,7 @@ class Diffusion_AC(object):
                     q_loss = - q2.mean() / q1.abs().mean().detach()
                     q_value = q2
                 bc_loss = self.actor.loss(action, state).mean()
-                actor_loss = q_loss + self.bc_weight * bc_loss
+                actor_loss = self.q_coef * q_loss + self.bc_weight * bc_loss
                 self.actor_optimizer.zero_grad()
                 actor_loss.backward()
                 if self.grad_norm > 0:
