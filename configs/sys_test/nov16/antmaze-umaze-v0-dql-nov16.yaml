@@ -1,7 +1,4 @@
-T:
-- 2
-- 3
-- 4
+T: 8
 algo: ql
 env_name: antmaze-umaze-v0
 eta: 0.5
