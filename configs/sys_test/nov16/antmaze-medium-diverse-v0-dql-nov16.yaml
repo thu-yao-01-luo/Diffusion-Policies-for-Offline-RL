@@ -1,15 +1,11 @@
 T: 8
 algo: ql
 env_name: antmaze-medium-diverse-v0
-eta: 3.0
 format:
 - stdout
 - wandb
 - csv
 id: antmaze-medium-diverse-v0-dql-nov16
-lr: 0.0003
-max_q_backup: true
 name: antmaze-medium-diverse-v0-dql-nov16
 predict_epsilon: false
-reward_tune: cql_antmaze
 seed: 0
