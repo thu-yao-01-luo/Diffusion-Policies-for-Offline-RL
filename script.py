@@ -6212,6 +6212,7 @@ def run_hyper_nov16(env_name, hyper, nautilus=True):
     top_k = hyper['top_k']
     job_id = f"{env_name}-dql-nov16"
     file_name = job_id + ".yaml"
+    T = 8 
     config = {
         "lr": lr,
         "eta": eta,
