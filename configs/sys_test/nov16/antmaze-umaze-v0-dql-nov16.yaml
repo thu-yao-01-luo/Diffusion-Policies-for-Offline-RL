@@ -6,7 +6,6 @@ format:
 - stdout
 - wandb
 - csv
-gn: 2.0
 id: antmaze-umaze-v0-dql-nov16
 lr: 0.0003
 max_q_backup: false
