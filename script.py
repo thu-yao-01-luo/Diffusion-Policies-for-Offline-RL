@@ -6200,6 +6200,58 @@ def oct19_vp():
 #         os.system("git log -1 -2 -3 > " + git_log)
 #         run_python_file(job, file_paths[ind], main="nb.py")
 
+def run_hyper_nov16(env_name, hyper, nautilus=True):
+    lr = hyper['lr']
+    eta = hyper['eta']
+    max_q_backup = hyper['max_q_backup']
+    reward_tune = hyper['reward_tune']
+    eval_freq = hyper['eval_freq']
+    num_steps_per_epoch = eval_freq * 100
+    num_epochs = hyper['num_epochs']
+    gn = hyper['gn']
+    top_k = hyper['top_k']
+    job_id = f"{env_name}-dql-nov16"
+    file_name = job_id + ".yaml"
+    config = {
+        "lr": lr,
+        "eta": eta,
+        "max_q_backup": max_q_backup,
+        "reward_tune": reward_tune,
+        "eval_freq": eval_freq,
+        "num_epochs": num_epochs,
+        "gn": gn,
+        "num_steps_per_epoch": num_steps_per_epoch,
+        "seed": 0,
+        "T": T,
+        "algo": "ql",
+        "env_name": env_name,
+        "format": ['stdout', "wandb", "csv"],
+        "name": job_id,
+        "id": job_id,
+        "predict_epsilon": False,
+    }
+    filename = os.path.join("configs/sys_test/nov16/", file_name)
+    make_config_file(filename, config)
+    if nautilus:
+        # run_python_file(job_id, filename, main="nb.py")
+        run_python_file(job_id, filename, main="main.py")
+    else:
+        # run_multi_py(job_id, filename, main="nb.py", directory="inter_result/sys_test/sept26_pretrain")
+        run_multi_py(job_id, filename, main="main.py", directory="inter_result/sys_test/sept26_pretrain")
+
+def nov16_dql():
+    envs = [
+        "halfcheetah-medium-v2",
+        "hopper-medium-v2",
+        "walker2d-medium-v2",
+        "antmaze-umaze-v0",
+        "antmaze-umaze-diverse-v0",
+        "antmaze-medium-diverse-v0",
+        "antmaze-large-diverse-v0",
+    ]
+    for env in envs:
+        run_hyper_nov16(env, hyperparameters[env])
+
 if __name__ == "__main__":
     # jun22_all_env()
     # jun23_discount_all_env()
@@ -6339,4 +6391,5 @@ if __name__ == "__main__":
     # sept26_nb_ant(hyperparameters)
     # sept26_nb_ant_only(hyperparameters)
     # sept28_nb_ant_only(hyperparameters)
-    oct19_vp()
+    # oct19_vp()
+    nov16_dql()
