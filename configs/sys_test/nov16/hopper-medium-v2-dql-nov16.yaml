@@ -1,7 +1,4 @@
-T:
-- 2
-- 3
-- 4
+T: 8
 algo: ql
 env_name: hopper-medium-v2
 eta: 1.0
