@@ -6,7 +6,6 @@ format:
 - stdout
 - wandb
 - csv
-gn: 1.0
 id: walker2d-medium-v2-dql-nov16
 lr: 0.0003
 max_q_backup: false
