@@ -2,7 +2,6 @@ T: 8
 algo: ql
 env_name: hopper-medium-v2
 eta: 1.0
-eval_freq: 50
 format:
 - stdout
 - wandb
@@ -12,8 +11,6 @@ id: hopper-medium-v2-dql-nov16
 lr: 0.0003
 max_q_backup: false
 name: hopper-medium-v2-dql-nov16
-num_epochs: 4000
-num_steps_per_epoch: 5000
 predict_epsilon: false
 reward_tune: 'no'
 seed: 0
