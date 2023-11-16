@@ -6214,10 +6214,6 @@ def run_hyper_nov16(env_name, hyper, nautilus=True):
     file_name = job_id + ".yaml"
     T = 8 
     config = {
-        "lr": lr,
-        "eta": eta,
-        "max_q_backup": max_q_backup,
-        "reward_tune": reward_tune,
         "seed": 0,
         "T": T,
         "algo": "ql",
