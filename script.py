@@ -6218,7 +6218,6 @@ def run_hyper_nov16(env_name, hyper, nautilus=True):
         "eta": eta,
         "max_q_backup": max_q_backup,
         "reward_tune": reward_tune,
-        "gn": gn,
         "seed": 0,
         "T": T,
         "algo": "ql",
