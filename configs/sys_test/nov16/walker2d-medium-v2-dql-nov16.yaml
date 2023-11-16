@@ -1,15 +1,11 @@
 T: 8
 algo: ql
 env_name: walker2d-medium-v2
-eta: 1.0
 format:
 - stdout
 - wandb
 - csv
 id: walker2d-medium-v2-dql-nov16
-lr: 0.0003
-max_q_backup: false
 name: walker2d-medium-v2-dql-nov16
 predict_epsilon: false
-reward_tune: 'no'
 seed: 0
